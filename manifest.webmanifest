@@ -1,0 +1,10 @@
+{
+  "name": "Nonograms Original",
+  "short_name": "Nonograms",
+  "description": "A coffee-themed nonogram / picross puzzle game.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf3e6",
+  "theme_color": "#faf3e6"
+}

@@ -1,0 +1,2267 @@
+/* === Font registrations ===
+   All fonts in /fonts/ get @font-face entries here so they're available globally.
+   Active assignments live in --font-display / --font-body custom properties below —
+   swap a font by changing the variable, no need to touch element rules. */
+
+@font-face {
+  font-family: "Compagnon";
+  src: url("fonts/Compagnon-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Compagnon";
+  src: url("fonts/Compagnon-LightItalic.otf") format("opentype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Compagnon";
+  src: url("fonts/Compagnon-Roman.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Compagnon";
+  src: url("fonts/Compagnon-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Compagnon";
+  src: url("fonts/Compagnon-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aghja";
+  src: url("fonts/Aghja.otf") format("opentype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Carevo";
+  src: url("fonts/Carevo.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Showclick";
+  src: url("fonts/Showclick.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "LoversQuarrel";
+  src: url("fonts/LoversQuarrel-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Miama";
+  src: url("fonts/Miama.ttf") format("truetype");
+  font-display: swap;
+}
+
+/* === Coffee palette + typography custom properties ===
+   Change these to retheme. Per-folder themes will override --color-bg-grad-from/to,
+   --color-accent, and --color-fg via JS-applied CSS variables. */
+:root {
+  /* Base palette — warm earth tones */
+  --color-foam:     #faf3e6;  /* lightest warm cream, "milk foam" */
+  --color-oat:      #f1e7d3;  /* mid-light cream, "oat milk" */
+  --color-latte:    #e3cfa8;  /* warm tan, "latte body" */
+  --color-cinnamon: #c79870;  /* warm rust-brown, accent */
+  --color-mocha:    #8a4a2a;  /* rich rust, accent depth */
+  --color-cocoa:    #5a3220;  /* deep brown, secondary text */
+  --color-espresso: #2d1f17;  /* near-black, primary text/borders */
+  --color-steam:    #cfc4b0;  /* muted greybrown, dividers */
+  --color-cherry:   #b14040;  /* warm red for "unsaved" / errors */
+  --color-leaf:     #6b8e4e;  /* muted green for completed ✓ */
+
+  /* Solve / app surfaces — gradient endpoints */
+  --color-bg-grad-from: var(--color-foam);
+  --color-bg-grad-to:   var(--color-oat);
+  --color-surface:      #fdfaf2;
+  --color-surface-alt:  #f6ecd8;
+  --color-fg:           var(--color-espresso);
+  --color-fg-muted:     var(--color-cocoa);
+  --color-accent:       var(--color-mocha);
+  --color-divider:      var(--color-steam);
+
+  /* Typography — Aghja is primary, Compagnon scoped to the library subtree */
+  --font-display: "Aghja", "Compagnon", Georgia, serif;
+  --font-body:    "Aghja", "Compagnon", Georgia, serif;
+  --font-library: "Compagnon", Georgia, serif;
+  --font-script:  "LoversQuarrel", "Caveat", cursive;
+
+  /* Shadows */
+  --shadow-soft: 0 2px 8px rgba(45, 31, 23, 0.06), 0 1px 2px rgba(45, 31, 23, 0.04);
+  --shadow-lift: 0 6px 18px rgba(45, 31, 23, 0.10), 0 2px 4px rgba(45, 31, 23, 0.06);
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-y: auto;  /* allow scrolling when content exceeds viewport (esp. in itch iframe with fixed dims) */
+  font-family: var(--font-body);
+  font-weight: 500;
+  background: var(--color-bg-grad-from);   /* flat foam — radial glows removed per Dre's feedback */
+  background-attachment: fixed;
+  color: var(--color-fg);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 100vh;
+  padding: 0;
+}
+
+header {
+  align-self: center;
+  padding: 16px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+  padding: 16px 24px;
+  /* gradient plate removed per Dre's feedback — just flat page background */
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: var(--color-espresso);
+  line-height: 1;
+}
+
+button {
+  font: inherit;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--color-espresso);
+  background: linear-gradient(135deg, var(--color-oat) 0%, var(--color-surface) 100%);
+  color: var(--color-espresso);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.05s ease;
+  box-shadow: var(--shadow-soft);
+}
+/* Hover only on devices that actually hover (mouse). iOS Safari latches :hover
+   on tap and doesn't clear until the next tap elsewhere — that was making the
+   inactive Fill/Cross half look solid dark after a mode swap. */
+@media (hover: hover) {
+  button:hover { background: var(--color-espresso); color: var(--color-foam); }
+}
+button:active { transform: translateY(1px); box-shadow: none; }
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.puzzle {
+  display: grid;
+  grid-template-columns: minmax(80px, auto) min(46vw, 75vh, 620px);
+  grid-template-rows: minmax(80px, auto) auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.corner { grid-column: 1; grid-row: 1; }
+
+#colHints {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+}
+
+#rowHints {
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: repeat(10, 1fr);
+}
+
+.col-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 0 6px;         /* bottom padding lifts hint numbers off the board */
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-espresso);
+  gap: 1px;
+}
+/* Each hint number gets its line-height from a CSS custom property whose
+   value is measured at runtime (see script.js `getHintLineHeight`). Fallback
+   14px is used before measurement completes. This avoids relying on Aghja's
+   built-in font metrics for stacking behavior. */
+.col-hint > span {
+  line-height: var(--col-hint-line-height, 14px);
+  display: block;
+}
+
+.row-hint {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 4px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-espresso);
+  line-height: 1.15;
+  gap: 4px;
+}
+
+/* Same inset-shadow technique as cell dividers so the extension lines are
+   pixel-aligned with the board's internal quadrant lines. */
+.col-hint.divider-right { box-shadow: inset -1px 0 0 var(--color-espresso); }
+.row-hint.divider-bottom { box-shadow: inset 0 -1px 0 var(--color-espresso); }
+
+.col-hint.completed, .row-hint.completed {
+  color: var(--color-steam);
+  transition: color 0.15s ease;
+}
+
+#board {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  aspect-ratio: 1 / 1;
+  border: 2.5px solid var(--color-espresso);
+  background: var(--color-espresso);
+  gap: 1px;
+  touch-action: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lift);
+  position: relative;  /* anchor for the DEV-ONLY #profileNum overlay */
+}
+
+.cell {
+  background: var(--color-foam);
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cell-font-size, 22px);
+  color: var(--color-cocoa);
+  transition: background-color 0.05s linear;
+  /* Prevent ::before content from expanding the grid track at small cell sizes.
+     Without these, the ×-marker at 26px+ overflows tiny cells and pushes
+     the row taller than others, distorting the whole grid. */
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Thicker dividers every 5 cells, classic picross look. Dimension-agnostic. */
+.cell.col-divider { box-shadow: inset -1px 0 0 var(--color-espresso); }
+.cell.row-divider { box-shadow: inset 0 -1px 0 var(--color-espresso); }
+.cell.col-divider.row-divider { box-shadow: inset -1px 0 0 var(--color-espresso), inset 0 -1px 0 var(--color-espresso); }
+
+.cell.filled { background: var(--color-espresso); }
+.cell.crossed::before {
+  content: "×";
+  /* font-size relative to the cell so × scales with the board */
+  font-size: 1.2em;
+  font-weight: 500;
+  line-height: 1;
+}
+
+#board.won .cell.crossed::before { content: ""; }
+#board.won .cell { cursor: default; transition: background-color 0.4s ease; }
+
+.hint-help {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-fg-muted);
+}
+
+#puzzleList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: min(85vw, 600px);
+}
+
+.puzzle-btn {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 12px;
+  border: 2px solid #1a1a1a;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  position: relative;
+}
+.puzzle-btn:hover { background: #f0f0e8; }
+.puzzle-btn.active {
+  background: #1a1a1a;
+  color: #fff;
+}
+.puzzle-btn.completed::after {
+  content: " ✓";
+  color: #2a9d3f;
+  font-weight: 500;
+}
+.puzzle-btn.active.completed::after {
+  color: #6df59d;
+}
+
+.editor-only { display: none; }
+body.editor-mode .solve-only { display: none; }
+body.editor-mode .editor-only { display: flex; }
+body.editor-mode textarea.editor-only { display: block; }
+
+/* === User-mode (default for itch.io visitors) === */
+.user-only { display: none; }
+body.user-mode .user-only { display: flex; }
+body.user-mode #library { display: none; }
+body.user-mode #modeSwitch { display: none; }
+body.user-mode #fontDevBtn { display: none; }
+body.user-mode .editor-only { display: none !important; }
+
+/* Screen visibility driven by data-screen attribute on body */
+body.user-mode .user-screen { display: none; }
+body.user-mode[data-screen="home"] #screenHome { display: flex; }
+body.user-mode[data-screen="category"] #screenCategory { display: flex; }
+body.user-mode[data-screen="puzzles"] #screenPuzzles { display: flex; }
+
+/* Home screen is a clean landing: just the big title + Play. Hide the top
+   header (title/Reset/settings) here only — it stays on solve where those act. */
+body.user-mode[data-screen="home"] header { display: none; }
+
+/* Category + Puzzles screens: minimal header. Reset removed, logo centered on
+   the page, settings pinned to the top-right corner and sized to match the
+   (now-removed) Reset button's height. Scoped to these two screens only so the
+   solve-screen header layout stays untouched. */
+body.user-mode[data-screen="category"] header,
+body.user-mode[data-screen="puzzles"] header {
+  align-self: stretch;      /* full width so the logo can center on the page */
+  justify-content: center;  /* logo is the only in-flow child → it centers */
+  position: relative;       /* anchor for the absolutely-positioned gear */
+}
+body.user-mode[data-screen="category"] #resetBtn,
+body.user-mode[data-screen="puzzles"] #resetBtn {
+  display: none;
+}
+body.user-mode[data-screen="category"] #settingsBtn,
+body.user-mode[data-screen="puzzles"] #settingsBtn {
+  position: absolute;
+  top: 12px;             /* up toward the corner — experimental, easy to tune */
+  right: 16px;           /* and a little further right than the 24px padding */
+  padding: 8px 12px;     /* taller — matches Reset's 8px vertical padding */
+}
+/* Categories screen drops its Back button; the Puzzles screen keeps its own. */
+body.user-mode[data-screen="category"] #screenCategory .back-btn { display: none; }
+
+/* Hide solve UI on non-solve screens */
+body.user-mode:not([data-screen="solve"]) .puzzle-and-ref,
+body.user-mode:not([data-screen="solve"]) #solveStats,
+body.user-mode:not([data-screen="solve"]) #modeBtn,
+body.user-mode:not([data-screen="solve"]) .solve-bottom-bar,
+body.user-mode:not([data-screen="solve"]) .hint-help,
+body.user-mode:not([data-screen="solve"]) #solveFact,
+body.user-mode:not([data-screen="solve"]) #solveBack {
+  display: none !important;
+}
+body.user-mode[data-screen="solve"] #userNav { display: none; }
+body.user-mode[data-screen="solve"] #solveBack { display: inline-flex; }
+
+/* Screen layout */
+#userNav {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 700px;
+  padding: 32px 24px;
+  align-self: center;
+}
+.user-screen {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 64px;
+  font-weight: 500;
+  margin: 60px 0 36px;
+  color: var(--color-espresso);
+  letter-spacing: 2px;
+}
+.user-cta {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 500;
+  padding: 14px 48px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-mocha) 0%, var(--color-cocoa) 100%);
+  color: var(--color-foam);
+  cursor: pointer;
+  box-shadow: var(--shadow-lift);
+  letter-spacing: 1px;
+  min-width: 200px;
+}
+.user-cta:hover { background: linear-gradient(135deg, var(--color-cocoa) 0%, var(--color-espresso) 100%); }
+.user-cta:active { transform: translateY(1px); box-shadow: var(--shadow-soft); }
+
+.screen-heading {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 500;
+  margin: 8px 0 16px;
+  color: var(--color-espresso);
+  text-align: center;
+}
+.user-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.user-cat-item, .user-puzzle-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-alt) 100%);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: transform 0.05s ease, box-shadow 0.1s ease;
+}
+.user-cat-item:hover, .user-puzzle-item:hover {
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-1px);
+}
+.user-cat-item:active, .user-puzzle-item:active { transform: translateY(0); box-shadow: var(--shadow-soft); }
+.cat-name, .puz-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-espresso);
+}
+.cat-count, .puz-meta {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.user-puzzle-item.completed .puz-name { color: var(--color-leaf); }
+
+.back-btn {
+  align-self: flex-start;
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-md);
+  /* background inherits base button gradient (oat → surface) */
+  color: var(--color-espresso);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+@media (hover: hover) {
+  .back-btn:hover { background: var(--color-espresso); color: var(--color-foam); }
+}
+/* solveBack now lives in the header (icon-only "←"). No base margin needed. */
+
+.editor-controls {
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.editor-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.editor-row input[type="text"],
+.editor-row select {
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-sm);
+  margin-left: 6px;
+  background: var(--color-surface);
+  color: var(--color-espresso);
+  cursor: pointer;
+}
+.editor-row label { display: inline-flex; align-items: center; }
+
+.palette-btn {
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  box-shadow: var(--shadow-soft);
+}
+.palette-btn.selected {
+  outline: 3px solid var(--color-cinnamon);
+  outline-offset: 2px;
+}
+.palette-btn.eraser {
+  background: #fff;
+  background-image: linear-gradient(135deg, transparent 45%, #e63946 45%, #e63946 55%, transparent 55%);
+}
+.palette-btn.lighten,
+.palette-btn.darken {
+  position: relative;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+}
+
+#editorPalette {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.palette-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.palette-section.slots {
+  display: grid;
+  grid-template-columns: repeat(10, 32px);
+  gap: 4px;
+}
+.palette-slot {
+  width: 32px;
+  height: 32px;
+  border: 1.5px dashed var(--color-cinnamon);
+  border-radius: var(--radius-sm);
+  background: var(--color-foam);
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  font: inherit;
+  color: var(--color-cinnamon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.palette-slot.filled {
+  border-style: solid;
+  border-color: var(--color-espresso);
+}
+.palette-slot.empty::before {
+  content: "+";
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+}
+.palette-slot.selected {
+  outline: 3px solid var(--color-cinnamon);
+  outline-offset: 2px;
+}
+.palette-slot.eyedropper-target {
+  border-color: var(--color-mocha);
+  border-style: solid;
+  box-shadow: 0 0 0 2px var(--color-mocha);
+  animation: slot-pulse 1s ease-in-out infinite;
+}
+@keyframes slot-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px var(--color-mocha); }
+  50% { box-shadow: 0 0 0 4px var(--color-cinnamon); }
+}
+
+body.eyedropper-active #editorRefCanvas { cursor: crosshair; }
+body.eyedropper-active .cell { cursor: crosshair !important; }
+
+body.restore-mode #editorRefCanvas { cursor: crosshair; }
+.cell.restore-target {
+  outline: 3px solid var(--color-mocha);
+  outline-offset: -3px;
+  animation: restore-pulse 0.8s ease-in-out infinite;
+  z-index: 2;
+}
+@keyframes restore-pulse {
+  0%, 100% { outline-color: var(--color-mocha); }
+  50% { outline-color: var(--color-cinnamon); }
+}
+.palette-btn.lighten {
+  background: linear-gradient(135deg, #ffffff 0%, #d6d2c5 100%);
+  color: #2d1f17;
+}
+.palette-btn.darken {
+  background: linear-gradient(135deg, #555047 0%, #1a1410 100%);
+  color: #fdfaf2;
+}
+.palette-btn.lighten::before,
+.palette-btn.darken::before {
+  content: attr(data-glyph);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.palette-btn.custom {
+  border-style: dashed;
+}
+
+.picker-row {
+  gap: 12px;
+}
+.picker-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+.picker-label input[type="text"],
+.picker-label input[type="number"] {
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 4px 6px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-sm);
+  width: 5.5ch;
+  background: var(--color-surface);
+  color: var(--color-espresso);
+}
+.picker-label input#pickHex { width: 8ch; font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; }
+input[type="color"]#pickColor {
+  width: 40px;
+  height: 32px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  cursor: pointer;
+  background: var(--color-surface);
+}
+#pickAdd {
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--color-espresso);
+  background: var(--color-surface);
+  color: var(--color-espresso);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+#pickAdd:hover { background: var(--color-latte); }
+.picker-hint { font-size: 12px; color: var(--color-fg-muted); margin: 0; }
+
+/* In editor's truth-paint mode, F=0 cells display the user's "no background" 6×6 pattern:
+   #444139 outer ring + 4×4 interior alternating #f8f8f8 / #c6c4bd. Inline SVG with
+   shape-rendering='crispEdges' so the pattern stays sharp at any cell size. */
+body.editor-truth-mode .cell:not(.editor-truth) {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6' viewBox='0 0 6 6' shape-rendering='crispEdges'%3E%3Crect width='6' height='6' fill='%23444139'/%3E%3Crect x='1' y='1' width='4' height='4' fill='%23f8f8f8'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23c6c4bd'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23c6c4bd'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23c6c4bd'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23c6c4bd'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23c6c4bd'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23c6c4bd'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%23c6c4bd'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%23c6c4bd'/%3E%3C/svg%3E") !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  background-color: transparent !important;
+  image-rendering: pixelated;
+}
+body.editor-truth-mode .cell.accent::after { display: none !important; }
+
+#paintMode {
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-width: 130px;
+  box-shadow: var(--shadow-soft);
+}
+#paintMode.mode-truth {
+  background: linear-gradient(135deg, var(--color-espresso) 0%, var(--color-cocoa) 100%);
+  color: var(--color-foam);
+}
+#paintMode.mode-accent {
+  background: var(--color-foam);
+  color: var(--color-espresso);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0,
+    transparent 3px,
+    rgba(45, 31, 23, 0.18) 3px,
+    rgba(45, 31, 23, 0.18) 5px
+  );
+}
+.mode-help { font-size: 12px; color: var(--color-fg-muted); }
+
+.import-row {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.import-label {
+  font-size: 13px;
+  color: var(--color-fg);
+}
+.import-drop {
+  width: 110px;
+  height: 64px;
+  border: 2px dashed var(--color-cinnamon);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  text-align: center;
+  padding: 4px;
+  background: var(--color-foam);
+  overflow: hidden;
+  position: relative;
+}
+.import-drop.dragover {
+  background: var(--color-latte);
+  border-color: var(--color-mocha);
+  border-style: solid;
+}
+.import-drop.has-image {
+  border-style: solid;
+  padding: 0;
+}
+.import-drop img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+.import-help { font-size: 12px; color: var(--color-fg-muted); }
+
+.sync-row {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.fact-row, .source-row { flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.fact-label { display: flex; flex-direction: column; gap: 4px; flex: 1 1 100%; }
+.fact-label textarea {
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-espresso);
+  resize: vertical;
+  min-height: 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.source-label { display: flex; flex-direction: column; gap: 4px; flex: 1 1 200px; }
+.source-label input {
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-espresso);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.fact-card {
+  max-width: min(72vw, 480px);
+  padding: 14px 18px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, var(--color-foam) 0%, var(--color-surface-alt) 100%);
+  box-shadow: var(--shadow-soft);
+  text-align: left;
+}
+.fact-card.hidden { display: none; }
+.fact-card h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--color-espresso);
+}
+.fact-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-fg);
+}
+.fact-source {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--color-fg-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--color-cinnamon);
+}
+.fact-source:hover { color: var(--color-mocha); }
+.fact-source:empty { display: none; }
+
+.crop-content { width: min(680px, 92vw); }
+.crop-help {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-fg-muted);
+}
+.crop-container {
+  position: relative;
+  margin: 12px 0;
+  background: var(--color-espresso);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 60vh;
+  user-select: none;
+  touch-action: none;
+}
+#cropImage {
+  display: block;
+  max-width: 100%;
+  max-height: 60vh;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+#cropBox {
+  position: absolute;
+  border: 2px solid var(--color-foam);
+  box-shadow: 0 0 0 9999px rgba(45, 31, 23, 0.55);
+  cursor: move;
+  box-sizing: border-box;
+}
+.crop-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: var(--color-foam);
+  border: 1.5px solid var(--color-espresso);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+.crop-handle.nw { top: -8px;    left: -8px;    cursor: nwse-resize; }
+.crop-handle.ne { top: -8px;    right: -8px;   cursor: nesw-resize; }
+.crop-handle.se { bottom: -8px; right: -8px;   cursor: nwse-resize; }
+.crop-handle.sw { bottom: -8px; left: -8px;    cursor: nesw-resize; }
+.crop-actions { display: flex; gap: 12px; margin-top: 4px; justify-content: flex-end; }
+
+.puzzle-and-ref {
+  display: flex;
+  align-items: flex-end;  /* aligns reference's bottom (which equals board's bottom) with .puzzle's bottom */
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+#editorReference {
+  display: none;
+  position: relative;
+}
+body.editor-mode #editorReference.visible { display: block; }
+#editorRefCanvas {
+  display: block;
+  border: 2.5px solid var(--color-espresso);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lift);
+  background: var(--color-foam);
+}
+.ref-label {
+  position: absolute;
+  top: -22px;
+  left: 4px;
+  font-size: 11px;
+  color: var(--color-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* Library sidebar layout: full-height left column, ~25% wide */
+.layout {
+  display: flex;
+  width: 100%;
+  flex: 1 1 auto;
+  align-items: stretch;
+  align-self: stretch;
+  min-height: calc(100vh - 110px);
+}
+
+#library {
+  flex: 0 0 25%;
+  min-width: 240px;
+  max-width: 360px;
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-alt) 100%);
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+/* Library subtree uses Compagnon throughout; rest of the app is Aghja. */
+#library, #library * {
+  font-family: var(--font-library);
+  font-weight: 500;
+}
+
+.library-title {
+  font-size: 18px;
+  text-align: center;
+  margin: 0;
+  padding: 14px 8px;
+  border-bottom: 2px solid var(--color-espresso);
+  letter-spacing: 1.5px;
+  font-weight: 500;
+  color: var(--color-espresso);
+  background: linear-gradient(180deg, var(--color-foam) 0%, transparent 100%);
+}
+
+.library-sections {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.library-section {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 2px solid var(--color-espresso);
+  position: relative;
+  min-height: 0;
+}
+.library-section:first-child { border-top: none; }
+.library-section h2 {
+  font-weight: 500;
+  font-size: 13px;
+  margin: 0;
+  padding: 8px 12px 6px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, rgba(199, 152, 112, 0.18) 0%, transparent 100%);
+  border-bottom: 1px solid var(--color-divider);
+  color: var(--color-cocoa);
+}
+
+.library-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 6px 8px 14px;
+  min-height: 0;
+}
+.library-list { list-style: none; padding: 0; margin: 0; }
+.library-list li { margin: 0; }
+
+.add-folder-mini {
+  position: absolute;
+  bottom: -2px;
+  right: 8px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 1px 8px 1px 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 5;
+  line-height: 1;
+  color: var(--color-espresso);
+  box-shadow: var(--shadow-soft);
+}
+.add-folder-mini:hover { background: var(--color-latte); }
+.add-folder-mini svg { display: block; }
+
+/* Main column centers content */
+.layout main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 16px;
+}
+
+.folder-item { user-select: none; }
+.folder-header {
+  font-weight: 500;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-cocoa);
+}
+.folder-header::before { content: "▾"; font-size: 10px; transition: transform 0.1s; color: var(--color-mocha); }
+.folder-item.collapsed .folder-header::before { transform: rotate(-90deg); }
+.folder-header:hover { background: var(--color-latte); }
+.folder-children { list-style: none; padding-left: 14px; margin: 0; }
+.folder-item.collapsed .folder-children { display: none; }
+
+.puzzle-item {
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.1s ease;
+  font-weight: 400;
+}
+/* Need explicit override since #library * sets weight 500 */
+#library .puzzle-item { font-weight: 400; }
+.puzzle-item:hover { background: var(--color-latte); }
+.puzzle-item.active {
+  background: linear-gradient(135deg, var(--color-mocha) 0%, var(--color-cocoa) 100%);
+  color: var(--color-foam);
+}
+.puzzle-item.completed .check { color: var(--color-leaf); font-weight: 500; }
+.puzzle-item.active.completed .check { color: #b7dca0; }
+.puzzle-item.missing { color: var(--color-steam); }
+
+/* When a puzzle's context menu is open, gray out the item so the user
+   can tell which puzzle the menu is operating on. */
+.puzzle-item.context-target { color: #999; }
+.puzzle-item.context-target.active { color: #aaa; background: #555; }
+
+body.editor-mode .puzzle-item { cursor: default; opacity: 0.85; }
+body.editor-mode .puzzle-item:hover { background: transparent; }
+
+
+/* Context menu */
+#contextMenu {
+  position: fixed;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-md);
+  padding: 4px 0;
+  font-size: 13px;
+  font-family: var(--font-body);
+  box-shadow: var(--shadow-lift);
+  z-index: 1000;
+  min-width: 180px;
+  color: var(--color-espresso);
+}
+#contextMenu.hidden { display: none; }
+.menu-header {
+  font-weight: 500;
+  padding: 6px 12px 4px;
+  color: #666;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.menu-item {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.menu-item:hover { background: var(--color-latte); }
+.menu-item.danger { color: var(--color-cherry); }
+.menu-item.disabled { color: #aaa; cursor: default; }
+.menu-item.disabled:hover { background: transparent; }
+.menu-divider { height: 1px; background: #ddd; margin: 4px 0; }
+
+.menu-row {
+  display: flex;
+  align-items: stretch;
+  position: relative;
+}
+.menu-row .menu-item {
+  flex: 1 1 auto;
+}
+.menu-folder-toggle {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border-left: 1px solid #ddd;
+  cursor: pointer;
+}
+.menu-folder-toggle:hover { background: var(--color-latte); }
+.menu-folder-toggle.disabled { color: #ccc; cursor: default; }
+.menu-folder-toggle.disabled:hover { background: transparent; }
+.menu-submenu {
+  position: absolute;
+  left: 100%;
+  top: -2px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-md);
+  padding: 4px 0;
+  min-width: 160px;
+  box-shadow: var(--shadow-lift);
+}
+.menu-submenu.hidden { display: none; }
+
+#modeSwitch {
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 7px 14px;
+  border: 1.5px solid var(--color-espresso);
+  background: var(--color-surface);
+  color: var(--color-espresso);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  box-shadow: var(--shadow-soft);
+}
+#modeSwitch:hover { background: var(--color-espresso); color: var(--color-foam); }
+body.editor-mode #modeSwitch {
+  background: linear-gradient(135deg, var(--color-mocha) 0%, var(--color-cocoa) 100%);
+  color: var(--color-foam);
+}
+body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(--color-espresso); }
+
+/* Settings modal */
+.modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 2000; }
+.modal.hidden { display: none; }
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+.modal-content {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-alt) 100%);
+  border: 1.5px solid var(--color-espresso);
+  border-radius: var(--radius-md);
+  padding: 16px 22px;
+  min-width: 340px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lift);
+  color: var(--color-espresso);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.modal-header h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+  color: var(--color-espresso);
+}
+.modal-header button {
+  font-size: 22px;
+  line-height: 1;
+  padding: 0 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.modal-header button:hover { color: #c0392b; background: transparent; }
+
+.settings-list { list-style: none; padding: 0; margin: 0; }
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-label-wrap { display: flex; flex-direction: column; gap: 2px; }
+.setting-name { font-weight: 500; font-size: 14px; color: var(--color-espresso); }
+.setting-desc { font-size: 12px; color: var(--color-fg-muted); }
+.setting-toggle {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 38px;
+  height: 22px;
+  border-radius: 12px;
+  background: var(--color-steam);
+  border: 1.5px solid var(--color-espresso);
+  position: relative;
+  cursor: pointer;
+  flex: 0 0 auto;
+  box-shadow: var(--shadow-soft);
+}
+.setting-toggle::after {
+  content: "";
+  position: absolute;
+  top: 1.5px;
+  left: 1.5px;
+  width: 15px;
+  height: 15px;
+  background: var(--color-espresso);
+  border-radius: 50%;
+  transition: transform 0.18s ease, background-color 0.18s ease;
+}
+.setting-toggle:checked { background: var(--color-leaf); }
+.setting-toggle:checked::after { transform: translateX(16px); background: var(--color-foam); }
+.setting-row.disabled { opacity: 0.5; }
+
+#settingsBtn,
+#fontDevBtn {
+  font: inherit;
+  font-size: 18px;
+  padding: 4px 10px;
+  border: 1.5px solid var(--color-espresso);
+  /* background inherits base button gradient (oat → surface) */
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  color: var(--color-espresso);
+}
+/* Center the gear SVG inside its button. inline-flex + center alignment is
+   more reliable than vertical-align tuning across font-size / line-height. */
+#settingsBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+#fontDevBtn { font-family: var(--font-display); font-size: 16px; }
+@media (hover: hover) {
+  #settingsBtn:hover,
+  #fontDevBtn:hover { background: var(--color-espresso); color: var(--color-foam); }
+}
+
+/* Gear icon shared by header #settingsBtn + in-solve #solveSettings. Inline
+   SVG (Feather Icons, MIT-licensed). Inherits button color via currentColor so
+   it matches the coffee palette + swaps on hover automatically. */
+.icon-gear {
+  display: block;
+  color: inherit;
+  overflow: visible;
+}
+
+body.font-dev #fontDevBtn {
+  background: linear-gradient(135deg, var(--color-mocha) 0%, var(--color-cocoa) 100%);
+  color: var(--color-foam);
+}
+body.font-dev *:hover {
+  outline: 1px dashed var(--color-cinnamon);
+  outline-offset: 1px;
+}
+
+.font-menu-preview {
+  font-size: 16px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.font-menu-preview:hover { background: var(--color-latte); }
+.font-menu-preview .font-name {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--color-fg-muted);
+  letter-spacing: 0.3px;
+}
+.font-menu-section {
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding: 6px 12px 4px;
+  color: var(--color-fg-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-top: 1px solid var(--color-divider);
+  margin-top: 4px;
+}
+.font-menu-section:first-child { border-top: none; margin-top: 0; }
+
+/* Solve stats (timer / mistakes / undo) above the board */
+#solveStats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  min-height: 28px;
+}
+#solveStats:empty,
+#solveStats.empty { display: none; }
+#solveStats .stat { padding: 2px 4px; }
+#solveStats .stat.hidden { display: none; }
+#solveStats #undoBtn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border: 1.5px solid var(--color-espresso);
+  /* background inherits base button gradient (oat → surface) */
+  color: var(--color-espresso);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+}
+@media (hover: hover) {
+  #solveStats #undoBtn:hover { background: var(--color-espresso); color: var(--color-foam); }
+}
+#solveStats #undoBtn:disabled { opacity: 0.45; cursor: default; }
+#solveStats #undoBtn.hidden { display: none; }
+
+/* Reduce motion: disable all transitions/animations site-wide */
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+@media (max-width: 720px) {
+  .layout { flex-direction: column; align-items: stretch; gap: 12px; min-height: auto; }
+  #library { flex: 0 0 auto; max-width: 100%; max-height: 40vh; }
+  .library-section { flex: 0 0 auto; min-height: 100px; }
+}
+
+.dirty-indicator {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-cherry);
+  letter-spacing: 0.3px;
+}
+.dirty-indicator.hidden { display: none; }
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  box-shadow: none;
+}
+button:disabled:hover {
+  background: var(--color-surface);
+  color: var(--color-espresso);
+}
+
+#editorSave:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-mocha) 0%, var(--color-cocoa) 100%);
+  color: var(--color-foam);
+  border-color: var(--color-cocoa);
+}
+#editorSave:not(:disabled):hover {
+  background: var(--color-foam);
+  color: var(--color-espresso);
+}
+
+/* Split Fill/Cross toggle. Container is the "outer" button, halves are the
+   actual click targets. Active half gets dark gradient; inactive is greyed. */
+#modeBtn {
+  display: flex;
+  padding: 0;
+  border: none;
+  gap: 8px;                    /* visible separation between Fill and Cross */
+  touch-action: manipulation;
+  background: transparent;     /* gap shows page bg, not a container fill */
+}
+.mode-half {
+  flex: 1 1 50%;
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-md);      /* all corners rounded on each half */
+  background: linear-gradient(135deg, var(--color-oat) 0%, var(--color-surface) 100%);
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  box-shadow: var(--shadow-soft);       /* each half lifts on its own */
+}
+/* Divider between halves removed — the gap does that job now visually. */
+#modeBtn.mode-fill  .mode-half-fill,
+#modeBtn.mode-cross .mode-half-cross {
+  background: linear-gradient(135deg, var(--color-espresso) 0%, var(--color-cocoa) 100%);
+  color: var(--color-foam);
+}
+
+/* Fill/Cross layout variants live in the per-profile blocks near the bottom of
+   this file. This section intentionally leaves #modeBtn without size/direction
+   defaults so the profile blocks own that state entirely. */
+#modeBtn:active { transform: translateY(1px); box-shadow: none; }
+
+@media (max-width: 480px) {
+  body { padding: 12px 8px; }
+  h1 { font-size: 22px; }
+  header { gap: 10px; margin-bottom: 16px; }
+  /* .col-hint intentionally NOT overridden here — its base rules use empirical
+     line-height measurement + `padding-bottom: 6px` and should apply on all
+     viewport sizes for consistency. */
+  .row-hint { font-size: 12px; padding: 0 4px; gap: 4px; }
+  .puzzle-btn { font-size: 12px; padding: 5px 10px; }
+}
+
+/* === Mobile-first solve/win view: viewport-locked, no scroll ===
+   Only applies on user-mode solve screen. Editor + user home/category/puzzles
+   screens keep their default scrolling behavior. */
+
+html:has(body.user-mode[data-screen="solve"]) {
+  overflow: hidden;
+  height: 100dvh;
+  height: 100vh; /* fallback */
+}
+
+body.user-mode[data-screen="solve"] {
+  overflow: hidden;
+  height: 100dvh;
+  height: 100vh; /* fallback */
+  min-height: 0;
+  padding: 0;
+  /* Kill iOS long-press text selection + callout menu (Copy / Look Up / etc.)
+     across the entire solve view. Nothing here is meant to be selectable —
+     hints, dpad glyphs, button labels are all UI. Applied at the body level
+     so it covers anything the profile blocks add. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Compact header on solve view — reclaims vertical space for the board */
+body.user-mode[data-screen="solve"] header {
+  padding: 8px 12px;
+  margin-bottom: 0;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+body.user-mode[data-screen="solve"] h1 {
+  font-size: 20px;
+}
+/* Layout fills remaining viewport, no vertical overflow allowed. */
+body.user-mode[data-screen="solve"] .layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+}
+body.user-mode[data-screen="solve"] .layout main {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  gap: 6px;
+  padding: 6px 10px 10px;
+  overflow: hidden;
+  justify-content: flex-start;
+}
+
+/* Solve back button — sized to match Settings gear (icon-only "←"). */
+body.user-mode[data-screen="solve"] #solveBack {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+/* Header buttons in solve view: unify Reset, Settings, and Back to same height
+   via consistent vertical padding + font-size + line-height. Widths remain
+   content-driven ("Reset" is wider than "←" or the gear). */
+body.user-mode[data-screen="solve"] header #resetBtn,
+body.user-mode[data-screen="solve"] header #settingsBtn,
+body.user-mode[data-screen="solve"] header #solveBack {
+  padding: 6px 12px;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Unified solve-control icons (2026-07-17, revised) ---
+   Back · Settings · Undo · Reset as ONE uniform icon line in the solveStats row,
+   for PORTRAIT profiles 2 (tall-nodpad) & 3 (portrait-dpad). (Profile 1 was moved
+   off this arrangement 2026-07-18 — it now flanks the logo with Back+Settings in
+   the header and stacks Undo/Reset above Fill/Cross; see the profile-square-nodpad
+   block below.) Back/Undo/Reset placement is done in syncSolveBackParent.
+   NOTE: profile 2 is LOCKED — re-verify it after any change here. */
+body.user-mode[data-screen="solve"] header #resetBtn,
+body.user-mode[data-screen="solve"] header #settingsBtn {
+  display: none;   /* replaced by #solveReset (↻) + #solveSettings (⚙) in solveStats */
+}
+body.user-mode[data-screen="solve"] header {
+  justify-content: center;   /* logo centers — header is logo-only on solve */
+}
+/* The four controls as one uniform icon line. */
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveBack,
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveReset,
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveSettings,
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Order: Back · Settings · Undo · Reset (timer / mistakes trail after). */
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveBack { order: 1; }
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveSettings { order: 2; }
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn { order: 3; }
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveReset { order: 4; }
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #timer { order: 5; }
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #mistakes { order: 6; }
+
+/* Profiles 1-3: the four buttons stretch equally so the row spans ~80% of the
+   board width (fed live via --solve-board-width). Scaled down from the full-width
+   first pass so the row doesn't feel chunky next to the small logo — height + icon
+   font scale by the same 0.8 so the button aspect ratio is preserved. */
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats {
+  width: calc(var(--solve-board-width, 100%) * 0.8);
+  max-width: 100%;
+  align-self: center;
+}
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveBack,
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveReset,
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveSettings,
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn {
+  flex: 1 1 0;      /* grow equally from a 0 basis → all four end up the same width */
+  width: auto;      /* release the fixed 44px so flex-grow governs the width */
+  height: 35px;     /* ~80% of the 44px first pass */
+  font-size: 18px;  /* icon scales down with the button */
+}
+
+/* Stats row — base container. Direction (row vs column) + alignment come from
+   the active layout profile block near the bottom of this file. */
+body.user-mode[data-screen="solve"] #solveStats {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 0;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* The solveStats gear (#solveSettings) now shows in every solve profile — the
+   header's own gear is hidden on solve (see the Unified solve-control block
+   above), so there's no longer a duplicate to suppress. */
+#solveSettings {
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 22px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--color-espresso);
+  /* background inherits base button gradient (oat → surface) */
+  color: var(--color-espresso);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  line-height: 1;
+  touch-action: manipulation;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (hover: hover) {
+  #solveSettings:hover { background: var(--color-espresso); color: var(--color-foam); }
+}
+#solveSettings:active { transform: translateY(1px); box-shadow: none; }
+/* Bump Undo size in the solve view */
+body.user-mode[data-screen="solve"] #solveStats #undoBtn {
+  font-size: 17px;
+  padding: 8px 18px;
+}
+
+/* DEV-ONLY: instant-win button. Dashed cherry border makes it obvious this is
+   not shipping UI. Remove this rule + the button when the win flow is done. */
+#devWinBtn {
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 17px;
+  padding: 10px 18px;
+  border: 1.5px dashed var(--color-cherry);
+  background: var(--color-surface);
+  color: var(--color-cherry);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  /* No align-self here — inherit parent's align-items so it stays aligned with
+     the other buttons in both portrait (row) and landscape (column) flex. */
+}
+#devWinBtn:hover { background: var(--color-cherry); color: var(--color-foam); }
+
+/* DEV-ONLY: big faint layout-profile number, centered on the board. Just a
+   visual cue so Dre can say "profile 3" instead of screenshotting. Overlaid via
+   position:absolute (created in JS, re-attached after each renderBoard) with
+   pointer-events:none so painting still works. Numbering follows LAYOUT_PROFILES
+   order: 1 square-nodpad · 2 tall-nodpad · 3 portrait-dpad · 4 wide-nodpad ·
+   5 wide-dpad. Remove before ship (this block + updateProfileLabel() in script.js
+   + the #board position:relative anchor above). */
+#profileNum {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 40vmin;
+  line-height: 1;
+  color: var(--color-espresso);
+  opacity: 0.12;
+}
+
+/* Puzzle-and-ref fills remaining vertical space and centers the board.
+   JS sizes the .puzzle grid to fit inside this container on resize/orientation change. */
+body.user-mode[data-screen="solve"] .puzzle-and-ref {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  gap: 0;
+}
+
+/* Board grid: JS overrides gridTemplateColumns/Rows inline, so these are just fallbacks. */
+body.user-mode[data-screen="solve"] .puzzle {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Mode button base. Direction, width, height, min-width come from profile blocks. */
+body.user-mode[data-screen="solve"] #modeBtn {
+  flex: 0 0 auto;
+  margin: 0 auto;
+}
+
+/* Bottom bar base. `display` and `flex-direction` are owned by the profile
+   block — profiles use `flex` for portrait / dpad-bottom-bar and `contents` for
+   the wide-nodpad grid membership. */
+.solve-bottom-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+/* Fact card on win screen: constrained height, internal scroll if long. Solid
+   flex-basis so it never pushes the puzzle out of bounds. */
+body.user-mode[data-screen="solve"] .fact-card {
+  flex: 0 0 auto;
+  max-height: 38dvh;
+  max-height: 38vh; /* fallback */
+  overflow-y: auto;
+  margin: 0 auto;
+  width: min(94vw, 480px);
+}
+
+/* === Auto-rotate app when puzzle orientation ≠ device orientation ===
+   Landscape puzzle on a portrait phone → rotate the entire solve view 90° so
+   the user physically rotates their phone to landscape and the layout looks
+   correct. Also fires the reverse (portrait puzzle on landscape phone).
+   Header is hidden during rotation since it can't participate in the transform. */
+body.rotate-app.user-mode[data-screen="solve"] header,
+body.profile-wide-nodpad header,
+body.profile-wide-dpad header {
+  display: none;
+}
+
+/* Mini-logo — small "Nonograms Original" in the top-left corner of landscape
+   profiles (where the header is hidden). Hidden by default in ALL modes. The
+   `body.user-mode .mini-logo` override neutralizes the `.user-only` show rule
+   so profile-specific rules can then display it selectively. */
+.mini-logo { display: none; }
+body.user-mode .mini-logo { display: none; }
+body.user-mode.profile-wide-nodpad .mini-logo,
+body.user-mode.profile-wide-dpad .mini-logo,
+body.user-mode.rotate-app[data-screen="solve"] .mini-logo {
+  display: block;
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--color-espresso);
+  letter-spacing: 0.5px;
+  z-index: 20;
+  pointer-events: none;
+}
+/* Landscape main needs position: relative for the mini-logo to anchor to. */
+body.profile-wide-nodpad .layout main,
+body.profile-wide-dpad .layout main {
+  position: relative;
+}
+
+/* solveReset — Reset button inside solveStats. Same visibility rules as
+   solveSettings: hidden when the header (which contains #resetBtn) is visible. */
+#solveReset {
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: 17px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--color-espresso);
+  /* background inherits base button gradient (oat → surface) */
+  color: var(--color-espresso);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  touch-action: manipulation;
+}
+@media (hover: hover) {
+  #solveReset:hover { background: var(--color-espresso); color: var(--color-foam); }
+}
+#solveReset:active { transform: translateY(1px); box-shadow: none; }
+/* #solveReset (↻) now shows in every solve profile — the header's "Reset" word
+   button is hidden on solve (see the Unified solve-control block above). */
+
+/* DEV Win game — floated fixed at bottom-right corner so it overlaps the
+   Fill/Cross button (or whatever's in the corner) in every profile. Compact.
+   Removed at ship-time along with the button and its handler. */
+body.user-mode[data-screen="solve"] #devWinBtn {
+  position: fixed;
+  bottom: 4px;
+  right: 4px;
+  z-index: 100;
+  font-size: 12px;
+  padding: 4px 10px;
+}
+body.rotate-app.user-mode[data-screen="solve"] .layout {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 100dvh;
+  height: 100dvw;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center;
+  z-index: 100;
+  min-height: 0;
+  overflow: hidden;
+}
+/* Fallbacks for browsers without dvh/dvw */
+@supports not (width: 100dvh) {
+  body.rotate-app.user-mode[data-screen="solve"] .layout {
+    width: 100vh;
+    height: 100vw;
+  }
+}
+
+/* === LAYOUT PROFILES ===
+   Every state combination the solve view can be in maps to exactly one of the 5
+   profiles below. Each profile OWNS its layout — no other rule should override
+   flex-direction / grid-template / sizes for the solve controls.
+
+   To add a new layout combo: add the class to LAYOUT_PROFILES in script.js,
+   extend computeLayoutProfile() to detect it, and add one CSS block here. */
+
+/* ---------- profile-square-nodpad (10x10, 15x15, no dpad) ----------
+   STATUS: LOCKED-VERIFIED (2026-07-07) — Dre-approved.
+   Do not modify without re-verifying against this profile at both narrow
+   (safari with url bar) AND full-viewport heights.
+
+   Small square puzzles in portrait. Fill/Cross is a WIDE horizontal button
+   sitting near the bottom with a fixed padded gap above and below. */
+body.profile-square-nodpad .layout main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px;
+}
+body.profile-square-nodpad #solveStats {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+body.profile-square-nodpad #solveBack { align-self: center; }
+/* Profile 1 bottom controls: a 2x2 block — Undo/Reset (half height) sit ABOVE
+   Fill/Cross, and all four are treated as ONE entity centered in the space below
+   the board via --bar-center-margin (resizeBoardToFit measures the leftover,
+   halves it, pushes the block up). modeBtn is display:contents so its two halves
+   join the grid → the flow is Undo|Reset (row 1) over Fill|Cross (row 2). */
+body.profile-square-nodpad .solve-bottom-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 16px;      /* vertical gap Undo↔Fill / Reset↔Cross (2x the 8px column gap) */
+  column-gap: 8px;
+  width: 360px;
+  max-width: 92%;
+  margin-inline: auto;
+  margin-bottom: var(--bar-center-margin, 0px);
+}
+body.profile-square-nodpad #modeBtn { display: contents; }
+/* Fill/Cross ~0.75x their previous height (~1.1x original). Explicit height so the
+   half-height Undo/Reset above them stay an exact 1:2 ratio. */
+body.profile-square-nodpad .mode-half {
+  height: 70px;
+  min-width: 0;
+  padding: 0 12px;
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Undo/Reset: same width as Fill/Cross (grid 1fr column). Height 52px = 1.5x the
+   earlier 35px per Dre (no longer a strict half of Fill/Cross — tune freely). */
+body.profile-square-nodpad #undoBtn,
+body.profile-square-nodpad #solveReset {
+  height: 52px;
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Buffer below the stats so the board isn't glued to the top — TUNE THIS NUMBER.
+   Board top-aligned so the leftover space is all below it for the 2x2 block to
+   center in. ÷2 centering math is unaffected (puzzle-and-ref's grown height just
+   shrinks by this margin, so availH/emptyBelow stay correct). */
+body.user-mode[data-screen="solve"].profile-square-nodpad .puzzle-and-ref {
+  align-items: flex-start;
+  margin-top: 48px;
+}
+/* Profile 1 header: Back + Settings flank the centered logo. Header goes full
+   width (align-self: stretch) so space-between reaches both edges. padding-inline
+   is the gap from the screen edges (~1.5x the base 12px) — TUNE to taste. Back +
+   Settings kept as RECTANGLES (64×35, ~their icon-row proportions), not squares. */
+body.user-mode[data-screen="solve"].profile-square-nodpad header {
+  align-self: stretch;
+  justify-content: space-between;
+  padding-inline: 18px;
+}
+body.user-mode[data-screen="solve"].profile-square-nodpad header #solveBack,
+body.user-mode[data-screen="solve"].profile-square-nodpad header #settingsBtn {
+  display: inline-flex;
+  width: 64px;
+  height: 35px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  align-items: center;
+  justify-content: center;
+}
+/* Profile 1 uses the header gear, so hide the solveStats one. */
+body.user-mode[data-screen="solve"].profile-square-nodpad #solveSettings {
+  display: none;
+}
+
+/* ---------- profile-tall-nodpad (10x15, 15x20, no dpad) ----------
+   STATUS: LOCKED-VERIFIED (2026-07-07) — Dre-approved.
+   Same rules as profile-square-nodpad: re-verify at multiple viewport heights
+   before shipping any change to shared rules (.mode-half, #modeBtn, etc.).
+
+   Tall portrait puzzles. Fill/Cross is horizontal side-by-side. Bar has
+   fixed padded gap above and below (same technique as square-nodpad). */
+body.profile-tall-nodpad .layout main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px;
+}
+body.profile-tall-nodpad #solveStats {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+body.profile-tall-nodpad #solveBack { align-self: center; }
+body.profile-tall-nodpad .solve-bottom-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  padding-block: 32px;   /* same technique as square-nodpad — fixed breathing room */
+}
+body.profile-tall-nodpad #modeBtn {
+  flex-direction: row;
+  min-width: 360px;
+}
+body.profile-tall-nodpad .mode-half { padding: 20px 28px; font-size: 18px; }
+
+/* ---------- profile-portrait-dpad (any portrait puzzle with dpad) ----------
+   Bottom bar sits at the bottom of the screen (position fixed relative to the
+   viewport bottom, not the board) so dpad + Fill/Cross land in the same spot
+   regardless of puzzle dimensions. 1fr 1fr grid centers dpad at 25% of the
+   viewport width and Fill/Cross at 75% — comfortable two-thumb reach. */
+body.profile-portrait-dpad .layout main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px;
+}
+body.profile-portrait-dpad #solveStats {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+body.profile-portrait-dpad #solveBack { align-self: center; }
+/* Bar hosts three items side-by-side: dpad | Fill/Cross | Undo. `space-evenly`
+   distributes free horizontal space into 4 equal gaps: left-edge → dpad → mode
+   → undo → right-edge (per Dre's ask). Bar spans full width so the space-evenly
+   split anchors to the true left and right screen edges. */
+body.profile-portrait-dpad .solve-bottom-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: 4px;
+}
+body.profile-portrait-dpad #dpad { width: 154px; }
+body.profile-portrait-dpad #modeBtn {
+  flex-direction: column;   /* Fill on top, Cross on bottom */
+  width: 120px;
+  height: 154px;            /* matches dpad + undo so all three read as same-height column */
+}
+/* Higher-specificity override for `margin: 0 auto` set by
+   `body.user-mode[data-screen="solve"] #modeBtn` earlier in the file.
+   Without this, modeBtn's auto margins eat all free space and prevent
+   space-evenly from distributing the gaps equally across the bar. */
+body.user-mode[data-screen="solve"].profile-portrait-dpad #modeBtn {
+  margin: 0;
+}
+body.profile-portrait-dpad .mode-half { padding: 12px 8px; font-size: 17px; }
+/* (Profile 3's Undo used to be a tall dpad-style key next to Fill/Cross; it now
+   rejoins the Back/Settings/Undo/Reset icon line in solveStats — see the unified
+   solve-control block above. syncSolveBackParent keeps Undo in solveStats.) */
+/* .undo-label hidden universally now — Dre's decision: undo is icon-only
+   in every profile. Kept as a span in HTML for accessibility (screen readers
+   can still read "Undo") but not visually rendered. */
+#undoBtn .undo-label { display: none; }
+
+/* ---------- profile-wide-nodpad (15x10, 20x15, no dpad) ----------
+   Landscape puzzle: grid layout. Puzzle spans left column full height. Right
+   column stacks Stats (top) and Mode button (bottom), with flex spacer between. */
+body.profile-wide-nodpad .layout main {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "puzzle stats"
+    "puzzle ."
+    "puzzle mode";
+  gap: 10px;
+  padding: 10px 14px;
+  justify-content: initial;
+  align-items: initial;
+}
+body.profile-wide-nodpad #solveStats {
+  grid-area: stats;
+  align-self: start;
+  justify-self: end;
+  /* 2x2 grid of the four core controls, with Settings pinned to the top-right corner:
+       [ BTP ][ Settings ]     <- top row
+       [ Reset ][ Undo ]       <- bottom row
+     Extra elements (timer/mistakes) auto-place into implicit rows below when active. */
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "btp settings"
+    "reset undo";
+  gap: 6px;
+  justify-items: end;
+  align-items: start;
+}
+body.profile-wide-nodpad #solveBack     { grid-area: btp; }
+body.profile-wide-nodpad #solveSettings { grid-area: settings; }
+body.profile-wide-nodpad #solveReset    { grid-area: reset; }
+body.profile-wide-nodpad #undoBtn       { grid-area: undo; }
+/* All 4 buttons matched to a common 44×44 tap-target square with the icon
+   centered. Higher-specificity selectors chain in `.user-mode[data-screen="solve"]`
+   because the base per-button rules earlier in the file (from solve-view scoping)
+   would otherwise override these sizes. */
+body.user-mode[data-screen="solve"].profile-wide-nodpad #solveBack,
+body.user-mode[data-screen="solve"].profile-wide-nodpad #solveSettings,
+body.user-mode[data-screen="solve"].profile-wide-nodpad #solveReset,
+body.user-mode[data-screen="solve"].profile-wide-nodpad #solveStats #undoBtn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Undo's arrow reads a bit small at 22px next to the ↻ / ← / gear characters —
+   bump it 2px for Dre's "ever so slightly larger" ask. */
+body.user-mode[data-screen="solve"].profile-wide-nodpad #solveStats #undoBtn {
+  font-size: 24px;
+}
+body.profile-wide-nodpad .puzzle-and-ref {
+  grid-area: puzzle;
+  align-items: end;
+  justify-content: start;
+  width: 100%;
+  height: 100%;
+}
+body.profile-wide-nodpad .solve-bottom-bar {
+  display: contents; /* modeBtn becomes direct grid item */
+}
+body.profile-wide-nodpad #modeBtn {
+  grid-area: mode;
+  align-self: end;
+  justify-self: end;
+  flex-direction: column;
+  width: 130px;
+  height: 120px;
+  transform: translateY(8px);   /* nudge Fill/Cross down slightly toward the screen edge */
+}
+body.profile-wide-nodpad .mode-half { padding: 8px 8px; font-size: 18px; }
+
+/* ---------- profile-wide-dpad (landscape with dpad) ----------
+   Puzzle placed FIRST (biggest thing on the screen), everything else conforms:
+     row 1 (auto): stats across the entire top, 4 buttons in one horizontal line
+     row 2 (auto): puzzle top | Fill/Cross (stacked, in the right col)
+     row 3 (1fr):  puzzle bottom | Dpad (centered in the empty vertical space)
+   Puzzle spans rows 2-3 col 1 → bottom-left corner snug, grows up-right. Right
+   column is narrow (only wide enough for Fill/Cross and Dpad, both ~140px). */
+body.profile-wide-dpad .layout main {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    "stats  stats"
+    "puzzle fillcross"
+    "puzzle dpad";
+  gap: 6px;
+  padding: 4px 4px 4px 0;   /* zero left padding so puzzle hugs the wall */
+  justify-content: initial;
+  align-items: initial;
+}
+body.profile-wide-dpad #solveStats {
+  grid-area: stats;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;  /* right-align since puzzle owns the left */
+  gap: 8px;
+}
+/* Order: Back · Settings · Undo · Reset — reconciled 2026-08-15 with the portrait
+   one-line order (profiles 1-3), closing the "not yet reconciled" item from 07-17.
+   Two bugs fixed here at the same time:
+     1. #solveReset had NO order, so it defaulted to order:0 and rendered LEFTMOST —
+        the opposite end from where the old comment claimed the row started.
+     2. #devWinBtn's order was inert: that button is position:fixed (see its base
+        rule ~L1773), so it's out of flex flow entirely. Dropped rather than renumbered. */
+body.profile-wide-dpad #solveBack           { order: 1; }
+body.profile-wide-dpad #solveSettings       { order: 2; }
+body.profile-wide-dpad #solveStats #undoBtn { order: 3; }
+body.profile-wide-dpad #solveReset          { order: 4; }
+body.profile-wide-dpad #timer               { order: 5; }
+body.profile-wide-dpad #mistakes            { order: 6; }
+/* Uniform 44×44 tap targets, mirroring profile-wide-nodpad. Without this the four
+   controls fell through to their individual base rules and rendered at four different
+   sizes — Settings a 22px pill, Reset a 17px pill, Undo a squat 13px pill. Same
+   `.user-mode[data-screen="solve"]` specificity chain as profile 4, because those base
+   per-button rules would otherwise win on specificity. */
+body.user-mode[data-screen="solve"].profile-wide-dpad #solveBack,
+body.user-mode[data-screen="solve"].profile-wide-dpad #solveSettings,
+body.user-mode[data-screen="solve"].profile-wide-dpad #solveReset,
+body.user-mode[data-screen="solve"].profile-wide-dpad #solveStats #undoBtn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Undo's ⤺ reads small next to ↻ / ← / gear — same +2px as profile 4. */
+body.user-mode[data-screen="solve"].profile-wide-dpad #solveStats #undoBtn {
+  font-size: 24px;
+}
+body.profile-wide-dpad .puzzle-and-ref {
+  grid-area: puzzle;
+  align-items: end;
+  justify-content: start;
+  width: 100%;
+  height: 100%;
+}
+body.profile-wide-dpad .solve-bottom-bar {
+  display: contents; /* dpad + modeBtn become direct grid items */
+}
+body.profile-wide-dpad #modeBtn {
+  grid-area: fillcross;
+  align-self: start;
+  justify-self: center;
+  flex-direction: column;    /* stacked back per your call */
+  width: 130px;
+  height: 140px;
+  transform: translateY(8px);   /* nudge Fill/Cross down slightly, closer to the dpad below */
+}
+body.profile-wide-dpad .mode-half { padding: 12px 8px; font-size: 17px; }
+body.profile-wide-dpad #dpad {
+  grid-area: dpad;
+  align-self: center;
+  justify-self: center;
+  width: 154px;   /* 10% larger than the pre-polish 140px */
+}
+
+/* Fact card lives inside main. In grid profiles it needs to be positioned to
+   overlay without displacing the layout — for now, just cap its size. Proper
+   integration comes in phase 3. */
+body.user-mode[data-screen="solve"] .fact-card {
+  max-height: 38dvh;
+  max-height: 38vh; /* fallback */
+}
+body.profile-wide-nodpad .fact-card,
+body.profile-wide-dpad .fact-card {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  align-self: end;
+  justify-self: center;
+  max-width: min(60dvw, 480px);
+  max-height: 50dvh;
+}
+
+/* === Dpad — cursor-based input for large boards ===
+   Square unit — 4 trapezoid arrows + center square drawn as SVG polygons so
+   click-hit-testing follows the visual shape exactly. Same width as the Fill/
+   Cross button so they visually stack. Hidden by default. */
+#dpad {
+  display: none;
+  width: 160px;
+  aspect-ratio: 1 / 1;
+  max-width: 100%;
+  touch-action: manipulation;
+  filter: drop-shadow(0 2px 6px rgba(45, 31, 23, 0.08));
+}
+body.dpad-on.user-mode[data-screen="solve"] #dpad { display: block; }
+#dpad svg { width: 100%; height: 100%; display: block; }
+.dpad-btn {
+  fill: url(#dpad-grad-light);
+  cursor: pointer;
+  /* No hover/active fill or stroke — feedback comes from the ripple animation
+     instead. Mobile Safari's :active state sticks on tap, which was reading as
+     "arrow stayed selected" — ripple gives a cleaner one-shot signal. Removed
+     the black stroke so all buttons on screen read as gradient-only surfaces. */
+}
+.dpad-center { fill: url(#dpad-grad-dark); }
+/* When the "disable action button" setting is on, hide the dpad's center rect —
+   arrows are re-rendered as triangles by applyDpadStyle so they fill the empty
+   region. Fill/Cross buttons take over the "commit action" role. */
+body.disable-action-btn-on .dpad-center { display: none; }
+/* Gradient stops driven from CSS custom properties so theming still works. */
+.dpad-grad-light-a { stop-color: var(--color-oat); }
+.dpad-grad-light-b { stop-color: var(--color-surface); }
+.dpad-grad-dark-a  { stop-color: var(--color-espresso); }
+.dpad-grad-dark-b  { stop-color: var(--color-cocoa); }
+/* Ripple feedback on tap. Each button has a paired <g class="dpad-ripples">
+   above it, clipped to that button's shape via clipPath. On tap, JS inserts
+   a <circle> at the tap point and the CSS animation grows it from scale(0)
+   to scale(1) while fading out. The circle self-removes on animationend. */
+.dpad-ripples { pointer-events: none; }
+.dpad-ripple {
+  fill: var(--color-espresso);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dpad-ripple 0.9s ease-out forwards;
+}
+.dpad-ripples.center .dpad-ripple { fill: var(--color-foam); }
+@keyframes dpad-ripple {
+  from { transform: scale(0);   opacity: 0.35; }
+  to   { transform: scale(1.4); opacity: 0;    }
+}
+body.reduce-motion .dpad-ripple { animation: none; opacity: 0; }
+.dpad-glyphs text {
+  pointer-events: none;
+  fill: var(--color-espresso);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 12px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.dpad-glyphs text.glyph-center {
+  fill: var(--color-foam);
+  font-size: 8px;
+}
+
+/* Cursor cell — highlighted with cinnamon outline. Rendered in solve mode only. */
+.cell.cursor {
+  outline: 2px solid var(--color-cinnamon);
+  outline-offset: -2px;
+  z-index: 2;
+}
+
+/* Orientation icons in the puzzle list — SVG phone glyph, currentColor to
+   inherit text tint (grays when completed). */
+.puz-orient {
+  vertical-align: middle;
+  margin-right: 6px;
+  color: var(--color-fg-muted);
+}
+.user-puzzle-item.completed .puz-orient { color: var(--color-leaf); }
+.puz-size {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+}
+
+/* Landscape orientation — puzzle can be wider; header sits left */
+@media (orientation: landscape) {
+  body.user-mode[data-screen="solve"] header h1 {
+    font-size: 18px;
+  }
+  body.user-mode[data-screen="solve"] header {
+    padding: 4px 10px;
+  }
+}

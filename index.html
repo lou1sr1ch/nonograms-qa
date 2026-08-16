@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Nonograms Original</title>
+  <!-- PWA / standalone launch. "Add to Home Screen" (from a TOP-LEVEL load of this
+       page — Live Server URL, NOT the itch iframe) opens the app full-screen with no
+       browser or itch chrome: a truthful preview of the eventual native app viewport.
+       Phase 1 intentionally omits viewport-fit=cover + safe-area padding so iOS
+       auto-insets content from the notch (no risk to locked profiles). See
+       nonograms/CLAUDE.md (2026-07-16 PWA QA harness) for the test flow + Phase 2. -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Nonograms" />
+  <meta name="theme-color" content="#faf3e6" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <button id="solveBack" class="user-only back-btn" data-back="puzzles" type="button" aria-label="Back to puzzles" title="Back to puzzles">←</button>
+    <h1>Nonograms Original</h1>
+    <button id="modeSwitch" type="button">→ Edit</button>
+    <button id="resetBtn" type="button">Reset</button>
+    <button id="settingsBtn" type="button" aria-label="Settings" title="Settings"><svg class="icon-gear" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    <button id="fontDevBtn" type="button" title="Font experiment mode — right-click any text to change its font">Aa</button>
+  </header>
+  <div class="layout">
+    <aside id="library"></aside>
+    <main>
+    <div id="userNav" class="user-only">
+      <section id="screenHome" class="user-screen">
+        <h1 class="hero-title">Nonograms Original</h1>
+        <button id="userPlay" class="user-cta">Play</button>
+      </section>
+      <section id="screenCategory" class="user-screen">
+        <button class="back-btn" data-back="home" type="button">← Back</button>
+        <h2 class="screen-heading">Categories</h2>
+        <ul id="userCategoryList" class="user-list"></ul>
+      </section>
+      <section id="screenPuzzles" class="user-screen">
+        <button class="back-btn" data-back="category" type="button">← Back</button>
+        <h2 id="screenPuzzlesTitle" class="screen-heading"></h2>
+        <ul id="userPuzzleList" class="user-list"></ul>
+      </section>
+    </div>
+    <span class="mini-logo user-only">Nonograms Original</span>
+    <div class="editor-only editor-controls">
+      <div class="editor-row">
+        <label>Name <input id="editorName" type="text" placeholder="Untitled" maxlength="24" /></label>
+        <label>Size
+          <select id="editorSize">
+            <optgroup label="square">
+              <option value="10x10">10 × 10</option>
+              <option value="15x15">15 × 15</option>
+            </optgroup>
+            <optgroup label="landscape">
+              <option value="15x10">15 × 10</option>
+              <option value="20x15">20 × 15</option>
+            </optgroup>
+            <optgroup label="portrait">
+              <option value="10x15">10 × 15</option>
+              <option value="15x20">15 × 20</option>
+            </optgroup>
+          </select>
+        </label>
+        <button id="editorNew" type="button">+ New</button>
+        <button id="editorSave" type="button" disabled>Save (new)</button>
+        <button id="editorDiscard" type="button" disabled>Discard</button>
+        <button id="editorClear" type="button">Clear</button>
+        <button id="editorClearColors" type="button">Clear Colors</button>
+        <button id="editorUndo" type="button" disabled>⤺ Undo</button>
+        <button id="editorRedo" type="button" disabled>⤻ Redo</button>
+        <span id="editorDirty" class="dirty-indicator hidden">● unsaved</span>
+      </div>
+      <div class="editor-row fact-row">
+        <label class="fact-label">Fact
+          <textarea id="editorFact" rows="2" maxlength="280" placeholder="A short fact about this puzzle's subject — shows on win."></textarea>
+        </label>
+      </div>
+      <div class="editor-row source-row">
+        <label class="source-label">Source URL
+          <input id="editorSourceUrl" type="url" placeholder="https://..." />
+        </label>
+        <label class="source-label">Attribution
+          <input id="editorSourceAttribution" type="text" maxlength="80" placeholder="e.g. Photo by X / Wikimedia Commons" />
+        </label>
+      </div>
+      <div class="editor-row mode-row">
+        <button id="paintMode" type="button" class="mode-truth">Mode: Truth</button>
+        <span class="mode-help">Truth = part of puzzle (F=1). Accent = paint-only (F=0), reveals on win but doesn't affect solving.</span>
+      </div>
+      <div class="editor-row import-row">
+        <label class="import-label">Import image</label>
+        <div id="importDrop" class="import-drop">drop or paste image</div>
+        <button id="importPixelate" type="button" disabled>Pixelate</button>
+        <button id="importRestore" type="button" disabled>Restore</button>
+        <button id="importClear" type="button" disabled>Clear</button>
+        <span class="import-help">Pixelate = auto-fill from image. Restore = manually click each cell of the image in order to fill the board (top-left → bottom-right).</span>
+      </div>
+      <div class="editor-row sync-row">
+        <label class="import-label">Sync</label>
+        <button id="seedExport" type="button">⇩ Export Seed</button>
+        <button id="seedImport" type="button">⇪ Import Seed</button>
+        <span class="import-help">Export = write this browser's puzzle library to seed-data.js (before git push). Import = load the shipped seed-data.js into this browser (after git pull).</span>
+      </div>
+      <div id="editorPalette" class="editor-row"></div>
+      <p class="picker-hint">Click a slot to pick a color. Right-click an empty slot to activate eyedropper, then click the source. Right-click a filled slot to clear it.</p>
+    </div>
+    <div id="solveStats" class="solve-only">
+      <span id="timer" class="stat hidden">0:00</span>
+      <span id="mistakes" class="stat hidden">Mistakes: 0</span>
+      <button id="undoBtn" type="button" class="hidden"><span class="undo-icon">⤺</span><span class="undo-label"> Undo</span></button>
+      <!-- DEV-ONLY: instant-win button for testing win screen. Remove before ship. -->
+      <button id="devWinBtn" class="dev-only" type="button">Win game</button>
+      <button id="solveReset" type="button" title="Reset" aria-label="Reset">↻</button>
+      <button id="solveSettings" type="button" aria-label="Settings" title="Settings"><svg class="icon-gear" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
+    <div class="puzzle-and-ref">
+      <div class="puzzle">
+        <div class="corner"></div>
+        <div id="colHints"></div>
+        <div id="rowHints"></div>
+        <div id="board"></div>
+      </div>
+      <div id="editorReference" class="editor-only">
+        <canvas id="editorRefCanvas"></canvas>
+        <span class="ref-label">source</span>
+      </div>
+    </div>
+    <div class="solve-bottom-bar solve-only">
+    <div id="dpad" aria-label="Directional pad">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="dpad-clip-up"><use href="#dpad-shape-up"/></clipPath>
+          <clipPath id="dpad-clip-right"><use href="#dpad-shape-right"/></clipPath>
+          <clipPath id="dpad-clip-down"><use href="#dpad-shape-down"/></clipPath>
+          <clipPath id="dpad-clip-left"><use href="#dpad-shape-left"/></clipPath>
+          <clipPath id="dpad-clip-center"><use href="#dpad-shape-center"/></clipPath>
+          <linearGradient id="dpad-grad-light" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   class="dpad-grad-light-a"/>
+            <stop offset="100%" class="dpad-grad-light-b"/>
+          </linearGradient>
+          <linearGradient id="dpad-grad-dark" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   class="dpad-grad-dark-a"/>
+            <stop offset="100%" class="dpad-grad-dark-b"/>
+          </linearGradient>
+        </defs>
+        <path id="dpad-shape-up"     class="dpad-btn dpad-up"     data-dir="up"     d=""/>
+        <path id="dpad-shape-right"  class="dpad-btn dpad-right"  data-dir="right"  d=""/>
+        <path id="dpad-shape-down"   class="dpad-btn dpad-down"   data-dir="down"   d=""/>
+        <path id="dpad-shape-left"   class="dpad-btn dpad-left"   data-dir="left"   d=""/>
+        <rect id="dpad-shape-center" class="dpad-btn dpad-center" data-dir="center" x="35" y="35" width="30" height="30" rx="6"/>
+        <g class="dpad-ripples up"     clip-path="url(#dpad-clip-up)"></g>
+        <g class="dpad-ripples right"  clip-path="url(#dpad-clip-right)"></g>
+        <g class="dpad-ripples down"   clip-path="url(#dpad-clip-down)"></g>
+        <g class="dpad-ripples left"   clip-path="url(#dpad-clip-left)"></g>
+        <g class="dpad-ripples center" clip-path="url(#dpad-clip-center)"></g>
+        <g class="dpad-glyphs" aria-hidden="true">
+          <text x="50" y="18" text-anchor="middle" dominant-baseline="central">↑</text>
+          <text x="82" y="50" text-anchor="middle" dominant-baseline="central">→</text>
+          <text x="50" y="82" text-anchor="middle" dominant-baseline="central">↓</text>
+          <text x="18" y="50" text-anchor="middle" dominant-baseline="central">←</text>
+          <text x="50" y="50" text-anchor="middle" dominant-baseline="central" class="glyph-center">●</text>
+        </g>
+      </svg>
+    </div>
+    <div id="modeBtn" class="mode-fill">
+      <button class="mode-half mode-half-fill" data-mode="fill" type="button">■ Fill</button>
+      <button class="mode-half mode-half-cross" data-mode="cross" type="button">× Cross</button>
+    </div>
+    </div><!-- /.solve-bottom-bar -->
+    <p class="hint-help editor-only">Editor mode. Left-click paints with selected color. Right-click erases.</p>
+    <div id="solveFact" class="solve-only fact-card hidden">
+      <h3 id="solveFactName"></h3>
+      <p id="solveFactText"></p>
+      <a id="solveFactSource" class="fact-source" target="_blank" rel="noopener noreferrer"></a>
+      <a id="solveFactSourceRef" class="fact-source fact-source-ref" target="_blank" rel="noopener noreferrer"></a>
+    </div>
+  </main>
+  </div>
+  <div id="contextMenu" class="hidden"></div>
+  <div id="cropModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content crop-content">
+      <div class="modal-header">
+        <h2>Crop image</h2>
+        <button id="cropClose" type="button" aria-label="Close">×</button>
+      </div>
+      <p class="crop-help">Aspect locked to <span id="cropRatioLabel">10 × 10</span>. Drag the box to move, drag a corner to resize.</p>
+      <div id="cropContainer" class="crop-container">
+        <img id="cropImage" alt="image to crop" />
+        <div id="cropBox">
+          <div class="crop-handle nw" data-handle="nw"></div>
+          <div class="crop-handle ne" data-handle="ne"></div>
+          <div class="crop-handle se" data-handle="se"></div>
+          <div class="crop-handle sw" data-handle="sw"></div>
+        </div>
+      </div>
+      <div class="crop-actions">
+        <button id="cropApply" type="button">Apply Crop &amp; Pixelate</button>
+        <button id="cropCancel" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div id="settingsModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button id="settingsClose" type="button" aria-label="Close">×</button>
+      </div>
+      <ul class="settings-list"></ul>
+    </div>
+  </div>
+  <script src="seed-data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
