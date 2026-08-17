@@ -771,6 +771,16 @@ function buildUserPuzzleList(catName) {
       : '<svg class="puz-orient" viewBox="0 0 12 20" width="11" height="17" aria-label="portrait"><rect x="1" y="1" width="10" height="18" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="4.5" y1="17" x2="7.5" y2="17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
     const completedMark = completedSet.has(id) ? "  ✓" : "";
     meta.innerHTML = `${iconSvg}<span class="puz-size">${puzzle.width}×${puzzle.height}${completedMark}</span>`;
+    // DEV-ONLY (temporary, 2026-08-16): which layout profile this puzzle opens in
+    // (P1–P5), so a specific profile can be picked from the list without opening
+    // puzzles one by one. Reads the LIVE dpad setting via profileForDims, so toggling
+    // Dpad flips every badge between the portrait/landscape pairs on next list build.
+    // Remove before ship alongside #devWinBtn and #profileNum.
+    const profIdx = LAYOUT_PROFILES.indexOf(profileForDims(puzzle.width, puzzle.height));
+    const profBadge = document.createElement("span");
+    profBadge.className = "puz-profile dev-only";
+    profBadge.textContent = profIdx >= 0 ? `P${profIdx + 1}` : "P?";
+    meta.prepend(profBadge);
     li.appendChild(name);
     li.appendChild(meta);
     li.addEventListener("click", () => {
@@ -917,15 +927,23 @@ const LAYOUT_PROFILES = [
   "profile-wide-dpad",       // any landscape puzzle with dpad on
 ];
 
-function computeLayoutProfile() {
-  if (!activePuzzle) return null;
+// Profile selection depends only on a puzzle's dimensions + the dpad setting, so it
+// can be answered for ANY puzzle, not just the loaded one. Extracted so the solve view
+// and the DEV-ONLY puzzle-list badge share one source of truth — if these ever diverge,
+// the badge silently lies about which profile a puzzle will open in.
+function profileForDims(w, h) {
   const dpadOn = !!settings.dpad;
-  const isWide = activeW > activeH;
-  const isSquare = activeW === activeH;
+  const isWide = w > h;
+  const isSquare = w === h;
   if (isWide) return dpadOn ? "profile-wide-dpad" : "profile-wide-nodpad";
   // portrait (square or tall)
   if (dpadOn) return "profile-portrait-dpad";
   return isSquare ? "profile-square-nodpad" : "profile-tall-nodpad";
+}
+
+function computeLayoutProfile() {
+  if (!activePuzzle) return null;
+  return profileForDims(activeW, activeH);
 }
 
 function updateRotationClass() {
@@ -941,7 +959,21 @@ function updateRotationClass() {
   const deviceLandscape = window.innerWidth > window.innerHeight;
   // Rotation is orthogonal to profile — it applies a transform regardless of
   // which profile is active. Keep as its own body class.
-  document.body.classList.toggle("rotate-app", puzzleLandscape !== deviceLandscape);
+  //
+  // Exactly ONE case rotates: a landscape puzzle on a portrait-held device, drawn
+  // sideways so the puzzle's long axis runs along the screen's long axis (you turn
+  // the phone to play it). Every other combination renders upright.
+  //
+  // Was `puzzleLandscape !== deviceLandscape`, which ALSO rotated a portrait puzzle
+  // on a landscape-held device. That was wrong in standalone/native: the OS has
+  // already rotated the viewport by that point, so our +90 stacked on top of the
+  // OS's +90 and the app rendered upside-down (180°). Reported 2026-08-16.
+  //
+  // The proper fix is an OS-level portrait lock — Xcode "Portrait" only at Phase 4,
+  // and manifest "orientation": "portrait" for Android/Chrome (iOS PWA ignores it).
+  // This condition is the safety net for any context where the viewport rotates
+  // anyway, so the app degrades to "upright but letterboxed" instead of upside-down.
+  document.body.classList.toggle("rotate-app", puzzleLandscape && !deviceLandscape);
   document.body.classList.toggle("view-landscape", puzzleLandscape);
   const profile = computeLayoutProfile();
   if (profile) document.body.classList.add(profile);

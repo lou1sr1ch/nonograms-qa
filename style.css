@@ -505,6 +505,22 @@ body.user-mode[data-screen="solve"] #solveBack { display: inline-flex; }
 }
 .user-puzzle-item.completed .puz-name { color: var(--color-leaf); }
 
+/* DEV-ONLY (temporary, 2026-08-16): layout-profile badge (P1–P5) on each puzzle row,
+   so a specific profile can be picked straight from the list. Remove before ship
+   along with #devWinBtn and #profileNum — same convention, marked `.dev-only` in JS. */
+.puz-profile {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 5px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  opacity: 0.65;
+  vertical-align: middle;
+}
+
 .back-btn {
   align-self: flex-start;
   font-family: var(--font-body);
