@@ -121,12 +121,29 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* === Safe-area insets (edge-to-edge, 2026-08-16) ===
+   index.html sets viewport-fit=cover, so the viewport now covers the entire physical
+   screen — including behind the status bar and home indicator. The background lives on
+   `html, body` (L118) and therefore bleeds into those areas, which is the whole point:
+   the planned animated background must reach the screen edges with no static band.
+
+   This padding re-applies exactly the insets iOS used to apply for us, so the CONTENT
+   box comes out the same size it was before the change. Net effect on layout: zero.
+   That is deliberate — no control is ever meant to live in the safe-area strip.
+
+   Works because `* { box-sizing: border-box }` (L109): padding eats into the declared
+   height rather than adding to it. On desktop every env() resolves to 0px, so this is
+   inert outside iOS. */
 body {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   min-height: 100vh;
-  padding: 0;
+  padding:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
 }
 
 header {
@@ -1468,7 +1485,15 @@ body.user-mode[data-screen="solve"] {
   height: 100dvh;
   height: 100vh; /* fallback */
   min-height: 0;
-  padding: 0;
+  /* Was `padding: 0`. With viewport-fit=cover, 100dvh is now the FULL screen height
+     rather than the already-inset height, so without this the solve view would gain the
+     status-bar + home-indicator pixels and every profile's board-fit maths would shift.
+     Re-inserting the insets keeps the solve canvas byte-identical to pre-edge-to-edge. */
+  padding:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
   /* Kill iOS long-press text selection + callout menu (Copy / Look Up / etc.)
      across the entire solve view. Nothing here is meant to be selectable —
      hints, dpad glyphs, button labels are all UI. Applied at the body level
@@ -1789,6 +1814,26 @@ body.rotate-app.user-mode[data-screen="solve"] .layout {
   z-index: 100;
   min-height: 0;
   overflow: hidden;
+  /* Safe areas under rotation (2026-08-16). This element is position:fixed, so it's laid
+     out against the viewport and body's safe-area padding does NOT contain it — it needs
+     its own. And because it's rotated 90deg clockwise, the insets must be REMAPPED:
+     env() values are physical-screen-relative, so `inset-top` applied here would land on
+     a visual side rather than the visual top.
+
+     rotate(90deg) maps a local point (x,y) -> (-y,x), which sends:
+       element LEFT   edge -> screen TOP     (left   takes inset-top)
+       element RIGHT  edge -> screen BOTTOM  (right  takes inset-bottom)
+       element TOP    edge -> screen RIGHT   (top    takes inset-right)
+       element BOTTOM edge -> screen LEFT    (bottom takes inset-left)
+
+     NOTE: rotate-app is NOT landscape-profile-only — script.js toggles it whenever
+     puzzleLandscape !== deviceLandscape, so a PORTRAIT puzzle held in landscape rotates
+     too. Expressed as a general remap rather than hardcoded per-profile numbers, so it
+     stays correct on every device and in both orientations. */
+  padding-left:   env(safe-area-inset-top, 0px);
+  padding-right:  env(safe-area-inset-bottom, 0px);
+  padding-top:    env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-left, 0px);
 }
 /* Fallbacks for browsers without dvh/dvw */
 @supports not (width: 100dvh) {

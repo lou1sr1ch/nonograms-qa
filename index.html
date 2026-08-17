@@ -2,17 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Nonograms Original</title>
-  <!-- PWA / standalone launch. "Add to Home Screen" (from a TOP-LEVEL load of this
-       page — Live Server URL, NOT the itch iframe) opens the app full-screen with no
-       browser or itch chrome: a truthful preview of the eventual native app viewport.
-       Phase 1 intentionally omits viewport-fit=cover + safe-area padding so iOS
-       auto-insets content from the notch (no risk to locked profiles). See
-       nonograms/CLAUDE.md (2026-07-16 PWA QA harness) for the test flow + Phase 2. -->
+  <!-- PWA / standalone launch. "Add to Home Screen" (from a TOP-LEVEL load in SAFARI —
+       the GitHub Pages QA URL, NOT the itch iframe and NOT Brave) opens the app
+       full-screen with no browser chrome: a truthful preview of the native app viewport.
+
+       EDGE-TO-EDGE (Phase 2, 2026-08-16). viewport-fit=cover makes the viewport cover
+       the whole physical screen, so the page background paints behind the status bar and
+       home indicator instead of iOS painting that strip itself with theme-color. Required
+       for the planned animated background — without it the animation would stop at the
+       inset boundary and leave a static band across the top.
+
+       UI position is UNCHANGED by design: style.css re-applies the identical insets as
+       env(safe-area-inset-*) padding, so the content box is the same size it was when iOS
+       was insetting automatically. Background got bigger; nothing else moved. Do not put
+       controls in the safe-area strip — it exists purely for background bleed.
+
+       status-bar-style must be black-translucent for content to sit UNDER the status bar;
+       "default" reserves an opaque strip. Known cosmetic cost: black-translucent forces
+       WHITE status-bar text, which reads poorly on the cream background. Not fixable from
+       a PWA — the Capacitor StatusBar plugin sets dark content natively at Phase 4. This
+       is the one place the harness looks worse than the shipped app; don't chase it.
+       See nonograms/CLAUDE.md (2026-08-16) for the full rationale. -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Nonograms" />
   <meta name="theme-color" content="#faf3e6" />
   <link rel="manifest" href="manifest.webmanifest" />
