@@ -2016,7 +2016,11 @@ body.profile-portrait-dpad #solveBack { align-self: center; }
    in closed form. margin-top is the breathing room under the button row — TUNE. */
 body.user-mode[data-screen="solve"].profile-portrait-dpad .puzzle-and-ref {
   align-items: flex-start;
-  margin-top: 24px;
+  /* --p3-gap-top / --p3-gap-bottom are solved together in resizeBoardToFit so the
+     three vertical gaps (buttons→board, board→bar, bar→screen-bottom) come out
+     visually equal, with the safe-area inset accounted for on the bottom one.
+     The 24px fallback is only used before the first measurement pass. */
+  margin-top: var(--p3-gap-top, 24px);
 }
 /* Bar hosts three items side-by-side: dpad | Fill/Cross | Undo. `space-evenly`
    distributes free horizontal space into 4 equal gaps: left-edge → dpad → mode
@@ -2038,7 +2042,7 @@ body.profile-portrait-dpad .solve-bottom-bar {
   align-items: center;
   gap: 0;
   width: 100%;
-  margin-bottom: var(--bar-center-margin, 4px);
+  margin-bottom: var(--p3-gap-bottom, 4px);
 }
 body.profile-portrait-dpad #dpad { width: 154px; }
 body.profile-portrait-dpad #modeBtn {

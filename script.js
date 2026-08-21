@@ -712,6 +712,16 @@ function initUserNav() {
 }
 
 function setUserScreen(name) {
+  // Reset scroll BEFORE the screen class changes. html/body scroll on the list
+  // screens (overflow-y: auto), but the solve view locks scrolling
+  // (overflow: hidden; height: 100dvh). Tapping a puzzle from a scrolled-down list
+  // therefore carried that offset into a view that can no longer scroll — the top
+  // control row sat clipped off-screen with no way to reach it. Must happen while
+  // the page is still scrollable, hence before dataset.screen is reassigned.
+  // Reported 2026-08-21.
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
   currentUserScreen = name;
   document.body.dataset.screen = name;
   if (name === "category") buildUserCategoryList();
@@ -1179,6 +1189,38 @@ function measureAndCacheHintLineHeight() {
   document.documentElement.style.setProperty("--col-hint-line-height", h + "px");
   return h;
 }
+// Row-hint text measurement. Replaces a `fontPx * 0.48` estimate that hardcoded
+// 14px — but `.row-hint` drops to 12px under the ≤480px media query, i.e. on every
+// phone. The estimate therefore ran ~15% wide on exactly the devices this ships to,
+// padding the hint track with dead space, right-aligning the numbers away from the
+// board, and making the quadrant extension line visibly longer than the hint it
+// belongs to (Dre, 2026-08-21). Measuring the real glyphs removes the guess and the
+// fudge factor together. Same canvas approach as the line-height measurement above.
+let _rowHintCtx = null;
+let _rowHintCtxFont = null;
+function getRowHintMeasurer() {
+  // Read the live font-size so the media query is respected automatically rather
+  // than mirrored (and re-mirrored wrongly) in JS.
+  let fontPx = 14;
+  const sample = document.querySelector("#rowHints .row-hint");
+  if (sample) {
+    const fs = parseFloat(getComputedStyle(sample).fontSize);
+    if (fs > 0) fontPx = fs;
+  } else if (window.matchMedia && window.matchMedia("(max-width: 480px)").matches) {
+    fontPx = 12;  // fallback mirrors the ≤480px rule in style.css
+  }
+  const font = `500 ${fontPx}px "Aghja", Georgia, serif`;
+  try {
+    if (!_rowHintCtx) _rowHintCtx = document.createElement("canvas").getContext("2d");
+    if (_rowHintCtxFont !== font) { _rowHintCtx.font = font; _rowHintCtxFont = font; }
+    const ctx = _rowHintCtx;
+    return (s) => ctx.measureText(s).width;
+  } catch (e) {
+    // No canvas — fall back to the old proportional estimate.
+    return (s) => s.length * fontPx * 0.48;
+  }
+}
+
 function getHintLineHeight() {
   if (measuredHintLineHeight === null) measureAndCacheHintLineHeight();
   return measuredHintLineHeight;
@@ -1213,6 +1255,8 @@ function resizeBoardToFit() {
   // The bar's own margin feeds back into the container height, so leaving it set
   // would skew the read. Recomputed below once we know the board height.
   document.body.style.setProperty("--bar-center-margin", "0px");
+  document.body.style.setProperty("--p3-gap-top", "0px");
+  document.body.style.setProperty("--p3-gap-bottom", "0px");
 
   const availW = container.clientWidth - 4;
   // In landscape without dpad, the mini-logo sits at the top-left corner of
@@ -1228,8 +1272,6 @@ function resizeBoardToFit() {
   // "quadrant extension" divider lines to match the hint content extent.
   // Row hints (left of board): horizontal digits + gaps + h-padding (6+6).
   // Col hints (above board): vertical stack, per-line height + v-padding (4+4).
-  const fontPx = 14;
-  const digitW = fontPx * 0.48;   // Aghja digit width — tighter than default sans
   const numGap = 4;               // matches .row-hint gap in CSS
   const hPad = 8;                 // matches .row-hint horizontal padding total
   const lineH = getHintLineHeight();  // empirical — measured from actual Aghja render, not hardcoded
@@ -1237,10 +1279,12 @@ function resizeBoardToFit() {
   const vPad = 6;                     // matches .col-hint padding-bottom: 6px (breathing room above board)
   let hintColW = 18;
   if (hints && hints.rows) {
+    const measure = getRowHintMeasurer();
     for (const row of hints.rows) {
-      const digits = row.reduce((s, n) => s + String(n).length, 0);
+      let textW = 0;
+      for (const n of row) textW += measure(String(n));
       const gaps = Math.max(0, row.length - 1);
-      const w = Math.ceil(digits * digitW + gaps * numGap + hPad);
+      const w = Math.ceil(textW + gaps * numGap + hPad);
       if (w > hintColW) hintColW = w;
     }
   }
@@ -1283,6 +1327,23 @@ function resizeBoardToFit() {
   // Profiles 2, 4 and 5 don't consume this var.
   const emptyBelowBoard = availH - (hintRowH + bh);
   document.body.style.setProperty("--bar-center-margin", `${Math.max(0, Math.floor(emptyBelowBoard / 2))}px`);
+
+  // Profile 3 wants THREE visually equal gaps: buttons→board, board→bar, and
+  // bar→bottom-of-screen. Same seal-and-solve idea as the ÷2 above, with one more
+  // unknown. Let L = leftover below the top-pinned board, T = the board's top
+  // margin, M = the bar's bottom margin, and SA = the safe-area inset already
+  // padding the body — SA visually enlarges the BOTTOM gap only, since the
+  // background now bleeds under the home indicator. Then:
+  //     top = T          middle = L - T - M          bottom = M + SA
+  // Setting all three equal yields T = (L + SA)/3 and M = (L - 2·SA)/3.
+  // Clamped so T + M can never exceed L — the board is sealed at explicit px, so
+  // over-shrinking its container would make it overflow rather than resize.
+  const safeBottom = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+  const leftoverH = Math.max(0, emptyBelowBoard);
+  const gapTop = Math.max(0, Math.min(Math.floor((leftoverH + safeBottom) / 3), leftoverH));
+  const gapBot = Math.max(0, Math.min(Math.floor((leftoverH - 2 * safeBottom) / 3), leftoverH - gapTop));
+  document.body.style.setProperty("--p3-gap-top", `${gapTop}px`);
+  document.body.style.setProperty("--p3-gap-bottom", `${gapBot}px`);
 
   // Cell content (× marker, colors on win) scale with cell dimensions.
   // Prevents the ×-marker from overflowing and distorting the grid at large boards.
