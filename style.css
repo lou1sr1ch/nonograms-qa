@@ -2008,10 +2008,29 @@ body.profile-portrait-dpad #solveStats {
   justify-content: center;
 }
 body.profile-portrait-dpad #solveBack { align-self: center; }
+/* Board TOP-PINNED (2026-08-20) so the bar below it can be centered in the leftover.
+   Was inheriting the base `align-items: center`, which both wasted room under the
+   4-button row and made the centering a ÷3 problem instead of ÷2 (see the 2026-07-20
+   "seal the size, solve the position" note). A top-pinned board does NOT move when the
+   container shrinks, which is exactly what makes the bar's convergence point solvable
+   in closed form. margin-top is the breathing room under the button row — TUNE. */
+body.user-mode[data-screen="solve"].profile-portrait-dpad .puzzle-and-ref {
+  align-items: flex-start;
+  margin-top: 24px;
+}
 /* Bar hosts three items side-by-side: dpad | Fill/Cross | Undo. `space-evenly`
    distributes free horizontal space into 4 equal gaps: left-edge → dpad → mode
    → undo → right-edge (per Dre's ask). Bar spans full width so the space-evenly
-   split anchors to the true left and right screen edges. */
+   split anchors to the true left and right screen edges.
+
+   VERTICAL (2026-08-20): was `margin-top: auto; margin-bottom: 4px`, which jammed the
+   bar against the bottom of the screen. It now consumes --bar-center-margin, the same
+   value profile 1 uses: resizeBoardToFit measures the leftover below the sealed board
+   and halves it. Because .puzzle-and-ref is `flex: 1 1 auto` it absorbs free space, so
+   this margin-bottom shrinks the container by the same amount and lifts the bar,
+   landing it centered in the gap. The old `margin-top: auto` was a no-op regardless —
+   auto margins only consume LEFTOVER space and puzzle-and-ref's flex-grow had already
+   claimed all of it. That's precisely the trap flagged on 2026-07-06. */
 body.profile-portrait-dpad .solve-bottom-bar {
   display: flex;
   flex-direction: row;
@@ -2019,8 +2038,7 @@ body.profile-portrait-dpad .solve-bottom-bar {
   align-items: center;
   gap: 0;
   width: 100%;
-  margin-top: auto;
-  margin-bottom: 4px;
+  margin-bottom: var(--bar-center-margin, 4px);
 }
 body.profile-portrait-dpad #dpad { width: 154px; }
 body.profile-portrait-dpad #modeBtn {

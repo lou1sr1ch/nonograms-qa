@@ -1209,9 +1209,9 @@ function resizeBoardToFit() {
   puzzleEl.style.gridTemplateColumns = "";
   puzzleEl.style.gridTemplateRows = "";
 
-  // Reset the profile-1 bar-centering margin before measuring — the bar's own
-  // margin feeds back into the container height, so leaving it set would skew
-  // the read. Recomputed below once we know the board height.
+  // Reset the bar-centering margin before measuring (profiles 1 and 3 consume it).
+  // The bar's own margin feeds back into the container height, so leaving it set
+  // would skew the read. Recomputed below once we know the board height.
   document.body.style.setProperty("--bar-center-margin", "0px");
 
   const availW = container.clientWidth - 4;
@@ -1271,9 +1271,16 @@ function resizeBoardToFit() {
   // Publish the live board width so profile-1's control row can span it (buttons
   // flex to fill this width). Updates on every resize/orientation/font-load pass.
   document.body.style.setProperty("--solve-board-width", `${bw}px`);
-  // Profile 1 centers the Fill/Cross bar in the empty space below the top-aligned
-  // board: push it up by half that space (measured with the margin reset to 0
-  // above). Other profiles don't consume this var.
+  // Profiles 1 and 3 center their bottom bar in the empty space below the board:
+  // push it up by half that space (measured with the margin reset to 0 above).
+  //
+  // The ÷2 is exact ONLY because those profiles pin the board to the TOP of
+  // .puzzle-and-ref. A top-pinned board doesn't move when the container shrinks, so
+  // the "bar margin shrinks the container, which changes the leftover, which changes
+  // the margin..." regress has a closed-form fixed point instead of needing
+  // iteration. A vertically-centered board would converge at ÷3 instead. See the
+  // 2026-07-20 "seal the size, solve the position" note in CLAUDE.md.
+  // Profiles 2, 4 and 5 don't consume this var.
   const emptyBelowBoard = availH - (hintRowH + bh);
   document.body.style.setProperty("--bar-center-margin", `${Math.max(0, Math.floor(emptyBelowBoard / 2))}px`);
 
