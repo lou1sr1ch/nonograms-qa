@@ -731,7 +731,20 @@ function setUserScreen(name) {
   updateRotationClass();
   // Fit board to viewport when entering solve. Defer one frame so CSS layout
   // reflects the new data-screen before we measure the container.
-  if (name === "solve") requestAnimationFrame(resizeBoardToFit);
+  if (name === "solve") {
+    requestAnimationFrame(() => {
+      resizeBoardToFit();
+      // Second reset, after the board is sealed. For one frame the board renders at
+      // its NATURAL size, which on tall puzzles overflows the locked viewport; iOS
+      // can respond by scrolling, and `overflow: hidden` then makes that offset
+      // unrecoverable — the app looks shifted up (logo behind the status bar) or
+      // down (bottom controls clipped) with no way to correct it. Resetting before
+      // the screen switch can't catch a scroll that happens after it.
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+  }
 }
 
 function buildUserCategoryList() {
@@ -1328,22 +1341,22 @@ function resizeBoardToFit() {
   const emptyBelowBoard = availH - (hintRowH + bh);
   document.body.style.setProperty("--bar-center-margin", `${Math.max(0, Math.floor(emptyBelowBoard / 2))}px`);
 
-  // Profile 3 wants THREE visually equal gaps: buttons→board, board→bar, and
-  // bar→bottom-of-screen. Same seal-and-solve idea as the ÷2 above, with one more
-  // unknown. Let L = leftover below the top-pinned board, T = the board's top
-  // margin, M = the bar's bottom margin, and SA = the safe-area inset already
-  // padding the body — SA visually enlarges the BOTTOM gap only, since the
-  // background now bleeds under the home indicator. Then:
-  //     top = T          middle = L - T - M          bottom = M + SA
-  // Setting all three equal yields T = (L + SA)/3 and M = (L - 2·SA)/3.
-  // Clamped so T + M can never exceed L — the board is sealed at explicit px, so
-  // over-shrinking its container would make it overflow rather than resize.
-  const safeBottom = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+  // Profile 3 splits the leftover below the top-pinned board into THREE equal
+  // margins: buttons→board, board→bar, bar→bottom. With L = that leftover,
+  // T = board top margin and M = bar bottom margin:
+  //     top = T          middle = L - T - M          bottom = M
+  // so T = M = L/3. Clamped so T + M can never exceed L — the board is sealed at
+  // explicit px, meaning an over-shrunk container makes it OVERFLOW, not resize.
+  //
+  // The first attempt (2026-08-21) also subtracted the safe-area inset from the
+  // bottom term, on the theory that the strip under the home indicator reads as
+  // part of that gap now the background bleeds into it. Dre's device check says it
+  // does NOT — that made the bottom gap "wayyy too small". Perception beats the
+  // model: the eye measures to the last painted CONTROL, not to the screen edge.
   const leftoverH = Math.max(0, emptyBelowBoard);
-  const gapTop = Math.max(0, Math.min(Math.floor((leftoverH + safeBottom) / 3), leftoverH));
-  const gapBot = Math.max(0, Math.min(Math.floor((leftoverH - 2 * safeBottom) / 3), leftoverH - gapTop));
-  document.body.style.setProperty("--p3-gap-top", `${gapTop}px`);
-  document.body.style.setProperty("--p3-gap-bottom", `${gapBot}px`);
+  const gapEach = Math.max(0, Math.floor(leftoverH / 3));
+  document.body.style.setProperty("--p3-gap-top", `${gapEach}px`);
+  document.body.style.setProperty("--p3-gap-bottom", `${gapEach}px`);
 
   // Cell content (× marker, colors on win) scale with cell dimensions.
   // Prevents the ×-marker from overflowing and distorting the grid at large boards.
