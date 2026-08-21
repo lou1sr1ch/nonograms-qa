@@ -1325,7 +1325,11 @@ function resizeBoardToFit() {
   puzzleEl.style.width = `${hintColW + bw}px`;
   puzzleEl.style.height = `${hintRowH + bh}px`;
 
-  // --- Overflow guard (2026-08-21) ---
+  // Home-indicator inset — body already carries it as padding-bottom. Read once
+  // here because both the overflow guard and the gap split below need it.
+  const safeBottomPx = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+
+  // --- Overflow guard (2026-08-21, rev 2) ---
   // Everything above assumes the flex chain reported an accurate available height.
   // On tall puzzles in profile 3 it demonstrably did not: the solve view rendered
   // TALLER than the viewport, and because the view is overflow:hidden the app simply
@@ -1340,9 +1344,18 @@ function resizeBoardToFit() {
   // The board is the only elastic element in the column, so subtracting the overflow
   // from it is sufficient, and one pass converges because the correction is exact.
   let effAvailH = availH;
-  const mainEl = container.parentElement;
-  if (mainEl) {
-    const overflowPx = mainEl.scrollHeight - mainEl.clientHeight;
+  const barEl = document.querySelector(".solve-bottom-bar");
+  if (barEl) {
+    // Measure against the VIEWPORT, not against an ancestor's internal overflow.
+    // The first attempt compared mainEl.scrollHeight to mainEl.clientHeight and
+    // always read 0 — main isn't the element being clipped. main is sized to its
+    // own content perfectly happily while main ITSELF extends past the bottom of
+    // the screen. The only measurement that matches what the player sees is: does
+    // the last control's bottom edge clear the usable bottom of the screen?
+    // `window.innerHeight` is the full physical height under viewport-fit=cover,
+    // so the usable bottom is that minus the home-indicator inset.
+    const usableBottom = window.innerHeight - safeBottomPx;
+    const overflowPx = Math.ceil(barEl.getBoundingClientRect().bottom - usableBottom);
     if (overflowPx > 0) {
       bh = Math.max(80, bh - overflowPx);
       bw = Math.max(80, Math.floor(bh * ratio));
