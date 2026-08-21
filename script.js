@@ -1325,6 +1325,37 @@ function resizeBoardToFit() {
   puzzleEl.style.width = `${hintColW + bw}px`;
   puzzleEl.style.height = `${hintRowH + bh}px`;
 
+  // --- Overflow guard (2026-08-21) ---
+  // Everything above assumes the flex chain reported an accurate available height.
+  // On tall puzzles in profile 3 it demonstrably did not: the solve view rendered
+  // TALLER than the viewport, and because the view is overflow:hidden the app simply
+  // lost whichever end the scroll offset wasn't showing — logo hidden behind the
+  // status bar at one offset, dpad and Cross clipped off the bottom at another. Two
+  // screenshots that looked like different bugs were one overflow seen from two
+  // scroll positions.
+  //
+  // The chain looks correct on paper (min-height: 0 all the way down, the bar and
+  // stats are flex: 0 0 auto, the board is sealed to explicit px), so rather than
+  // trust another theory this measures the actual rendered result and corrects it.
+  // The board is the only elastic element in the column, so subtracting the overflow
+  // from it is sufficient, and one pass converges because the correction is exact.
+  let effAvailH = availH;
+  const mainEl = container.parentElement;
+  if (mainEl) {
+    const overflowPx = mainEl.scrollHeight - mainEl.clientHeight;
+    if (overflowPx > 0) {
+      bh = Math.max(80, bh - overflowPx);
+      bw = Math.max(80, Math.floor(bh * ratio));
+      puzzleEl.style.gridTemplateColumns = `${hintColW}px ${bw}px`;
+      puzzleEl.style.gridTemplateRows = `${hintRowH}px ${bh}px`;
+      puzzleEl.style.width = `${hintColW + bw}px`;
+      puzzleEl.style.height = `${hintRowH + bh}px`;
+      // The reclaimed pixels were never really available, so the gap maths below
+      // must not hand them out again — that would re-create the overflow.
+      effAvailH = availH - overflowPx;
+    }
+  }
+
   // Publish the live board width so profile-1's control row can span it (buttons
   // flex to fill this width). Updates on every resize/orientation/font-load pass.
   document.body.style.setProperty("--solve-board-width", `${bw}px`);
@@ -1338,7 +1369,7 @@ function resizeBoardToFit() {
   // iteration. A vertically-centered board would converge at ÷3 instead. See the
   // 2026-07-20 "seal the size, solve the position" note in CLAUDE.md.
   // Profiles 2, 4 and 5 don't consume this var.
-  const emptyBelowBoard = availH - (hintRowH + bh);
+  const emptyBelowBoard = effAvailH - (hintRowH + bh);
   document.body.style.setProperty("--bar-center-margin", `${Math.max(0, Math.floor(emptyBelowBoard / 2))}px`);
 
   // Profile 3 splits the leftover below the top-pinned board into THREE equal
