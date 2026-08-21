@@ -1250,6 +1250,8 @@ if (document.fonts && document.fonts.ready) {
 // Fit the .puzzle grid (hints + board) inside the .puzzle-and-ref flex container.
 // Only runs on the user-mode solve screen — editor & user list screens keep their
 // default sizing. Uses measured hint sizes so wide-hint puzzles don't get clipped.
+// Re-entry guard for the overflow correction at the end of resizeBoardToFit.
+let _boardFitPass = 0;
 function resizeBoardToFit() {
   if (editorMode) return;
   if (document.body.dataset.screen !== "solve") return;
@@ -1270,6 +1272,8 @@ function resizeBoardToFit() {
   document.body.style.setProperty("--bar-center-margin", "0px");
   document.body.style.setProperty("--p3-gap-top", "0px");
   document.body.style.setProperty("--p3-gap-bottom", "0px");
+  // Clear the previous pass's container cap (see the overflow guard at the end).
+  if (_boardFitPass === 0) container.style.maxHeight = "";
 
   const availW = container.clientWidth - 4;
   // In landscape without dpad, the mini-logo sits at the top-left corner of
@@ -1325,49 +1329,9 @@ function resizeBoardToFit() {
   puzzleEl.style.width = `${hintColW + bw}px`;
   puzzleEl.style.height = `${hintRowH + bh}px`;
 
-  // Home-indicator inset — body already carries it as padding-bottom. Read once
-  // here because both the overflow guard and the gap split below need it.
+  // Home-indicator inset — body already carries it as padding-bottom. Needed by
+  // both the gap split below and the overflow guard at the end of this function.
   const safeBottomPx = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
-
-  // --- Overflow guard (2026-08-21, rev 2) ---
-  // Everything above assumes the flex chain reported an accurate available height.
-  // On tall puzzles in profile 3 it demonstrably did not: the solve view rendered
-  // TALLER than the viewport, and because the view is overflow:hidden the app simply
-  // lost whichever end the scroll offset wasn't showing — logo hidden behind the
-  // status bar at one offset, dpad and Cross clipped off the bottom at another. Two
-  // screenshots that looked like different bugs were one overflow seen from two
-  // scroll positions.
-  //
-  // The chain looks correct on paper (min-height: 0 all the way down, the bar and
-  // stats are flex: 0 0 auto, the board is sealed to explicit px), so rather than
-  // trust another theory this measures the actual rendered result and corrects it.
-  // The board is the only elastic element in the column, so subtracting the overflow
-  // from it is sufficient, and one pass converges because the correction is exact.
-  let effAvailH = availH;
-  const barEl = document.querySelector(".solve-bottom-bar");
-  if (barEl) {
-    // Measure against the VIEWPORT, not against an ancestor's internal overflow.
-    // The first attempt compared mainEl.scrollHeight to mainEl.clientHeight and
-    // always read 0 — main isn't the element being clipped. main is sized to its
-    // own content perfectly happily while main ITSELF extends past the bottom of
-    // the screen. The only measurement that matches what the player sees is: does
-    // the last control's bottom edge clear the usable bottom of the screen?
-    // `window.innerHeight` is the full physical height under viewport-fit=cover,
-    // so the usable bottom is that minus the home-indicator inset.
-    const usableBottom = window.innerHeight - safeBottomPx;
-    const overflowPx = Math.ceil(barEl.getBoundingClientRect().bottom - usableBottom);
-    if (overflowPx > 0) {
-      bh = Math.max(80, bh - overflowPx);
-      bw = Math.max(80, Math.floor(bh * ratio));
-      puzzleEl.style.gridTemplateColumns = `${hintColW}px ${bw}px`;
-      puzzleEl.style.gridTemplateRows = `${hintRowH}px ${bh}px`;
-      puzzleEl.style.width = `${hintColW + bw}px`;
-      puzzleEl.style.height = `${hintRowH + bh}px`;
-      // The reclaimed pixels were never really available, so the gap maths below
-      // must not hand them out again — that would re-create the overflow.
-      effAvailH = availH - overflowPx;
-    }
-  }
 
   // Publish the live board width so profile-1's control row can span it (buttons
   // flex to fill this width). Updates on every resize/orientation/font-load pass.
@@ -1382,21 +1346,20 @@ function resizeBoardToFit() {
   // iteration. A vertically-centered board would converge at ÷3 instead. See the
   // 2026-07-20 "seal the size, solve the position" note in CLAUDE.md.
   // Profiles 2, 4 and 5 don't consume this var.
-  const emptyBelowBoard = effAvailH - (hintRowH + bh);
+  const emptyBelowBoard = availH - (hintRowH + bh);
   document.body.style.setProperty("--bar-center-margin", `${Math.max(0, Math.floor(emptyBelowBoard / 2))}px`);
 
   // Profile 3 splits the leftover below the top-pinned board into THREE equal
   // margins: buttons→board, board→bar, bar→bottom. With L = that leftover,
   // T = board top margin and M = bar bottom margin:
   //     top = T          middle = L - T - M          bottom = M
-  // so T = M = L/3. Clamped so T + M can never exceed L — the board is sealed at
-  // explicit px, meaning an over-shrunk container makes it OVERFLOW, not resize.
+  // so T = M = L/3. Clamped so T + M can never exceed L.
   //
-  // The first attempt (2026-08-21) also subtracted the safe-area inset from the
-  // bottom term, on the theory that the strip under the home indicator reads as
-  // part of that gap now the background bleeds into it. Dre's device check says it
-  // does NOT — that made the bottom gap "wayyy too small". Perception beats the
-  // model: the eye measures to the last painted CONTROL, not to the screen edge.
+  // An earlier revision also subtracted the safe-area inset from the bottom term,
+  // on the theory that the strip under the home indicator reads as part of that gap
+  // now the background bleeds into it. Dre's device check says it does NOT — that
+  // made the bottom gap "wayyy too small". The eye measures to the last painted
+  // CONTROL, not to the screen edge.
   const leftoverH = Math.max(0, emptyBelowBoard);
   const gapEach = Math.max(0, Math.floor(leftoverH / 3));
   document.body.style.setProperty("--p3-gap-top", `${gapEach}px`);
@@ -1407,6 +1370,34 @@ function resizeBoardToFit() {
   const cellSize = Math.min(bw / activeW, bh / activeH);
   const cellFontPx = Math.max(8, Math.min(cellSize * 0.65, 22));
   boardEl.style.setProperty("--cell-font-size", `${cellFontPx}px`);
+
+  // --- Overflow guard, rev 3: cap the CONTAINER, not the board ---
+  // Two earlier revisions failed here, both instructively:
+  //   rev 1 compared main.scrollHeight to main.clientHeight, which always read 0 —
+  //     main is not the element being clipped. It sizes to its own content quite
+  //     happily while main ITSELF hangs off the bottom of the screen.
+  //   rev 2 measured correctly but corrected the wrong thing: it shrank the BOARD.
+  //     .puzzle-and-ref is `flex: 1 1 auto`, so a smaller board frees no height at
+  //     all — the container keeps its size and the slack simply opens as a gap
+  //     under the board. Dre, exactly right: "we are allocating space, just to the
+  //     wrong parts."
+  // Capping .puzzle-and-ref's max-height is what actually removes height, because
+  // flex-grow cannot exceed max-height. The bar then rises by precisely that much.
+  // Re-run once afterwards so the board size AND the gap split are solved against
+  // the real container height. Single guarded re-entry: the correction is exact, so
+  // the second pass cannot overflow again.
+  if (_boardFitPass === 0) {
+    const barEl = document.querySelector(".solve-bottom-bar");
+    if (barEl) {
+      const usableBottom = window.innerHeight - safeBottomPx;
+      const overflowPx = Math.ceil(barEl.getBoundingClientRect().bottom - usableBottom);
+      if (overflowPx > 0) {
+        container.style.maxHeight = `${Math.max(100, container.clientHeight - overflowPx)}px`;
+        _boardFitPass = 1;
+        try { resizeBoardToFit(); } finally { _boardFitPass = 0; }
+      }
+    }
+  }
 }
 
 function renderBoard() {
