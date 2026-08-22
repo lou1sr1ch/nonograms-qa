@@ -1423,6 +1423,8 @@ function resizeBoardToFit() {
   // Re-run once afterwards so the board size AND the gap split are solved against
   // the real container height. Single guarded re-entry: the correction is exact, so
   // the second pass cannot overflow again.
+  updateGapReadout(safeBottomPx);
+
   if (_boardFitPass === 0) {
     const barEl = document.querySelector(".solve-bottom-bar");
     if (barEl) {
@@ -1435,6 +1437,37 @@ function resizeBoardToFit() {
       }
     }
   }
+}
+
+// DEV-ONLY (temporary, 2026-08-22): print the three MEASURED vertical gaps under the
+// profile number. Added because the computed model kept disagreeing with the device —
+// every gap fix so far has been reasoned from source and then contradicted by a
+// screenshot. These numbers come from getBoundingClientRect on the real elements, so
+// they are ground truth rather than another prediction. Remove with #profileNum.
+function updateGapReadout(safeBottomPx) {
+  const el = document.getElementById("profileNum");
+  if (!el) return;
+  let out = el.querySelector(".gap-readout");
+  if (!document.body.classList.contains("profile-portrait-dpad")) {
+    if (out) out.remove();
+    return;
+  }
+  const statsEl = document.getElementById("solveStats");
+  const puzzleEl = document.querySelector(".puzzle");
+  const barEl = document.querySelector(".solve-bottom-bar");
+  if (!statsEl || !puzzleEl || !barEl) return;
+  const s = statsEl.getBoundingClientRect();
+  const p = puzzleEl.getBoundingClientRect();
+  const b = barEl.getBoundingClientRect();
+  const top = Math.round(p.top - s.bottom);
+  const mid = Math.round(b.top - p.bottom);
+  const bot = Math.round((window.innerHeight - safeBottomPx) - b.bottom);
+  if (!out) {
+    out = document.createElement("div");
+    out.className = "gap-readout";
+    el.appendChild(out);
+  }
+  out.textContent = `${top} / ${mid} / ${bot}`;
 }
 
 function renderBoard() {
