@@ -493,6 +493,9 @@ document.getElementById("settingsBtn").addEventListener("click", openSettingsMod
 document.getElementById("solveSettings")?.addEventListener("click", openSettingsModal);
 document.getElementById("solveReset")?.addEventListener("click", clearBoard);
 // DEV-ONLY: instant-win for testing the win screen flow. Remove before ship.
+// DEV "Win game" button removed 2026-08-22 (unused, and it visually filled the
+// bottom-right gap which disguised the spacing imbalance). devWinPuzzle() is kept —
+// re-add a trigger if instant-win testing is ever needed again.
 document.getElementById("devWinBtn")?.addEventListener("click", devWinPuzzle);
 document.getElementById("settingsClose").addEventListener("click", closeSettingsModal);
 document.querySelector("#settingsModal .modal-backdrop").addEventListener("click", closeSettingsModal);
@@ -1284,6 +1287,10 @@ function resizeBoardToFit() {
   const availH = container.clientHeight - 4 - topReserve;
   if (availW < 100 || availH < 100) return;
 
+  // Home-indicator inset — body already carries it as padding-bottom. Needed by the
+  // board reserve, the gap solve, and the overflow guard, so read it once up front.
+  const safeBottomPx = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+
   // Compute hint track sizes from the actual digit counts + gaps + padding so
   // short hints don't get padded with wasted space. This also shortens the
   // "quadrant extension" divider lines to match the hint content extent.
@@ -1324,14 +1331,30 @@ function resizeBoardToFit() {
   bw = Math.max(80, Math.floor(bw));
   bh = Math.max(80, Math.floor(bh));
 
+  // --- Profile 3: reserve enough leftover that the three gaps CAN be equal ---
+  // The bottom gap carries a fixed offset the other two don't — main's bottom padding
+  // plus the home-indicator inset. Those pixels are physically reserved and cannot be
+  // redistributed, so when the board consumes all available height (L ≈ 0, the normal
+  // case on tall puzzles) the top and middle gaps collapse to nothing while the bottom
+  // keeps ~34px. That is exactly the "everything crammed together above a big empty
+  // strip" Dre reported. No amount of margin maths fixes it: there is nothing to hand
+  // out. The board has to yield the space.
+  //
+  // Equalising requires L ≥ 2·D, where D is that asymmetry (see the solve below), so
+  // cap the board to leave precisely that. Costs up to 2·D of board height on tall
+  // puzzles, buys evenly spaced controls. Delete this block to revert.
+  if (document.body.classList.contains("profile-portrait-dpad")) {
+    const maxBh = availH - hintRowH - 2 * safeBottomPx;
+    if (maxBh > 80 && bh > maxBh) {
+      bh = Math.floor(maxBh);
+      bw = Math.max(80, Math.floor(bh * ratio));
+    }
+  }
+
   puzzleEl.style.gridTemplateColumns = `${hintColW}px ${bw}px`;
   puzzleEl.style.gridTemplateRows = `${hintRowH}px ${bh}px`;
   puzzleEl.style.width = `${hintColW + bw}px`;
   puzzleEl.style.height = `${hintRowH + bh}px`;
-
-  // Home-indicator inset — body already carries it as padding-bottom. Needed by
-  // both the gap split below and the overflow guard at the end of this function.
-  const safeBottomPx = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
 
   // Publish the live board width so profile-1's control row can span it (buttons
   // flex to fill this width). Updates on every resize/orientation/font-load pass.
@@ -1360,10 +1383,24 @@ function resizeBoardToFit() {
   // now the background bleeds into it. Dre's device check says it does NOT — that
   // made the bottom gap "wayyy too small". The eye measures to the last painted
   // CONTROL, not to the screen edge.
+  // With A = main's row gap, B = main's bottom padding + the home-indicator inset,
+  // T = the board's top margin and M = the bar's bottom margin:
+  //     Gtop = A + T      Gmid = A + (L - T - M)      Gbot = M + B
+  // Setting all three equal and letting D = B - A (the asymmetry, which reduces to
+  // just the safe-area inset since padding and gap are both 8px) gives:
+  //     T = (L + D)/3     M = (L - 2·D)/3
+  // The board reserve above guarantees L ≥ 2·D so M never wants to be negative.
+  //
+  // History worth keeping: subtracting the FULL inset was tried on 2026-08-21 and made
+  // the bottom "wayyy too small"; removing it entirely made the bottom too large. Both
+  // readings were correct — the error was applying the correction while L ≈ 0, where
+  // there was no space to redistribute in the first place.
+  const D = safeBottomPx;
   const leftoverH = Math.max(0, emptyBelowBoard);
-  const gapEach = Math.max(0, Math.floor(leftoverH / 3));
-  document.body.style.setProperty("--p3-gap-top", `${gapEach}px`);
-  document.body.style.setProperty("--p3-gap-bottom", `${gapEach}px`);
+  let gapTop = Math.max(0, Math.min(Math.floor((leftoverH + D) / 3), leftoverH));
+  let gapBot = Math.max(0, Math.min(Math.floor((leftoverH - 2 * D) / 3), leftoverH - gapTop));
+  document.body.style.setProperty("--p3-gap-top", `${gapTop}px`);
+  document.body.style.setProperty("--p3-gap-bottom", `${gapBot}px`);
 
   // Cell content (× marker, colors on win) scale with cell dimensions.
   // Prevents the ×-marker from overflowing and distorting the grid at large boards.

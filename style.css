@@ -1663,20 +1663,6 @@ body.user-mode[data-screen="solve"] #solveStats #undoBtn {
 
 /* DEV-ONLY: instant-win button. Dashed cherry border makes it obvious this is
    not shipping UI. Remove this rule + the button when the win flow is done. */
-#devWinBtn {
-  font: inherit;
-  font-family: var(--font-body);
-  font-size: 17px;
-  padding: 10px 18px;
-  border: 1.5px dashed var(--color-cherry);
-  background: var(--color-surface);
-  color: var(--color-cherry);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  /* No align-self here — inherit parent's align-items so it stays aligned with
-     the other buttons in both portrait (row) and landscape (column) flex. */
-}
-#devWinBtn:hover { background: var(--color-cherry); color: var(--color-foam); }
 
 /* DEV-ONLY: big faint layout-profile number, centered on the board. Just a
    visual cue so Dre can say "profile 3" instead of screenshotting. Overlaid via
@@ -1821,14 +1807,6 @@ body.profile-wide-dpad .layout main {
 /* DEV Win game — floated fixed at bottom-right corner so it overlaps the
    Fill/Cross button (or whatever's in the corner) in every profile. Compact.
    Removed at ship-time along with the button and its handler. */
-body.user-mode[data-screen="solve"] #devWinBtn {
-  position: fixed;
-  bottom: 4px;
-  right: 4px;
-  z-index: 100;
-  font-size: 12px;
-  padding: 4px 10px;
-}
 body.rotate-app.user-mode[data-screen="solve"] .layout {
   position: fixed;
   top: 50%;
