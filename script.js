@@ -1253,6 +1253,9 @@ if (document.fonts && document.fonts.ready) {
 // Fit the .puzzle grid (hints + board) inside the .puzzle-and-ref flex container.
 // Only runs on the user-mode solve screen — editor & user list screens keep their
 // default sizing. Uses measured hint sizes so wide-hint puzzles don't get clipped.
+// Deferred-equalisation scheduling flag + last measured excess (shown in DEV readout).
+let _gapFixScheduled = false;
+let _lastGapExcess = 0;
 // Re-entry guard for the overflow correction at the end of resizeBoardToFit.
 let _boardFitPass = 0;
 function resizeBoardToFit() {
@@ -1449,31 +1452,64 @@ function resizeBoardToFit() {
   // removes it 1:1 and hands those pixels straight to the board. The bar is already
   // pinned at the usable bottom (bot ≈ 0), so growing the board cannot push it
   // further and cannot re-introduce overflow.
-  if (document.body.classList.contains("profile-portrait-dpad")) {
-    const g = measureGaps(safeBottomPx);
-    if (g) {
-      const excess = g.mid - g.top;
-      if (excess > 4) {
-        bh += excess;
-        bw = Math.floor(bh * ratio);
-        // Growing height grows width with it; don't exceed the horizontal room.
-        const maxBw = availW - hintColW;
-        if (bw > maxBw) { bw = maxBw; bh = Math.floor(bw / ratio); }
-        bw = Math.max(80, bw);
-        bh = Math.max(80, bh);
-        puzzleEl.style.gridTemplateColumns = `${hintColW}px ${bw}px`;
-        puzzleEl.style.gridTemplateRows = `${hintRowH}px ${bh}px`;
-        puzzleEl.style.width = `${hintColW + bw}px`;
-        puzzleEl.style.height = `${hintRowH + bh}px`;
-        document.body.style.setProperty("--solve-board-width", `${bw}px`);
-        const cs2 = Math.min(bw / activeW, bh / activeH);
-        boardEl.style.setProperty("--cell-font-size", `${Math.max(8, Math.min(cs2 * 0.65, 22))}px`);
-      }
-    }
+  // Equalisation runs on the NEXT frame, not inline. Measuring immediately after
+  // writing the sizes reported pre-correction geometry — the readout kept coming back
+  // 40 / 78 / 0 with the fix verified live — so the surplus only becomes visible once
+  // the browser has settled this pass. Deferring a frame reads what the player sees.
+  updateGapReadout(safeBottomPx);
+  if (!_gapFixScheduled) {
+    _gapFixScheduled = true;
+    requestAnimationFrame(() => { _gapFixScheduled = false; equalizeGaps(); });
   }
+}
 
+// Hand the middle gap's surplus to the board. The middle gap IS "container height −
+// board block" (the board is top-pinned in .puzzle-and-ref), so growing the board by
+// the excess removes it 1:1. Deferred, and measures real rects — no model.
+// Idempotent: once spent, the excess measures under the threshold and it stops.
+function equalizeGaps() {
+  if (editorMode) return;
+  if (document.body.dataset.screen !== "solve") return;
+  if (!document.body.classList.contains("profile-portrait-dpad")) return;
+  const puzzleEl = document.querySelector(".puzzle");
+  const container = document.querySelector(".puzzle-and-ref");
+  if (!puzzleEl || !container) return;
+  const safeBottomPx = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+  const g = measureGaps(safeBottomPx);
+  if (!g) return;
+  const excess = g.mid - g.top;
+  _lastGapExcess = excess;
+  if (excess <= 4) { updateGapReadout(safeBottomPx); return; }
+
+  // Read the sealed dimensions back off the element rather than from variables —
+  // resizeBoardToFit may have run again between passes.
+  const rows = puzzleEl.style.gridTemplateRows.split(" ");
+  const cols = puzzleEl.style.gridTemplateColumns.split(" ");
+  if (rows.length !== 2 || cols.length !== 2) return;
+  const hintRowH = parseFloat(rows[0]);
+  const hintColW = parseFloat(cols[0]);
+  let bh = parseFloat(rows[1]);
+  let bw = parseFloat(cols[1]);
+  if (!(bh > 0) || !(bw > 0)) return;
+
+  const ratio = activeW / activeH;
+  bh += excess;
+  bw = Math.floor(bh * ratio);
+  const maxBw = container.clientWidth - 4 - hintColW;
+  if (bw > maxBw) { bw = Math.floor(maxBw); bh = Math.floor(bw / ratio); }
+  bw = Math.max(80, Math.floor(bw));
+  bh = Math.max(80, Math.floor(bh));
+
+  puzzleEl.style.gridTemplateColumns = `${hintColW}px ${bw}px`;
+  puzzleEl.style.gridTemplateRows = `${hintRowH}px ${bh}px`;
+  puzzleEl.style.width = `${hintColW + bw}px`;
+  puzzleEl.style.height = `${hintRowH + bh}px`;
+  document.body.style.setProperty("--solve-board-width", `${bw}px`);
+  const cs = Math.min(bw / activeW, bh / activeH);
+  boardEl.style.setProperty("--cell-font-size", `${Math.max(8, Math.min(cs * 0.65, 22))}px`);
   updateGapReadout(safeBottomPx);
 }
+
 
 // DEV-ONLY (temporary, 2026-08-22): print the three MEASURED vertical gaps under the
 // profile number. Added because the computed model kept disagreeing with the device —
@@ -1513,7 +1549,7 @@ function updateGapReadout(safeBottomPx) {
     out.className = "gap-readout";
     el.appendChild(out);
   }
-  out.textContent = `${top} / ${mid} / ${bot}`;
+  out.textContent = `${top} / ${mid} / ${bot}  ·  x${_lastGapExcess}`;
 }
 
 function renderBoard() {
