@@ -1754,15 +1754,17 @@ body.user-mode[data-screen="solve"] .fact-card {
    the user physically rotates their phone to landscape and the layout looks
    correct. Also fires the reverse (portrait puzzle on landscape phone).
    Header is hidden during rotation since it can't participate in the transform. */
-/* Header hidden wherever vertical space is the binding constraint. Profile 3 joined
-   this list 2026-08-21 on Dre's call: "the puzzle board is the most important entity
-   and I want it as large as possible; if I have to, I'll cut off the logo rather than
-   have the bottom buttons cut off." Hiding beats clipping — same trade, cleaner
-   result — and it hands ~68px (16+16 padding, ~28 text, 8 margin) back to the board
-   on tall puzzles, which is where the overflow was. One selector to revert if the
-   logo turns out to be missed on the roomier profile-3 puzzles. */
+/* Header hidden only where the screen's LONG axis is horizontal — the rotated view
+   and the two landscape profiles — because there vertical space is genuinely scarce
+   and there is nowhere to put a full-width title bar.
+   
+   Profile 3 was briefly added here (2026-08-21) to buy ~68px when tall puzzles were
+   overflowing. Reverted 2026-08-22: once the overflow guard was fixed to cap the
+   container, the space came back on its own and the bottom gap read as too large.
+   Restoring the header spends that surplus on the logo instead of on empty space,
+   and keeps all three PORTRAIT profiles visually consistent — Dre's actual
+   requirement was consistency across profiles, not the logo per se. */
 body.rotate-app.user-mode[data-screen="solve"] header,
-body.user-mode[data-screen="solve"].profile-portrait-dpad header,
 body.profile-wide-nodpad header,
 body.profile-wide-dpad header {
   display: none;
