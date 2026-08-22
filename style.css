@@ -2046,6 +2046,24 @@ body.user-mode[data-screen="solve"].profile-portrait-dpad #modeBtn {
   margin: 0;
 }
 body.profile-portrait-dpad .mode-half { padding: 12px 8px; font-size: 17px; }
+/* Control row width decoupled from the board (2026-08-22). The shared portrait rule
+   sizes #solveStats as `--solve-board-width * 0.8`, which was fine when the board was
+   the only variable. Profile 3 now spends height on the logo and the even-gap reserve,
+   so a shorter board is also a NARROWER board, and it was dragging the control row
+   narrow with it — Dre: "the top 4 buttons are shorter than they were." Thumb reach
+   shouldn't depend on puzzle dimensions (the same principle that moved the bottom bar
+   to screen-anchored positioning on 2026-07-06), so anchor to the viewport instead.
+   Profiles 1 and 2 keep the old coupling; this is scoped to profile 3 and placed AFTER
+   the shared rule, which is what decides at equal specificity. */
+body.user-mode[data-screen="solve"].profile-portrait-dpad #solveStats {
+  width: min(84vw, 400px);
+}
+/* The header is logo-only here, so its 8px vertical padding is pure cost — every
+   pixel of it comes straight off the board's height. Trimmed to 2px, which buys the
+   board ~12px back without the logo looking cramped. */
+body.user-mode[data-screen="solve"].profile-portrait-dpad header {
+  padding: 2px 12px;
+}
 /* (Profile 3's Undo used to be a tall dpad-style key next to Fill/Cross; it now
    rejoins the Back/Settings/Undo/Reset icon line in solveStats — see the unified
    solve-control block above. syncSolveBackParent keeps Undo in solveStats.) */
