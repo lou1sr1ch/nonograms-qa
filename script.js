@@ -1423,8 +1423,6 @@ function resizeBoardToFit() {
   // Re-run once afterwards so the board size AND the gap split are solved against
   // the real container height. Single guarded re-entry: the correction is exact, so
   // the second pass cannot overflow again.
-  updateGapReadout(safeBottomPx);
-
   if (_boardFitPass === 0) {
     const barEl = document.querySelector(".solve-bottom-bar");
     if (barEl) {
@@ -1434,9 +1432,47 @@ function resizeBoardToFit() {
         container.style.maxHeight = `${Math.max(100, container.clientHeight - overflowPx)}px`;
         _boardFitPass = 1;
         try { resizeBoardToFit(); } finally { _boardFitPass = 0; }
+        return;
       }
     }
   }
+
+  // --- Measured equalisation: give the middle gap's surplus to the board ---
+  // The container cap above and the margin-based gap solve interact badly. Once
+  // .puzzle-and-ref carries an explicit max-height, its margin-top no longer SHRINKS
+  // it — the margin merely pushes the block down — so the leftover inside the
+  // container never reduces and lands entirely in the MIDDLE gap. Device reported
+  // 40 / 78 / 0 where the model predicted 42 / 42 / 42, and Dre could see the room.
+  //
+  // Rather than model that interaction, close the loop on the measurement. The middle
+  // gap IS "container height − board block", so growing the board by the excess
+  // removes it 1:1 and hands those pixels straight to the board. The bar is already
+  // pinned at the usable bottom (bot ≈ 0), so growing the board cannot push it
+  // further and cannot re-introduce overflow.
+  if (document.body.classList.contains("profile-portrait-dpad")) {
+    const g = measureGaps(safeBottomPx);
+    if (g) {
+      const excess = g.mid - g.top;
+      if (excess > 4) {
+        bh += excess;
+        bw = Math.floor(bh * ratio);
+        // Growing height grows width with it; don't exceed the horizontal room.
+        const maxBw = availW - hintColW;
+        if (bw > maxBw) { bw = maxBw; bh = Math.floor(bw / ratio); }
+        bw = Math.max(80, bw);
+        bh = Math.max(80, bh);
+        puzzleEl.style.gridTemplateColumns = `${hintColW}px ${bw}px`;
+        puzzleEl.style.gridTemplateRows = `${hintRowH}px ${bh}px`;
+        puzzleEl.style.width = `${hintColW + bw}px`;
+        puzzleEl.style.height = `${hintRowH + bh}px`;
+        document.body.style.setProperty("--solve-board-width", `${bw}px`);
+        const cs2 = Math.min(bw / activeW, bh / activeH);
+        boardEl.style.setProperty("--cell-font-size", `${Math.max(8, Math.min(cs2 * 0.65, 22))}px`);
+      }
+    }
+  }
+
+  updateGapReadout(safeBottomPx);
 }
 
 // DEV-ONLY (temporary, 2026-08-22): print the three MEASURED vertical gaps under the
@@ -1444,6 +1480,23 @@ function resizeBoardToFit() {
 // every gap fix so far has been reasoned from source and then contradicted by a
 // screenshot. These numbers come from getBoundingClientRect on the real elements, so
 // they are ground truth rather than another prediction. Remove with #profileNum.
+// Measured vertical gaps, in screen space. Ground truth — every attempt to derive
+// these from the box model has been contradicted by the device.
+function measureGaps(safeBottomPx) {
+  const statsEl = document.getElementById("solveStats");
+  const puzzleEl = document.querySelector(".puzzle");
+  const barEl = document.querySelector(".solve-bottom-bar");
+  if (!statsEl || !puzzleEl || !barEl) return null;
+  const s = statsEl.getBoundingClientRect();
+  const p = puzzleEl.getBoundingClientRect();
+  const b = barEl.getBoundingClientRect();
+  return {
+    top: Math.round(p.top - s.bottom),
+    mid: Math.round(b.top - p.bottom),
+    bot: Math.round((window.innerHeight - safeBottomPx) - b.bottom),
+  };
+}
+
 function updateGapReadout(safeBottomPx) {
   const el = document.getElementById("profileNum");
   if (!el) return;
@@ -1452,16 +1505,9 @@ function updateGapReadout(safeBottomPx) {
     if (out) out.remove();
     return;
   }
-  const statsEl = document.getElementById("solveStats");
-  const puzzleEl = document.querySelector(".puzzle");
-  const barEl = document.querySelector(".solve-bottom-bar");
-  if (!statsEl || !puzzleEl || !barEl) return;
-  const s = statsEl.getBoundingClientRect();
-  const p = puzzleEl.getBoundingClientRect();
-  const b = barEl.getBoundingClientRect();
-  const top = Math.round(p.top - s.bottom);
-  const mid = Math.round(b.top - p.bottom);
-  const bot = Math.round((window.innerHeight - safeBottomPx) - b.bottom);
+  const g = measureGaps(safeBottomPx);
+  if (!g) return;
+  const { top, mid, bot } = g;
   if (!out) {
     out = document.createElement("div");
     out.className = "gap-readout";
