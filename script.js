@@ -1253,6 +1253,18 @@ if (document.fonts && document.fonts.ready) {
 // Fit the .puzzle grid (hints + board) inside the .puzzle-and-ref flex container.
 // Only runs on the user-mode solve screen — editor & user list screens keep their
 // default sizing. Uses measured hint sizes so wide-hint puzzles don't get clipped.
+// Profile-3 gap reserve, as a multiple of the safe-area inset.
+//
+// 2.0 is the minimum for three EXACTLY equal gaps — see the 2026-08-22 budget note:
+// the bottom gap has a hard floor of (main padding + safe-area inset), so equality
+// forces all three up to that floor, which costs L = 2·D of reserve.
+//
+// Below 2.0 the gaps shrink and the board takes the difference: every 0.1 here is
+// ~3.4px off EACH gap and onto the board. The board cannot be enlarged any other way
+// — the only other slack on screen is the home-indicator strip, which is reserved and
+// cannot hold controls. TUNE: raise for airier spacing, lower for a bigger board.
+const P3_GAP_RESERVE = 1.4;
+
 // Deferred-equalisation scheduling flag + last measured excess (shown in DEV readout).
 let _gapFixScheduled = false;
 let _lastGapExcess = 0;
@@ -1347,7 +1359,7 @@ function resizeBoardToFit() {
   // cap the board to leave precisely that. Costs up to 2·D of board height on tall
   // puzzles, buys evenly spaced controls. Delete this block to revert.
   if (document.body.classList.contains("profile-portrait-dpad")) {
-    const maxBh = availH - hintRowH - 2 * safeBottomPx;
+    const maxBh = availH - hintRowH - P3_GAP_RESERVE * safeBottomPx;
     if (maxBh > 80 && bh > maxBh) {
       bh = Math.floor(maxBh);
       bw = Math.max(80, Math.floor(bh * ratio));
