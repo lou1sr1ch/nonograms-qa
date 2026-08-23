@@ -1878,12 +1878,24 @@ body.rotate-app.user-mode[data-screen="solve"] .layout {
    extend computeLayoutProfile() to detect it, and add one CSS block here. */
 
 /* ---------- profile-square-nodpad (10x10, 15x15, no dpad) ----------
-   STATUS: LOCKED-VERIFIED (2026-07-07) — Dre-approved.
-   Do not modify without re-verifying against this profile at both narrow
-   (safari with url bar) AND full-viewport heights.
+   STATUS: needs re-verification after the 2026-08-23 restructure (was
+   LOCKED-VERIFIED 2026-08-16).
 
-   Small square puzzles in portrait. Fill/Cross is a WIDE horizontal button
-   sitting near the bottom with a fixed padded gap above and below. */
+   Small square puzzles in portrait. The four controls are a single 4x1 row in
+   #solveStats, identical to profiles 2 and 3 — profile 1 joined their shared
+   :is(...) group on 2026-08-23, so it INHERITS size, order, spacing and row
+   behaviour rather than restating any of it. Nothing about the four buttons is
+   defined in this block; that is the point.
+
+   Profile 1 used to be the odd one out: Back sat in the HEADER flanking the logo,
+   and Undo + Reset formed a 2x2 with Fill/Cross in the bottom bar. That made Dre's
+   "identical to profile 3" unreachable, since two of the four lived in other
+   containers. syncSolveBackParent's profile-1 branch is gone with it.
+
+   Fill/Cross is a WIDE horizontal button centred in the space below the board via
+   --bar-center-margin: resizeBoardToFit measures the leftover and halves it. The ÷2
+   is exact because the board is top-pinned and so doesn't move when the container
+   shrinks — see the 2026-07-20 "seal the size, solve the position" note. */
 body.profile-square-nodpad .layout main {
   display: flex;
   flex-direction: column;
@@ -1896,25 +1908,25 @@ body.profile-square-nodpad #solveStats {
   justify-content: center;
 }
 body.profile-square-nodpad #solveBack { align-self: center; }
-/* Profile 1 bottom controls: a 2x2 block — Undo/Reset (half height) sit ABOVE
-   Fill/Cross, and all four are treated as ONE entity centered in the space below
-   the board via --bar-center-margin (resizeBoardToFit measures the leftover,
-   halves it, pushes the block up). modeBtn is display:contents so its two halves
-   join the grid → the flow is Undo|Reset (row 1) over Fill|Cross (row 2). */
+/* Bottom bar is ONLY Fill/Cross now. It used to be a 2x2 grid holding Undo/Reset
+   above the two mode halves, with #modeBtn as `display: contents` so its children
+   joined that grid. Undo and Reset returned to the control row on 2026-08-23, so the
+   grid, the display:contents trick and the bespoke 52px Undo/Reset sizing all went
+   with them. Dre accepted the resulting empty space around Fill/Cross. */
 body.profile-square-nodpad .solve-bottom-bar {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  row-gap: 16px;      /* vertical gap Undo↔Fill / Reset↔Cross (2x the 8px column gap) */
-  column-gap: 8px;
+  display: flex;
+  justify-content: center;
   width: 360px;
   max-width: 92%;
   margin-inline: auto;
   margin-bottom: var(--bar-center-margin, 0px);
 }
-body.profile-square-nodpad #modeBtn { display: contents; }
-/* Fill/Cross ~0.75x their previous height (~1.1x original). Explicit height so the
-   half-height Undo/Reset above them stay an exact 1:2 ratio. */
+body.profile-square-nodpad #modeBtn {
+  flex-direction: row;   /* Fill | Cross side by side in one wide bar */
+  width: 100%;
+}
 body.profile-square-nodpad .mode-half {
+  flex: 1 1 0;
   height: 70px;
   min-width: 0;
   padding: 0 12px;
@@ -1923,51 +1935,11 @@ body.profile-square-nodpad .mode-half {
   align-items: center;
   justify-content: center;
 }
-/* Undo/Reset: same width as Fill/Cross (grid 1fr column). Height 52px = 1.5x the
-   earlier 35px per Dre (no longer a strict half of Fill/Cross — tune freely). */
-body.profile-square-nodpad #undoBtn,
-body.profile-square-nodpad #solveReset {
-  height: 52px;
-  width: auto;
-  min-width: 0;
-  padding: 0;
-  font-size: 18px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-/* Buffer below the stats so the board isn't glued to the top — TUNE THIS NUMBER.
-   Board top-aligned so the leftover space is all below it for the 2x2 block to
-   center in. ÷2 centering math is unaffected (puzzle-and-ref's grown height just
-   shrinks by this margin, so availH/emptyBelow stay correct). */
+/* Board top-pinned so every leftover pixel sits below it for the bar to centre in.
+   margin-top is the breathing room under the control row — TUNE. */
 body.user-mode[data-screen="solve"].profile-square-nodpad .puzzle-and-ref {
   align-items: flex-start;
   margin-top: 48px;
-}
-/* Profile 1 header: Back + Settings flank the centered logo. Header goes full
-   width (align-self: stretch) so space-between reaches both edges. padding-inline
-   is the gap from the screen edges (~1.5x the base 12px) — TUNE to taste. Back +
-   Settings kept as RECTANGLES (64×35, ~their icon-row proportions), not squares. */
-body.user-mode[data-screen="solve"].profile-square-nodpad header {
-  align-self: stretch;
-  justify-content: space-between;
-  padding-inline: 18px;
-}
-body.user-mode[data-screen="solve"].profile-square-nodpad header #solveBack,
-body.user-mode[data-screen="solve"].profile-square-nodpad header #settingsBtn {
-  display: inline-flex;
-  width: 64px;
-  height: 35px;
-  padding: 0;
-  font-size: 18px;
-  line-height: 1;
-  align-items: center;
-  justify-content: center;
-}
-/* Profile 1 uses the header gear, so hide the solveStats one. */
-body.user-mode[data-screen="solve"].profile-square-nodpad #solveSettings {
-  display: none;
 }
 
 /* ---------- profile-tall-nodpad (10x15, 15x20, no dpad) ----------
