@@ -2159,10 +2159,10 @@ body.profile-wide-nodpad #undoBtn       { grid-area: undo; }
    because `vw` is meaningless inside the rotated landscape layout — it would measure
    the app's height. COUPLING: if the portrait row width or gap changes, update these
    two numbers to match, or the profiles drift apart. */
-body.user-mode[data-screen="solve"].profile-wide-nodpad #solveBack,
-body.user-mode[data-screen="solve"].profile-wide-nodpad #solveSettings,
-body.user-mode[data-screen="solve"].profile-wide-nodpad #solveReset,
-body.user-mode[data-screen="solve"].profile-wide-nodpad #solveStats #undoBtn {
+body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #solveBack,
+body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #solveSettings,
+body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #solveReset,
+body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #solveStats #undoBtn {
   width: var(--solve-btn-w);
   height: var(--solve-btn-h);
   padding: 0;
@@ -2174,7 +2174,7 @@ body.user-mode[data-screen="solve"].profile-wide-nodpad #solveStats #undoBtn {
 }
 /* Undo's arrow reads a bit small at 22px next to the ↻ / ← / gear characters —
    bump it 2px for Dre's "ever so slightly larger" ask. */
-body.user-mode[data-screen="solve"].profile-wide-nodpad #solveStats #undoBtn {
+body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #solveStats #undoBtn {
   font-size: 20px;   /* keeps Dre's original "ever so slightly larger" +2px, rebased from 18 */
 }
 body.profile-wide-nodpad .puzzle-and-ref {
@@ -2238,18 +2238,21 @@ body.profile-wide-dpad .layout main {
   grid-template-rows: auto 1fr auto;
   grid-template-areas:
     "puzzle stats"
-    "puzzle ."
-    "puzzle controls";
+    "puzzle fill"
+    "puzzle dpad";
   gap: 8px;
   padding: 6px 8px 6px 0;   /* zero left padding so the board hugs the screen edge */
   justify-content: initial;
   align-items: initial;
 }
-/* 2x2 control block, same shape as profile 4. Reading order follows the 4x1 rows'
-   Back · Reset · Undo · Settings (swapped 2026-08-23) so every profile presents the
-   four controls in one sequence regardless of arrangement.
-   NOTE: profile 4's 2x2 still reads Back·Settings / Reset·Undo and now disagrees with
-   this one — flagged for Dre, one line to reconcile either way. */
+/* 2x2 control block — a deliberate clone of profile 4, per Dre 2026-08-23: "practically
+   ctrl c and v the exact view and feel from profile 4". Same grid shape, same 6px gap,
+   same alignment, same READING ORDER (Back·Settings / Reset·Undo), and the button
+   sizing rule above is now literally shared between the two profiles rather than
+   duplicated — a duplicate is what silently diverged when this block was rewritten.
+   NOTE: both 2x2s therefore read Back·Settings/Reset·Undo while the 4x1 rows read
+   Back·Reset·Undo·Settings. The two ARRANGEMENTS disagree on sequence; consistent
+   within each. Flagged for a later call. */
 body.profile-wide-dpad #solveStats {
   grid-area: stats;
   align-self: start;
@@ -2258,16 +2261,16 @@ body.profile-wide-dpad #solveStats {
   grid-template-columns: auto auto;
   grid-template-rows: auto auto;
   grid-template-areas:
-    "btp   reset"
-    "undo  settings";
+    "btp   settings"
+    "reset undo";
   gap: 6px;
   justify-items: end;
   align-items: start;
 }
 body.profile-wide-dpad #solveBack     { grid-area: btp; }
+body.profile-wide-dpad #solveSettings { grid-area: settings; }
 body.profile-wide-dpad #solveReset    { grid-area: reset; }
 body.profile-wide-dpad #undoBtn       { grid-area: undo; }
-body.profile-wide-dpad #solveSettings { grid-area: settings; }
 body.profile-wide-dpad #timer,
 body.profile-wide-dpad #mistakes      { grid-column: 1 / -1; }
 body.profile-wide-dpad .puzzle-and-ref {
@@ -2277,30 +2280,30 @@ body.profile-wide-dpad .puzzle-and-ref {
   width: 100%;
   height: 100%;
 }
-/* Controls row: [skinny Fill/Cross] [dpad], bottom-right. The bar was
-   `display: contents` so both were direct grid items; it is a real flex row now so
-   the two sit side by side in one grid area. DOM order is dpad-then-mode, so `order`
-   puts the mode button on the left without touching the markup. */
+/* The right column is now a single vertical stack: 2x2 controls at the top, Fill/Cross
+   floating in the gap, dpad pinned at the bottom. Dre spotted the space: "there will be
+   enough room in between the dpad and the 4 buttons for the fillcross to fit."
+   Putting it there instead of beside the dpad narrows the whole column from ~218 back
+   to 154 — the dpad's width alone now sets it — and the three elements read as one
+   aligned stack rather than a cramped pair plus an orphan block.
+   `display: contents` returns so Fill and the dpad are each their own grid item. */
 body.profile-wide-dpad .solve-bottom-bar {
-  grid-area: controls;
-  display: flex;
-  flex-direction: row;
-  align-items: end;
-  justify-content: flex-end;
-  gap: 8px;
-  align-self: end;
+  display: contents;
 }
 body.profile-wide-dpad #modeBtn {
-  order: 1;
-  flex-direction: column;
-  width: 56px;
-  height: 154px;   /* matches the dpad so the pair reads as one block */
-  transform: none; /* clears the old translateY nudge from the stacked layout */
+  grid-area: fill;
+  align-self: center;     /* floats in the 1fr gap between the 2x2 and the dpad */
+  justify-self: end;
+  flex-direction: row;    /* one visible half, so a horizontal bar reads better */
+  width: 154px;           /* matches the dpad, so the column edge is flush */
+  height: 54px;
+  transform: none;
 }
 body.profile-wide-dpad #dpad {
-  order: 2;
-  width: 154px;
+  grid-area: dpad;
   align-self: end;
+  justify-self: end;
+  width: 154px;
 }
 /* ONE button, not two halves. With the dpad on, taps anywhere on #modeBtn call
    toggleMode(), so hiding the inactive half loses no behaviour — the visible half
@@ -2314,11 +2317,10 @@ body.profile-wide-dpad:not(.disable-action-btn-on) #modeBtn.mode-cross .mode-hal
 }
 body.profile-wide-dpad.disable-action-btn-on #modeBtn { width: 90px; }
 body.profile-wide-dpad .mode-half {
-  padding: 8px 4px;
-  font-size: 15px;
-  line-height: 1.25;
-  text-align: center;
-  white-space: normal;   /* "■ Fill" wraps to two lines in a 56px column */
+  padding: 8px 10px;
+  font-size: 17px;
+  line-height: 1;
+  white-space: nowrap;   /* back on one line now the button is a wide bar */
   flex: 1 1 auto;
 }
 
