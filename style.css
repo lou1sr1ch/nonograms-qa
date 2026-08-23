@@ -2124,12 +2124,10 @@ body.profile-wide-nodpad #solveStats {
   grid-area: stats;
   align-self: start;
   justify-self: end;
-  /* Down 15px per Dre 2026-08-23. transform, not margin: row 1 of this grid is `auto`,
-     so a margin would grow the track and shift the whole right column. A transform
-     repaints only. NOTE: the 2x2 reading order here is Back·Settings / Reset·Undo,
-     which no longer matches the 4x1 rows' new Back·Reset·Undo·Settings. Left as-is
-     because Dre asked only for the 4x1 profiles — flagged for a later call. */
-  transform: translateY(15px);
+  /* The 15px downward nudge lives in a rule SHARED with profile 5 — see below.
+     NOTE: the 2x2 reading order here is Back·Settings / Reset·Undo, which doesn't
+     match the 4x1 rows' Back·Reset·Undo·Settings. Consistent within each arrangement;
+     flagged for a later call. */
   /* 2x2 grid of the four core controls, with Settings pinned to the top-right corner:
        [ BTP ][ Settings ]     <- top row
        [ Reset ][ Undo ]       <- bottom row
@@ -2176,6 +2174,14 @@ body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad)
    bump it 2px for Dre's "ever so slightly larger" ask. */
 body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #solveStats #undoBtn {
   font-size: 20px;   /* keeps Dre's original "ever so slightly larger" +2px, rebased from 18 */
+}
+/* Both landscape 2x2 blocks drop 15px (P4 2026-08-23, P5 the same for parity).
+   `transform`, not margin: row 1 of these grids is `auto`, so a margin would grow the
+   track and shift the whole right column, while a transform only repaints.
+   SHARED deliberately — P4 carried this inline and P5 would have needed a duplicate,
+   which is exactly how the button sizing silently diverged one revision ago. */
+body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #solveStats {
+  transform: translateY(15px);
 }
 body.profile-wide-nodpad .puzzle-and-ref {
   grid-area: puzzle;
