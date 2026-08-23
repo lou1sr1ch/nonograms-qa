@@ -1442,7 +1442,8 @@ function resizeBoardToFit() {
     const barEl = document.querySelector(".solve-bottom-bar");
     if (barEl) {
       const usableBottom = window.innerHeight - safeBottomPx;
-      const overflowPx = Math.ceil(barEl.getBoundingClientRect().bottom - usableBottom);
+      const controlBottom = lowestControlBottom();
+      const overflowPx = controlBottom === null ? 0 : Math.ceil(controlBottom - usableBottom);
       if (overflowPx > 0) {
         container.style.maxHeight = `${Math.max(100, container.clientHeight - overflowPx)}px`;
         _boardFitPass = 1;
@@ -1528,6 +1529,26 @@ function equalizeGaps() {
 // every gap fix so far has been reasoned from source and then contradicted by a
 // screenshot. These numbers come from getBoundingClientRect on the real elements, so
 // they are ground truth rather than another prediction. Remove with #profileNum.
+// Bottom edge of the lowest visible control. NOT simply the bar's rect: profiles 4
+// and 5 set `.solve-bottom-bar { display: contents }` so the dpad and Fill/Cross
+// become direct grid items — a display:contents element generates no principal box,
+// so its getBoundingClientRect() is all zeros. The overflow guard was therefore inert
+// on both landscape profiles: it would have read bottom = 0 and concluded there was
+// no overflow no matter how badly they clipped. Found while surveying profile 4 on
+// 2026-08-22, before it cost a repeat of profile 3's clipping saga.
+function lowestControlBottom() {
+  let bottom = null;
+  for (const el of [document.querySelector(".solve-bottom-bar"),
+                    document.getElementById("dpad"),
+                    document.getElementById("modeBtn")]) {
+    if (!el) continue;
+    const r = el.getBoundingClientRect();
+    if (r.height <= 0) continue;   // skips display:contents and hidden elements
+    if (bottom === null || r.bottom > bottom) bottom = r.bottom;
+  }
+  return bottom;
+}
+
 // Measured vertical gaps, in screen space. Ground truth — every attempt to derive
 // these from the box model has been contradicted by the device.
 function measureGaps(safeBottomPx) {
