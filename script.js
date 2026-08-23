@@ -1039,28 +1039,23 @@ function updateProfileLabel() {
 function syncSolveBackParent() {
   const solveStats = document.getElementById("solveStats");
   if (!solveStats) return;
-  const header = document.querySelector("header");
-  const bottomBar = document.querySelector(".solve-bottom-bar");
-  const modeBtn = document.getElementById("modeBtn");
   const solveBack = document.getElementById("solveBack");
   const undoBtn = document.getElementById("undoBtn");
   const solveReset = document.getElementById("solveReset");
 
-  // Profile 1 has a bespoke control arrangement: Back flanks the logo in the
-  // HEADER, and Undo + Reset drop into the BOTTOM BAR to sit above Fill/Cross as a
-  // 2x2 block (Undo, Reset inserted before modeBtn so the grid flows
-  // Undo|Reset over Fill|Cross). Every other profile keeps the unified solveStats
-  // icon row. Visual order in the row is owned by CSS `order`, not DOM order.
-  const p1 = document.body.classList.contains("profile-square-nodpad");
-  if (p1 && header && bottomBar && modeBtn) {
-    if (solveBack && solveBack.parentElement !== header) header.insertBefore(solveBack, header.firstChild);
-    if (undoBtn && undoBtn.parentElement !== bottomBar) bottomBar.insertBefore(undoBtn, modeBtn);
-    if (solveReset && solveReset.parentElement !== bottomBar) bottomBar.insertBefore(solveReset, modeBtn);
-  } else {
-    if (solveBack && solveBack.parentElement !== solveStats) solveStats.insertBefore(solveBack, solveStats.firstChild);
-    if (undoBtn && undoBtn.parentElement !== solveStats) solveStats.appendChild(undoBtn);
-    if (solveReset && solveReset.parentElement !== solveStats) solveStats.appendChild(solveReset);
-  }
+  // Every profile now keeps all four controls in #solveStats; only the ARRANGEMENT
+  // differs (4x1 in portrait, 2x2 in landscape), and that is pure CSS.
+  //
+  // Profile 1 used to be the exception: Back was reparented into the HEADER to flank
+  // the logo, and Undo + Reset into the BOTTOM BAR to form a 2x2 above Fill/Cross.
+  // Removed 2026-08-23 — Dre wants profile 1 identical to profile 3 for these four
+  // ("same order, dimensions, everything"), and that is unreachable while two of them
+  // live in other containers. Dropping the branch also deletes the only place where
+  // profile classes drove DOM structure rather than styling, so a profile can no
+  // longer silently change what is parented where.
+  if (solveBack && solveBack.parentElement !== solveStats) solveStats.insertBefore(solveBack, solveStats.firstChild);
+  if (undoBtn && undoBtn.parentElement !== solveStats) solveStats.appendChild(undoBtn);
+  if (solveReset && solveReset.parentElement !== solveStats) solveStats.appendChild(solveReset);
 }
 
 // Resize the dpad SVG's center square (and adjust the surrounding trapezoids

@@ -1593,10 +1593,10 @@ body.user-mode[data-screen="solve"] header {
   justify-content: center;   /* logo centers — header is logo-only on solve */
 }
 /* The four controls as one uniform icon line. */
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveBack,
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveReset,
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveSettings,
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn {
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveBack,
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveReset,
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveSettings,
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn {
   width: var(--solve-btn-w);
   height: var(--solve-btn-h);
   padding: 0;
@@ -1612,28 +1612,28 @@ body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-d
    away from the thumb's resting position. Safe to reorder: syncSolveBackParent moves
    these buttons between CONTAINERS but never depends on their sequence — the code
    notes "visual order in the row is owned by CSS order, not DOM order". */
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveBack { order: 1; }
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveReset { order: 2; }
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn { order: 3; }
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveSettings { order: 4; }
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #timer { order: 5; }
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #mistakes { order: 6; }
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveBack { order: 1; }
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveReset { order: 2; }
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn { order: 3; }
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveSettings { order: 4; }
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #timer { order: 5; }
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #mistakes { order: 6; }
 
 /* Profiles 1-3: the four buttons stretch equally so the row spans ~80% of the
    board width (fed live via --solve-board-width). Scaled down from the full-width
    first pass so the row doesn't feel chunky next to the small logo — height + icon
    font scale by the same 0.8 so the button aspect ratio is preserved. */
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats {
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveStats {
   /* Was `calc(--solve-board-width * 0.8)` to make the row span the board. Now the
      buttons are a fixed size, so the row is content-sized and simply centres. */
   width: auto;
   max-width: 100%;
   align-self: center;
 }
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveBack,
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveReset,
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveSettings,
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn {
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveBack,
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveReset,
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveSettings,
+body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn {
   /* Fixed, not stretched (2026-08-22). Stretching keyed the button width to the BOARD
      width, so P2's controls silently changed size from puzzle to puzzle — the single
      biggest source of the inconsistency Dre spotted. */
