@@ -2124,14 +2124,21 @@ body.profile-wide-nodpad #undoBtn       { grid-area: undo; }
    centered. Higher-specificity selectors chain in `.user-mode[data-screen="solve"]`
    because the base per-button rules earlier in the file (from solve-view scoping)
    would otherwise override these sizes. */
+/* RECTANGULAR, matching the portrait profiles (2026-08-22). Dre wants one button
+   size across every profile, with only the ARRANGEMENT differing — 4x1 in portrait,
+   2x2 in landscape. Profile 3 renders 75x35: its row is min(84vw, 400px) = 330px
+   here, less three 10px gaps, over four buttons. Hardcoded rather than derived
+   because `vw` is meaningless inside the rotated landscape layout — it would measure
+   the app's height. COUPLING: if the portrait row width or gap changes, update these
+   two numbers to match, or the profiles drift apart. */
 body.user-mode[data-screen="solve"].profile-wide-nodpad #solveBack,
 body.user-mode[data-screen="solve"].profile-wide-nodpad #solveSettings,
 body.user-mode[data-screen="solve"].profile-wide-nodpad #solveReset,
 body.user-mode[data-screen="solve"].profile-wide-nodpad #solveStats #undoBtn {
-  width: 44px;
-  height: 44px;
+  width: 75px;
+  height: 35px;
   padding: 0;
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
@@ -2140,7 +2147,7 @@ body.user-mode[data-screen="solve"].profile-wide-nodpad #solveStats #undoBtn {
 /* Undo's arrow reads a bit small at 22px next to the ↻ / ← / gear characters —
    bump it 2px for Dre's "ever so slightly larger" ask. */
 body.user-mode[data-screen="solve"].profile-wide-nodpad #solveStats #undoBtn {
-  font-size: 24px;
+  font-size: 20px;   /* keeps Dre's original "ever so slightly larger" +2px, rebased from 18 */
 }
 body.profile-wide-nodpad .puzzle-and-ref {
   grid-area: puzzle;
@@ -2157,9 +2164,17 @@ body.profile-wide-nodpad #modeBtn {
   align-self: end;
   justify-self: end;
   flex-direction: column;
-  width: 130px;
+  /* 156 = the 2x2 control block's exact width (2 x 75 + one 6px gap), so the right
+     column reads as one aligned stack instead of two mismatched widths. Free here:
+     the landscape board is height-constrained with ~250px of spare width, so a wider
+     right column costs the board nothing. */
+  width: 156px;
   height: 120px;
-  transform: translateY(8px);   /* nudge Fill/Cross down slightly toward the screen edge */
+  /* Was +8px, which pushed Fill/Cross BELOW the board's bottom edge. Now -8px so it
+     sits slightly above it, per Dre 2026-08-22. Both the board and this button are
+     bottom-aligned to the same grid line, so this offset IS the visible gap between
+     them — one number, tune freely. */
+  transform: translateY(-8px);
 }
 body.profile-wide-nodpad .mode-half { padding: 8px 8px; font-size: 18px; }
 
