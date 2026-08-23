@@ -1606,11 +1606,16 @@ body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-d
   align-items: center;
   justify-content: center;
 }
-/* Order: Back · Settings · Undo · Reset (timer / mistakes trail after). */
+/* Order: Back · Reset · Undo · Settings (timer / mistakes trail after).
+   Settings and Reset swapped 2026-08-23 per Dre — puts the two solve-affecting
+   controls (Reset, Undo) together in the middle and tucks Settings at the far end,
+   away from the thumb's resting position. Safe to reorder: syncSolveBackParent moves
+   these buttons between CONTAINERS but never depends on their sequence — the code
+   notes "visual order in the row is owned by CSS order, not DOM order". */
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveBack { order: 1; }
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveSettings { order: 2; }
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveReset { order: 2; }
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn { order: 3; }
-body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveReset { order: 4; }
+body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveSettings { order: 4; }
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #timer { order: 5; }
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #mistakes { order: 6; }
 
@@ -2119,6 +2124,12 @@ body.profile-wide-nodpad #solveStats {
   grid-area: stats;
   align-self: start;
   justify-self: end;
+  /* Down 15px per Dre 2026-08-23. transform, not margin: row 1 of this grid is `auto`,
+     so a margin would grow the track and shift the whole right column. A transform
+     repaints only. NOTE: the 2x2 reading order here is Back·Settings / Reset·Undo,
+     which no longer matches the 4x1 rows' new Back·Reset·Undo·Settings. Left as-is
+     because Dre asked only for the 4x1 profiles — flagged for a later call. */
+  transform: translateY(15px);
   /* 2x2 grid of the four core controls, with Settings pinned to the top-right corner:
        [ BTP ][ Settings ]     <- top row
        [ Reset ][ Undo ]       <- bottom row
@@ -2238,10 +2249,13 @@ body.profile-wide-dpad #solveStats {
         the opposite end from where the old comment claimed the row started.
      2. #devWinBtn's order was inert: that button is position:fixed (see its base
         rule ~L1773), so it's out of flex flow entirely. Dropped rather than renumbered. */
+/* Same Back · Reset · Undo · Settings sequence as the portrait 4x1 rows (2026-08-23).
+   Profile 4 is untouched: it's a 2x2 grid, so its order comes from grid-areas, not
+   flex order — see the note there about whether its reading order should follow. */
 body.profile-wide-dpad #solveBack           { order: 1; }
-body.profile-wide-dpad #solveSettings       { order: 2; }
+body.profile-wide-dpad #solveReset          { order: 2; }
 body.profile-wide-dpad #solveStats #undoBtn { order: 3; }
-body.profile-wide-dpad #solveReset          { order: 4; }
+body.profile-wide-dpad #solveSettings       { order: 4; }
 body.profile-wide-dpad #timer               { order: 5; }
 body.profile-wide-dpad #mistakes            { order: 6; }
 /* Uniform 44×44 tap targets, mirroring profile-wide-nodpad. Without this the four
