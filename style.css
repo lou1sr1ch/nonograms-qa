@@ -2164,17 +2164,18 @@ body.profile-wide-nodpad #modeBtn {
   align-self: end;
   justify-self: end;
   flex-direction: column;
-  /* 156 = the 2x2 control block's exact width (2 x 75 + one 6px gap), so the right
-     column reads as one aligned stack instead of two mismatched widths. Free here:
-     the landscape board is height-constrained with ~250px of spare width, so a wider
-     right column costs the board nothing. */
-  width: 156px;
+  /* Left at 130 deliberately. A 2x2 of the 75x35 buttons is 156 wide, so the control
+     block now overhangs Fill/Cross by 26px — Dre wants to SEE that mismatch before
+     deciding whether to widen this button or narrow the buttons. One change at a time.
+     (Widening to 156 is free if he wants it: the landscape board is height-constrained
+     with ~250px of spare width.) */
+  width: 130px;
   height: 120px;
   /* Was +8px, which pushed Fill/Cross BELOW the board's bottom edge. Now -8px so it
      sits slightly above it, per Dre 2026-08-22. Both the board and this button are
      bottom-aligned to the same grid line, so this offset IS the visible gap between
      them — one number, tune freely. */
-  transform: translateY(-8px);
+  transform: translateY(calc(-1 * var(--p4-mode-lift, 8px)));
 }
 body.profile-wide-nodpad .mode-half { padding: 8px 8px; font-size: 18px; }
 

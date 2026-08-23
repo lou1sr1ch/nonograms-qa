@@ -1566,10 +1566,33 @@ function measureGaps(safeBottomPx) {
   };
 }
 
+// DEV-ONLY: profile 4's one measurement — how far the Fill/Cross button's bottom sits
+// ABOVE the board's bottom edge (negative = still below it). Rotation-aware: under
+// rotate-app the layout is turned 90deg clockwise, so the app's "bottom" is the screen's
+// LEFT, and the comparison has to switch axes or it measures nothing meaningful.
+function measureModeLift() {
+  const puzzleEl = document.querySelector(".puzzle");
+  const modeEl = document.getElementById("modeBtn");
+  if (!puzzleEl || !modeEl) return null;
+  const p = puzzleEl.getBoundingClientRect();
+  const m = modeEl.getBoundingClientRect();
+  if (m.width <= 0 || m.height <= 0) return null;
+  return document.body.classList.contains("rotate-app")
+    ? Math.round(m.left - p.left)      // app-bottom maps to screen-left
+    : Math.round(p.bottom - m.bottom);
+}
+
 function updateGapReadout(safeBottomPx) {
   const el = document.getElementById("profileNum");
   if (!el) return;
   let out = el.querySelector(".gap-readout");
+  if (document.body.classList.contains("profile-wide-nodpad")) {
+    const lift = measureModeLift();
+    if (lift === null) return;
+    if (!out) { out = document.createElement("div"); out.className = "gap-readout"; el.appendChild(out); }
+    out.textContent = `lift ${lift}`;
+    return;
+  }
   if (!document.body.classList.contains("profile-portrait-dpad")) {
     if (out) out.remove();
     return;
