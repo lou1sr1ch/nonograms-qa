@@ -97,6 +97,18 @@
   --font-script:  "LoversQuarrel", "Caveat", cursive;
 
   /* Shadows */
+  /* ONE size for the four solve controls (Back / Settings / Undo / Reset), 2026-08-22.
+     Dre's rule: the four buttons are identical everywhere and only their ARRANGEMENT
+     differs (4x1 portrait, 2x2 landscape); Fill/Cross is the button allowed to vary
+     per profile instead. Before this there were five sizes — P2 flex-filled at ~60 and
+     varying per PUZZLE (it keyed off board width), P3 and P4 at 75, P5 at 44x44
+     squares, plus P1's split pair. 64x35 already existed as P1's header Back/Settings,
+     and matches the P2 proportion Dre preferred over P3's wider 75.
+     PROFILE 1 EXCLUDED: its four controls sit in two different places (header pair +
+     176x52 Undo/Reset in the bottom grid), so sizing without restructuring would make
+     it worse. Needs its layout decision first. */
+  --solve-btn-w: 64px;
+  --solve-btn-h: 35px;
   --shadow-soft: 0 2px 8px rgba(45, 31, 23, 0.06), 0 1px 2px rgba(45, 31, 23, 0.04);
   --shadow-lift: 0 6px 18px rgba(45, 31, 23, 0.10), 0 2px 4px rgba(45, 31, 23, 0.06);
 
@@ -1585,10 +1597,10 @@ body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-d
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveReset,
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveSettings,
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn {
-  width: 44px;
-  height: 44px;
+  width: var(--solve-btn-w);
+  height: var(--solve-btn-h);
   padding: 0;
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
@@ -1607,7 +1619,9 @@ body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-d
    first pass so the row doesn't feel chunky next to the small logo — height + icon
    font scale by the same 0.8 so the button aspect ratio is preserved. */
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats {
-  width: calc(var(--solve-board-width, 100%) * 0.8);
+  /* Was `calc(--solve-board-width * 0.8)` to make the row span the board. Now the
+     buttons are a fixed size, so the row is content-sized and simply centres. */
+  width: auto;
   max-width: 100%;
   align-self: center;
 }
@@ -1615,10 +1629,13 @@ body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-d
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveReset,
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveSettings,
 body.user-mode[data-screen="solve"]:is(.profile-tall-nodpad, .profile-portrait-dpad) #solveStats #undoBtn {
-  flex: 1 1 0;      /* grow equally from a 0 basis → all four end up the same width */
-  width: auto;      /* release the fixed 44px so flex-grow governs the width */
-  height: 35px;     /* ~80% of the 44px first pass */
-  font-size: 18px;  /* icon scales down with the button */
+  /* Fixed, not stretched (2026-08-22). Stretching keyed the button width to the BOARD
+     width, so P2's controls silently changed size from puzzle to puzzle — the single
+     biggest source of the inconsistency Dre spotted. */
+  flex: 0 0 auto;
+  width: var(--solve-btn-w);
+  height: var(--solve-btn-h);
+  font-size: 18px;
 }
 
 /* Stats row — base container. Direction (row vs column) + alignment come from
@@ -2056,7 +2073,7 @@ body.profile-portrait-dpad .mode-half { padding: 12px 8px; font-size: 17px; }
    Profiles 1 and 2 keep the old coupling; this is scoped to profile 3 and placed AFTER
    the shared rule, which is what decides at equal specificity. */
 body.user-mode[data-screen="solve"].profile-portrait-dpad #solveStats {
-  width: min(84vw, 400px);
+  width: auto;   /* fixed-size buttons now; row sizes to content and centres */
 }
 /* The header is logo-only here, so its 8px vertical padding is pure cost — every
    pixel of it comes straight off the board's height. Trimmed to 2px, which buys the
@@ -2135,8 +2152,8 @@ body.user-mode[data-screen="solve"].profile-wide-nodpad #solveBack,
 body.user-mode[data-screen="solve"].profile-wide-nodpad #solveSettings,
 body.user-mode[data-screen="solve"].profile-wide-nodpad #solveReset,
 body.user-mode[data-screen="solve"].profile-wide-nodpad #solveStats #undoBtn {
-  width: 75px;
-  height: 35px;
+  width: var(--solve-btn-w);
+  height: var(--solve-btn-h);
   padding: 0;
   font-size: 18px;
   line-height: 1;
@@ -2236,10 +2253,10 @@ body.user-mode[data-screen="solve"].profile-wide-dpad #solveBack,
 body.user-mode[data-screen="solve"].profile-wide-dpad #solveSettings,
 body.user-mode[data-screen="solve"].profile-wide-dpad #solveReset,
 body.user-mode[data-screen="solve"].profile-wide-dpad #solveStats #undoBtn {
-  width: 44px;
-  height: 44px;
+  width: var(--solve-btn-w);
+  height: var(--solve-btn-h);
   padding: 0;
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
