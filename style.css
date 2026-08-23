@@ -2175,7 +2175,13 @@ body.profile-wide-nodpad #modeBtn {
      sits slightly above it, per Dre 2026-08-22. Both the board and this button are
      bottom-aligned to the same grid line, so this offset IS the visible gap between
      them — one number, tune freely. */
-  transform: translateY(calc(-1 * var(--p4-mode-lift, 8px)));
+  /* 35px per Dre 2026-08-22. 8px measured as a real 8px lift but read as "still
+     slightly below" — an 8px offset is inside the margin where a soft shadow and the
+     board's heavy border blur which edge is which, so the measurement was right and
+     the perception was too. There is plenty of room above Fill/Cross, so the honest
+     fix is a gap big enough to read as deliberate rather than one that's technically
+     positive. Single number, tune freely. */
+  transform: translateY(calc(-1 * var(--p4-mode-lift, 35px)));
 }
 body.profile-wide-nodpad .mode-half { padding: 8px 8px; font-size: 18px; }
 
