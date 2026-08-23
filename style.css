@@ -2213,98 +2213,113 @@ body.profile-wide-nodpad #modeBtn {
 }
 body.profile-wide-nodpad .mode-half { padding: 8px 8px; font-size: 18px; }
 
-/* ---------- profile-wide-dpad (landscape with dpad) ----------
-   Puzzle placed FIRST (biggest thing on the screen), everything else conforms:
-     row 1 (auto): stats across the entire top, 4 buttons in one horizontal line
-     row 2 (auto): puzzle top | Fill/Cross (stacked, in the right col)
-     row 3 (1fr):  puzzle bottom | Dpad (centered in the empty vertical space)
-   Puzzle spans rows 2-3 col 1 → bottom-left corner snug, grows up-right. Right
-   column is narrow (only wide enough for Fill/Cross and Dpad, both ~140px). */
+/* ---------- profile-wide-dpad (landscape with dpad) — EXPERIMENTAL 2026-08-23 ----------
+   Dre's brief: this profile carries the biggest boards, so board size wins over
+   everything. Three moves, all serving that:
+
+     1. The control row no longer spans the top. It was costing ~41px of HEIGHT
+        (35 stats + 6 gap) — and in landscape the board is HEIGHT-constrained, so
+        that was the single most expensive thing on screen. The board now spans the
+        full height of the left column.
+     2. Fill/Cross collapses to ONE narrow, tall button. With the dpad on it is
+        purely a mode toggle (the dpad's centre commits the action), so a second
+        half is redundant. Sits left of the dpad.
+     3. The four controls move to P4's 2x2 block, which is far narrower than a
+        4-wide row and fits in the right column beside everything else.
+
+   Cost/benefit: the right column grows from 154 to ~218 wide, but width is the
+   dimension with ~250px to spare here, while height was the binding constraint.
+   Trading free width for scarce height is the whole point.
+
+   REVERT: git checkout p5-before-experiment-2026-08-23 -- nonograms/ */
 body.profile-wide-dpad .layout main {
   display: grid;
   grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto 1fr auto;
   grid-template-areas:
-    "stats  stats"
-    "puzzle fillcross"
-    "puzzle dpad";
-  gap: 6px;
-  padding: 4px 4px 4px 0;   /* zero left padding so puzzle hugs the wall */
+    "puzzle stats"
+    "puzzle ."
+    "puzzle controls";
+  gap: 8px;
+  padding: 6px 8px 6px 0;   /* zero left padding so the board hugs the screen edge */
   justify-content: initial;
   align-items: initial;
 }
+/* 2x2 control block, same shape as profile 4. Reading order follows the 4x1 rows'
+   Back · Reset · Undo · Settings (swapped 2026-08-23) so every profile presents the
+   four controls in one sequence regardless of arrangement.
+   NOTE: profile 4's 2x2 still reads Back·Settings / Reset·Undo and now disagrees with
+   this one — flagged for Dre, one line to reconcile either way. */
 body.profile-wide-dpad #solveStats {
   grid-area: stats;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: flex-end;  /* right-align since puzzle owns the left */
-  gap: 8px;
+  align-self: start;
+  justify-self: end;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "btp   reset"
+    "undo  settings";
+  gap: 6px;
+  justify-items: end;
+  align-items: start;
 }
-/* Order: Back · Settings · Undo · Reset — reconciled 2026-08-15 with the portrait
-   one-line order (profiles 1-3), closing the "not yet reconciled" item from 07-17.
-   Two bugs fixed here at the same time:
-     1. #solveReset had NO order, so it defaulted to order:0 and rendered LEFTMOST —
-        the opposite end from where the old comment claimed the row started.
-     2. #devWinBtn's order was inert: that button is position:fixed (see its base
-        rule ~L1773), so it's out of flex flow entirely. Dropped rather than renumbered. */
-/* Same Back · Reset · Undo · Settings sequence as the portrait 4x1 rows (2026-08-23).
-   Profile 4 is untouched: it's a 2x2 grid, so its order comes from grid-areas, not
-   flex order — see the note there about whether its reading order should follow. */
-body.profile-wide-dpad #solveBack           { order: 1; }
-body.profile-wide-dpad #solveReset          { order: 2; }
-body.profile-wide-dpad #solveStats #undoBtn { order: 3; }
-body.profile-wide-dpad #solveSettings       { order: 4; }
-body.profile-wide-dpad #timer               { order: 5; }
-body.profile-wide-dpad #mistakes            { order: 6; }
-/* Uniform 44×44 tap targets, mirroring profile-wide-nodpad. Without this the four
-   controls fell through to their individual base rules and rendered at four different
-   sizes — Settings a 22px pill, Reset a 17px pill, Undo a squat 13px pill. Same
-   `.user-mode[data-screen="solve"]` specificity chain as profile 4, because those base
-   per-button rules would otherwise win on specificity. */
-body.user-mode[data-screen="solve"].profile-wide-dpad #solveBack,
-body.user-mode[data-screen="solve"].profile-wide-dpad #solveSettings,
-body.user-mode[data-screen="solve"].profile-wide-dpad #solveReset,
-body.user-mode[data-screen="solve"].profile-wide-dpad #solveStats #undoBtn {
-  width: var(--solve-btn-w);
-  height: var(--solve-btn-h);
-  padding: 0;
-  font-size: 18px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-/* Undo's ⤺ reads small next to ↻ / ← / gear — same +2px as profile 4. */
-body.user-mode[data-screen="solve"].profile-wide-dpad #solveStats #undoBtn {
-  font-size: 24px;
-}
+body.profile-wide-dpad #solveBack     { grid-area: btp; }
+body.profile-wide-dpad #solveReset    { grid-area: reset; }
+body.profile-wide-dpad #undoBtn       { grid-area: undo; }
+body.profile-wide-dpad #solveSettings { grid-area: settings; }
+body.profile-wide-dpad #timer,
+body.profile-wide-dpad #mistakes      { grid-column: 1 / -1; }
 body.profile-wide-dpad .puzzle-and-ref {
   grid-area: puzzle;
   align-items: end;
-  justify-content: start;
+  justify-content: start;   /* hard left — board hugs the wall */
   width: 100%;
   height: 100%;
 }
+/* Controls row: [skinny Fill/Cross] [dpad], bottom-right. The bar was
+   `display: contents` so both were direct grid items; it is a real flex row now so
+   the two sit side by side in one grid area. DOM order is dpad-then-mode, so `order`
+   puts the mode button on the left without touching the markup. */
 body.profile-wide-dpad .solve-bottom-bar {
-  display: contents; /* dpad + modeBtn become direct grid items */
+  grid-area: controls;
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 8px;
+  align-self: end;
 }
 body.profile-wide-dpad #modeBtn {
-  grid-area: fillcross;
-  align-self: start;
-  justify-self: center;
-  flex-direction: column;    /* stacked back per your call */
-  width: 130px;
-  height: 140px;
-  transform: translateY(8px);   /* nudge Fill/Cross down slightly, closer to the dpad below */
+  order: 1;
+  flex-direction: column;
+  width: 56px;
+  height: 154px;   /* matches the dpad so the pair reads as one block */
+  transform: none; /* clears the old translateY nudge from the stacked layout */
 }
-body.profile-wide-dpad .mode-half { padding: 12px 8px; font-size: 17px; }
 body.profile-wide-dpad #dpad {
-  grid-area: dpad;
-  align-self: center;
-  justify-self: center;
-  width: 154px;   /* 10% larger than the pre-polish 140px */
+  order: 2;
+  width: 154px;
+  align-self: end;
+}
+/* ONE button, not two halves. With the dpad on, taps anywhere on #modeBtn call
+   toggleMode(), so hiding the inactive half loses no behaviour — the visible half
+   still bubbles to the wrapper.
+   GUARDED: with "Disable action button" on, each half commits its OWN action
+   (Fill fills, Cross crosses) and both are required, so the collapse is scoped to
+   :not(.disable-action-btn-on) and the button widens to fit the pair. */
+body.profile-wide-dpad:not(.disable-action-btn-on) #modeBtn.mode-fill  .mode-half-cross,
+body.profile-wide-dpad:not(.disable-action-btn-on) #modeBtn.mode-cross .mode-half-fill {
+  display: none;
+}
+body.profile-wide-dpad.disable-action-btn-on #modeBtn { width: 90px; }
+body.profile-wide-dpad .mode-half {
+  padding: 8px 4px;
+  font-size: 15px;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;   /* "■ Fill" wraps to two lines in a 56px column */
+  flex: 1 1 auto;
 }
 
 /* Fact card lives inside main. In grid profiles it needs to be positioned to

@@ -1298,7 +1298,11 @@ function resizeBoardToFit() {
   // main and would collide with the tallest column-hint stack. Reserve 20px
   // of vertical space so the topmost hint clears the logo. Start with 20px
   // per Dre — can grow if wide-hint puzzles bump against the logo.
-  const topReserve = document.body.classList.contains("profile-wide-nodpad") ? 20 : 0;
+  // Profile 5 joined this 2026-08-23: its relayout moved the control row out of the
+  // top, so the board now spans the full height of the left column and the mini-logo
+  // sits over the tallest column-hint stack exactly as it does on profile 4.
+  const topReserve = document.body.classList.contains("profile-wide-nodpad")
+                  || document.body.classList.contains("profile-wide-dpad") ? 20 : 0;
   const availH = container.clientHeight - 4 - topReserve;
   if (availW < 100 || availH < 100) return;
 
