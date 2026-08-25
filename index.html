@@ -126,12 +126,11 @@
     </div>
     <div id="solveStats" class="solve-only">
       <span id="timer" class="stat hidden">0:00</span>
-      <span id="mistakes" class="stat hidden">Mistakes: 0</span>
+      <span id="mistakes" class="stat hidden">✕ 0</span>
       <button id="undoBtn" type="button" class="hidden"><span class="undo-icon">⤺</span><span class="undo-label"> Undo</span></button>
-      <!-- DEV "Win game" button removed 2026-08-22 — unused, and being position:fixed
-           in the bottom-right it visually filled the gap under the controls, which
-           disguised how uneven the vertical spacing actually was. devWinPuzzle() still
-           exists in script.js if an instant-win trigger is ever wanted again. -->
+      <!-- DEV-ONLY: instant-win, visible only with the Dev tools setting on
+           (body.dev-mode). Bundled with #profileNum + the P badges 2026-08-25. -->
+      <button id="devWinBtn" class="dev-only" type="button">Win game</button>
       <button id="solveReset" type="button" title="Reset" aria-label="Reset">↻</button>
       <button id="solveSettings" type="button" aria-label="Settings" title="Settings"><svg class="icon-gear" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
@@ -197,6 +196,33 @@
       <a id="solveFactSourceRef" class="fact-source fact-source-ref" target="_blank" rel="noopener noreferrer"></a>
     </div>
   </main>
+  <div id="winModal" class="modal hidden" aria-modal="true" role="dialog">
+    <div class="modal-backdrop"></div>
+    <div class="win-card">
+      <div class="win-title-row">
+        <h2 id="winName"></h2>
+        <span class="win-sub">solved</span>
+      </div>
+      <div class="win-stats">
+        <span id="winTime" class="win-stat"></span>
+        <span id="winMistakes" class="win-stat"></span>
+      </div>
+      <div class="win-preview-wrap">
+        <canvas id="winPreview"></canvas>
+        <img id="winPhoto" alt="original photo" />
+        <button id="winPhotoToggle" type="button">Photo</button>
+      </div>
+      <p id="winFact"></p>
+      <div class="win-links">
+        <a id="winSource" target="_blank" rel="noopener noreferrer"></a>
+        <a id="winFactSrc" target="_blank" rel="noopener noreferrer"></a>
+      </div>
+      <div class="win-actions">
+        <button id="winNext" type="button">Next puzzle →</button>
+        <button id="winBack" type="button">Puzzles</button>
+      </div>
+    </div>
+  </div>
   </div>
   <div id="contextMenu" class="hidden"></div>
   <div id="cropModal" class="modal hidden">
@@ -232,6 +258,7 @@
       <ul class="settings-list"></ul>
     </div>
   </div>
+  <script src="image-manifest.js"></script>
   <script src="seed-data.js"></script>
   <script src="script.js"></script>
 </body>

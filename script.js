@@ -76,6 +76,7 @@ const SETTINGS_DEFAULT = {
   reduceMotion: false,
   dpad: false,
   disableActionBtn: false,
+  devMode: false,
 };
 
 const SETTINGS_INFO = [
@@ -84,10 +85,14 @@ const SETTINGS_INFO = [
   ["undo",             "Undo (Ctrl+Z)",             "Revert your last brush stroke."],
   ["fadedReveal",      "Faded reveal",              "Correctly-filled cells hint at their reveal color."],
   ["autoCross",        "Auto-cross",                "Auto-cross remaining cells when a row or column is satisfied."],
-  ["soundEffects",     "Sound effects",             "Click and win sounds. (Coming soon — toggle has no effect yet.)"],
+  ["soundEffects",     "Sound effects",             "Gentle taps and pops while solving, and a soft chime on the win."],
   ["reduceMotion",     "Reduce motion",             "Disables animations and transitions."],
   ["dpad",             "Dpad",                      "Show a directional pad on the right for cursor-based navigation. Tapping a cell moves the cursor; commit fills/crosses with the dpad's center button. Useful for large boards with tiny cells."],
   ["disableActionBtn", "Disable action button",     "Removes the dpad's center action button. Fill and Cross buttons execute the action directly on the cursor cell instead of toggling mode. Requires Dpad."],
+  // DEV-ONLY row — only rendered when adminMode is on (see buildSettingsModal).
+  // Bundles every debug aid behind one switch so the real user experience is one
+  // toggle away. Strip this row + the dev-mode blocks at ship.
+  ["devMode",          "Dev tools",                 "Show developer aids: board profile number + gap readout, P1–P5 badges in puzzle lists, and the instant-win button."],
 ];
 
 function loadSettings() {
@@ -103,6 +108,89 @@ function saveSettings() {
 }
 
 const settings = loadSettings();
+
+// === Sound engine (2026-08-25) ===
+// Everything is SYNTHESIZED — oscillators and filtered noise through short gain
+// envelopes. Zero audio assets, zero network, nothing to license, works offline in
+// the eventual Capacitor bundle. Design rules: quiet (peaks ≤ ~0.12), short
+// (≤ ~350ms), warm (sines/triangles, downward pitch bends — "pops", never "beeps").
+// iOS requires an AudioContext to be created/resumed inside a user gesture: _ready
+// flips on the first pointerdown (listener near the bottom) and every play call
+// no-ops before that, so there are no autoplay warnings and no half-initialized
+// contexts. Paint sounds are rate-limited so brush drags tick pleasantly instead
+// of machine-gunning.
+const sfx = (() => {
+  let ctx = null;
+  let _ready = false;
+  let _lastPaint = 0;
+  function ensure() {
+    if (!settings.soundEffects || !_ready) return null;
+    if (!ctx) {
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch { return null; }
+    }
+    if (ctx.state === "suspended") ctx.resume();
+    return ctx;
+  }
+  function tone(freq, dur, type, peak, bendTo) {
+    const c = ensure();
+    if (!c) return;
+    const t0 = c.currentTime;
+    const o = c.createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t0);
+    if (bendTo) o.frequency.exponentialRampToValueAtTime(bendTo, t0 + dur);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(c.destination);
+    o.start(t0);
+    o.stop(t0 + dur + 0.03);
+  }
+  function whoosh(dur, peak, fFrom, fTo) {
+    const c = ensure();
+    if (!c) return;
+    const t0 = c.currentTime;
+    const len = Math.max(1, Math.floor(c.sampleRate * dur));
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 0.7;
+    f.frequency.setValueAtTime(fFrom, t0);
+    f.frequency.exponentialRampToValueAtTime(fTo, t0 + dur);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    src.connect(f).connect(g).connect(c.destination);
+    src.start(t0);
+    src.stop(t0 + dur);
+  }
+  function paintGate() {
+    const n = performance.now();
+    if (n - _lastPaint < 45) return false;
+    _lastPaint = n;
+    return true;
+  }
+  return {
+    unlock() { _ready = true; ensure(); },
+    fill()  { if (paintGate()) tone(300, 0.09, "sine", 0.11, 170); },
+    cross() { if (paintGate()) tone(540, 0.06, "triangle", 0.07, 430); },
+    erase() { if (paintGate()) tone(220, 0.05, "sine", 0.05, 170); },
+    tap()   { tone(430, 0.045, "sine", 0.05, 360); },
+    swoosh(){ whoosh(0.22, 0.05, 950, 260); },
+    win()   {
+      // Soft major-ish arpeggio — G4 C5 E5 G5, gently staggered.
+      [392, 523.25, 659.25, 783.99].forEach((f, i) =>
+        setTimeout(() => tone(f, 0.34, "sine", 0.09), i * 110));
+    },
+  };
+})();
 
 // Canonical Shipping Library categories. These get auto-seeded as empty folders on first
 // run and self-healed back into the library if missing on subsequent loads (so adding new
@@ -460,6 +548,29 @@ modeBtn.addEventListener("click", (e) => {
 });
 updateModeButton();
 
+// Win-card actions. Guarded for admin play mode (no user screens there — just close).
+document.getElementById("winNext")?.addEventListener("click", e => {
+  const nextId = e.currentTarget.dataset.nextId;
+  const cat = e.currentTarget.dataset.cat;
+  hideWinModal();
+  if (cat) currentUserCategoryName = cat;
+  if (nextId && PUZZLES[nextId]) loadPuzzle(nextId);
+});
+document.getElementById("winBack")?.addEventListener("click", e => {
+  hideWinModal();
+  if (!userMode) return;
+  const cat = document.getElementById("winNext")?.dataset.cat;
+  if (cat) currentUserCategoryName = cat;
+  setUserScreen("puzzles");
+});
+document.getElementById("winPhotoToggle")?.addEventListener("click", e => {
+  const wrap = e.currentTarget.closest(".win-preview-wrap");
+  const showing = wrap.classList.toggle("show-photo");
+  e.currentTarget.textContent = showing ? "Pixel" : "Photo";
+});
+// Backdrop tap dismisses the card so the revealed board can be admired full-screen.
+document.querySelector("#winModal .modal-backdrop")?.addEventListener("click", hideWinModal);
+
 // Hidden trigger: click the header title 7 times within 2s to toggle admin mode.
 // Works inside itch's iframe where URL params are inaccessible.
 let _titleClickCount = 0;
@@ -676,9 +787,9 @@ function buildSettingsModal() {
   const list = document.querySelector(".settings-list");
   list.innerHTML = "";
   for (const [key, name, desc] of SETTINGS_INFO) {
+    if (key === "devMode" && !adminMode) continue;  // dev row is admin-only
     const li = document.createElement("li");
     li.className = "setting-row";
-    if (key === "soundEffects") li.classList.add("disabled");
 
     const wrap = document.createElement("div");
     wrap.className = "setting-label-wrap";
@@ -715,6 +826,7 @@ function initUserNav() {
 }
 
 function setUserScreen(name) {
+  if (currentUserScreen !== null && currentUserScreen !== name) sfx.swoosh();
   // Reset scroll BEFORE the screen class changes. html/body scroll on the list
   // screens (overflow-y: auto), but the solve view locks scrolling
   // (overflow: hidden; height: 100dvh). Tapping a puzzle from a scrolled-down list
@@ -819,6 +931,9 @@ function buildUserPuzzleList(catName) {
 
 function applySettings() {
   document.body.classList.toggle("reduce-motion", settings.reduceMotion);
+  // Dev tools are double-gated: the setting AND admin mode. A user who somehow
+  // flips the stored flag without admin still sees nothing.
+  document.body.classList.toggle("dev-mode", adminMode && !!settings.devMode);
   // Toggle visibility of solve-stats elements (always hidden in editor mode regardless)
   const inSolve = !editorMode;
   document.getElementById("timer").classList.toggle("hidden", !inSolve || !settings.timer);
@@ -885,12 +1000,12 @@ function updateTimerDisplay() {
 
 function recordMistake() {
   mistakeCount++;
-  document.getElementById("mistakes").textContent = `Mistakes: ${mistakeCount}`;
+  document.getElementById("mistakes").textContent = `✕ ${mistakeCount}`;
 }
 
 function resetMistakes() {
   mistakeCount = 0;
-  document.getElementById("mistakes").textContent = `Mistakes: 0`;
+  document.getElementById("mistakes").textContent = `✕ 0`;
 }
 
 function undo() {
@@ -1016,8 +1131,9 @@ function updateRotationClass() {
 // before ship: this function + its calls + #profileNum CSS + #board position.
 function updateProfileLabel() {
   const onSolve = document.body.dataset.screen === "solve" && activePuzzle && !editorMode;
+  const devOn = adminMode && !!settings.devMode;   // bundled under Dev tools 2026-08-25
   let el = document.getElementById("profileNum");
-  if (!onSolve) { if (el) el.style.display = "none"; return; }
+  if (!onSolve || !devOn) { if (el) el.style.display = "none"; return; }
   if (!el) {
     el = document.createElement("div");
     el.id = "profileNum";
@@ -1179,7 +1295,7 @@ function measureAndCacheHintLineHeight() {
   try {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-    ctx.font = '500 12px "Aghja", Georgia, serif';
+    ctx.font = '500 12px "Compagnon", Georgia, serif';   // MUST match --font-body (swapped 2026-08-25)
     const m = ctx.measureText("0");
     if (m.actualBoundingBoxAscent !== undefined && m.actualBoundingBoxDescent !== undefined) {
       // +1 safety — Dre wanted tighter, clipping test was clean at +2.
@@ -1220,7 +1336,7 @@ function getRowHintMeasurer() {
   } else if (window.matchMedia && window.matchMedia("(max-width: 480px)").matches) {
     fontPx = 12;  // fallback mirrors the ≤480px rule in style.css
   }
-  const font = `500 ${fontPx}px "Aghja", Georgia, serif`;
+  const font = `500 ${fontPx}px "Compagnon", Georgia, serif`;   // MUST match --font-body (swapped 2026-08-25)
   try {
     if (!_rowHintCtx) _rowHintCtx = document.createElement("canvas").getContext("2d");
     if (_rowHintCtxFont !== font) { _rowHintCtx.font = font; _rowHintCtxFont = font; }
@@ -1236,7 +1352,7 @@ function getHintLineHeight() {
   if (measuredHintLineHeight === null) measureAndCacheHintLineHeight();
   return measuredHintLineHeight;
 }
-// Re-measure once Aghja actually loads (initial measurement may hit fallback font).
+// Re-measure once the UI font actually loads (initial measurement may hit fallback font).
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(() => {
     measuredHintLineHeight = null;
@@ -1705,6 +1821,16 @@ function toggleMode() {
   updateModeButton();
 }
 
+// One-shot swell on a freshly painted cell. Class-based so reduce-motion's blanket
+// `animation: none` kills it for free; the forced reflow restarts the animation
+// when the same cell is repainted quickly.
+function popCell(cell, state) {
+  if (settings.reduceMotion || state === STATE_EMPTY) return;
+  cell.classList.remove("pop");
+  void cell.offsetWidth;
+  cell.classList.add("pop");
+}
+
 // === Cursor + dpad ===
 // selectedCell = { r, c } | null. Persists across puzzle switches so first
 // dpad press after load lands at 0,0.
@@ -1767,9 +1893,17 @@ if (dpadEl) {
   // snappier than waiting for click). Inserts a <circle> into the ripples
   // group clipped to the button's shape; CSS animates it and it self-removes.
   const RIPPLE_SVG_NS = "http://www.w3.org/2000/svg";
+  // Buoyant press: scale the SVG down on pointerdown, spring back on release.
+  // (The idle bob lives on the container; see the CSS note.)
+  const _dpadSvg = dpadEl.querySelector("svg");
+  const _dpadRelease = () => _dpadSvg && _dpadSvg.classList.remove("dpad-press");
+  window.addEventListener("pointerup", _dpadRelease);
+  window.addEventListener("pointercancel", _dpadRelease);
   dpadEl.addEventListener("pointerdown", e => {
     const btn = e.target.closest(".dpad-btn");
     if (!btn) return;
+    if (_dpadSvg) _dpadSvg.classList.add("dpad-press");
+    sfx.tap();
     const dir = btn.dataset.dir;
     const svg = dpadEl.querySelector("svg");
     const group = svg.querySelector(`.dpad-ripples.${dir}`);
@@ -1812,6 +1946,10 @@ function paintCell(cell, r, c) {
   currentStroke.push({ r, c, prev });
   board[r][c] = brushTarget;
   applyCellState(cell, brushTarget);
+  popCell(cell, brushTarget);
+  if (brushTarget === STATE_FILLED) sfx.fill();
+  else if (brushTarget === STATE_CROSSED) sfx.cross();
+  else sfx.erase();
   updateHintCompletion();
   if (settings.timer) startTimer();
   if (settings.mistakes && brushTarget === STATE_FILLED && activePuzzle && !activePuzzle.truth[r][c]) {
@@ -1873,20 +2011,12 @@ function endBrush() {
     currentStroke = [];
     updateUndoButtonState();
   }
-  if (!won && checkWin()) {
-    won = true;
-    completedSet.add(currentPuzzleId);
-    saveCompleted();
-    stopTimer();
-    revealColors();
-    renderLibrary();
-    updateUndoButtonState();
-  }
+  if (!won && checkWin()) startWinSequence();
 }
 
-// DEV-ONLY: force-solve the puzzle and trigger the win flow. Bypasses all
-// paint/undo/mistake bookkeeping since it's a debug affordance for iterating
-// on the win screen. Remove this function + its call site before ship.
+// DEV-ONLY: force-solve the puzzle and trigger the full win flow (wave, reveal,
+// sparkles, card) — exists precisely to iterate on that flow without solving.
+// Visible only under the Dev tools setting.
 function devWinPuzzle() {
   if (editorMode || !activePuzzle || won) return;
   for (let r = 0; r < activeH; r++) {
@@ -1896,15 +2026,166 @@ function devWinPuzzle() {
   }
   renderBoard();
   updateHintCompletion();
+  startWinSequence();
+}
+
+// === Win sequence (2026-08-25) ===
+// wave (F=1 cells ripple diagonally) → color reveal (existing .won fade) →
+// sparkles → win card. All bookkeeping that used to live inline in endBrush is
+// here so the dev button and real wins share one path.
+function startWinSequence() {
   won = true;
   if (currentPuzzleId && !completedSet.has(currentPuzzleId)) {
     completedSet.add(currentPuzzleId);
     saveCompleted();
   }
   stopTimer();
-  revealColors();
   renderLibrary();
   updateUndoButtonState();
+  // The cursor ring must not sit painted over the revealed picture (pre-existing
+  // bug: solving via dpad left it there).
+  selectedCell = null;
+  renderCursor();
+
+  if (settings.reduceMotion) {
+    revealColors();
+    showWinModal();
+    return;
+  }
+  sfx.win();
+  const cells = boardEl.children;
+  let maxDelay = 0;
+  for (let r = 0; r < activeH; r++) {
+    for (let c = 0; c < activeW; c++) {
+      if (!activePuzzle.truth[r][c]) continue;
+      const d = (r + c) * 36;   // diagonal wavefront from the top-left
+      if (d > maxDelay) maxDelay = d;
+      const el = cells[r * activeW + c];
+      el.style.animationDelay = d + "ms";
+      el.classList.add("win-wave");
+    }
+  }
+  setTimeout(() => {
+    for (const el of boardEl.querySelectorAll(".win-wave")) {
+      el.classList.remove("win-wave");
+      el.style.animationDelay = "";
+    }
+    revealColors();
+    spawnSparkles();
+    setTimeout(showWinModal, 700);
+  }, maxDelay + 540);
+}
+
+function spawnSparkles() {
+  for (let i = 0; i < 9; i++) {
+    const s = document.createElement("span");
+    s.className = "win-sparkle";
+    s.textContent = "✦";
+    s.style.left = (6 + Math.random() * 86) + "%";
+    s.style.top  = (6 + Math.random() * 86) + "%";
+    s.style.animationDelay = (Math.random() * 0.45).toFixed(2) + "s";
+    s.addEventListener("animationend", () => s.remove());
+    boardEl.appendChild(s);
+  }
+}
+
+// Which Shipping category holds this puzzle — the win card's Next needs it, and
+// it also repairs currentUserCategoryName when a solve was entered from admin.
+function findCategoryOf(id) {
+  for (const [name, ids] of Object.entries(library.shipping.folders)) {
+    if (ids.includes(id)) return name;
+  }
+  return null;
+}
+
+function showWinModal() {
+  const modal = document.getElementById("winModal");
+  if (!modal || !activePuzzle) return;
+  document.getElementById("winName").textContent = activePuzzle.name || "";
+
+  // Stats — a chip only renders when its feature was on (empty spans self-hide in CSS).
+  const t = document.getElementById("winTime");
+  if (settings.timer && elapsedMs > 0) {
+    const sec = Math.floor(elapsedMs / 1000);
+    t.textContent = `⏱ ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+  } else t.textContent = "";
+  const mk = document.getElementById("winMistakes");
+  mk.textContent = settings.mistakes ? `✕ ${mistakeCount}` : "";
+
+  // Pixel preview — the solved picture drawn cell-by-cell at 12px/cell.
+  const cv = document.getElementById("winPreview");
+  const scale = 12;
+  cv.width = activeW * scale;
+  cv.height = activeH * scale;
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#faf3e6";
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  for (let r = 0; r < activeH; r++) {
+    for (let c = 0; c < activeW; c++) {
+      const col = activePuzzle.colors[r] && activePuzzle.colors[r][c];
+      if (col) { ctx.fillStyle = col; ctx.fillRect(c * scale, r * scale, scale, scale); }
+    }
+  }
+
+  // Original photo ↔ pixel toggle. Photos ship in images/ keyed by puzzle id via
+  // IMAGE_MANIFEST (generated at deploy). No entry, or a failed load → toggle hides
+  // and the card is pixel-only; nothing else changes.
+  const wrap = modal.querySelector(".win-preview-wrap");
+  const photo = document.getElementById("winPhoto");
+  wrap.classList.remove("show-photo");
+  const file = (typeof IMAGE_MANIFEST !== "undefined") && IMAGE_MANIFEST[currentPuzzleId];
+  if (file) {
+    wrap.classList.remove("no-photo");
+    photo.onerror = () => { wrap.classList.add("no-photo"); wrap.classList.remove("show-photo"); };
+    photo.src = "images/" + file;
+    document.getElementById("winPhotoToggle").textContent = "Photo";
+  } else {
+    wrap.classList.add("no-photo");
+    photo.removeAttribute("src");
+  }
+
+  document.getElementById("winFact").textContent = activePuzzle.fact || "";
+  const srcA = document.getElementById("winSource");
+  const src = activePuzzle.source;
+  if (src && src.url) {
+    srcA.href = src.url;
+    srcA.textContent = src.attribution ? `image: ${src.attribution}` : "image source";
+  } else if (src && src.attribution) {
+    srcA.removeAttribute("href");
+    srcA.textContent = `image: ${src.attribution}`;
+  } else {
+    srcA.removeAttribute("href");
+    srcA.textContent = "";
+  }
+  const refA = document.getElementById("winFactSrc");
+  if (activePuzzle.factSource) {
+    refA.href = activePuzzle.factSource;
+    refA.textContent = "fact source";
+  } else {
+    refA.removeAttribute("href");
+    refA.textContent = "";
+  }
+
+  // Next is disabled on the last puzzle of a category rather than wrapping —
+  // wrapping felt like being trapped in a loop; "go pick" is the honest state.
+  const cat = findCategoryOf(currentPuzzleId);
+  const nextBtn = document.getElementById("winNext");
+  let nextId = null;
+  if (cat) {
+    const ids = library.shipping.folders[cat];
+    nextId = ids[ids.indexOf(currentPuzzleId) + 1] || null;
+  }
+  nextBtn.disabled = !nextId;
+  nextBtn.dataset.nextId = nextId || "";
+  nextBtn.dataset.cat = cat || "";
+
+  modal.classList.remove("hidden");
+}
+
+function hideWinModal() {
+  const modal = document.getElementById("winModal");
+  if (modal) modal.classList.add("hidden");
+  modal?.querySelector(".win-preview-wrap")?.classList.remove("show-photo");
 }
 
 function checkWin() {
@@ -1934,7 +2215,7 @@ function revealColors() {
       }
     }
   }
-  showFactCard();
+  // (The old inline fact card is superseded by the win modal, 2026-08-25.)
 }
 
 function showFactCard() {
@@ -2054,6 +2335,7 @@ function loadPuzzle(id) {
   currentStroke = [];
   updateUndoButtonState();
   hideFactCard();
+  hideWinModal();
   renderLibrary();
   // Reset cursor when swapping puzzles — position from a prior puzzle is meaningless.
   selectedCell = null;
@@ -2077,6 +2359,7 @@ function clearBoard() {
   currentStroke = [];
   updateUndoButtonState();
   hideFactCard();
+  hideWinModal();
 }
 
 function updateHintCompletion() {
@@ -2456,6 +2739,17 @@ function renameFolder(subKey, oldName, newName) {
 
 document.addEventListener("click", hideContextMenu);
 window.addEventListener("blur", hideContextMenu);
+
+// Audio unlock — iOS only permits audio started inside a user gesture. Capture
+// phase so it runs before any handler that might want to play a sound in the
+// same gesture. Cheap enough to run on every pointerdown.
+document.addEventListener("pointerdown", () => sfx.unlock(), true);
+// Uniform tap sound for every real <button> in the app — one delegated listener
+// instead of per-button wiring. Cells and dpad arrows aren't <button>s, so their
+// dedicated sounds never double-fire with this.
+document.addEventListener("click", e => {
+  if (e.target && e.target.closest && e.target.closest("button")) sfx.tap();
+}, true);
 
 function loadCompleted() {
   try {
