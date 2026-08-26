@@ -182,11 +182,18 @@ html, body {
   overflow-y: auto;  /* allow scrolling when content exceeds viewport (esp. in itch iframe with fixed dims) */
   font-family: var(--font-body);
   font-weight: 500;
-  background: var(--color-bg-grad-from);   /* flat foam — radial glows removed per Dre's feedback */
-  background-attachment: fixed;
   color: var(--color-fg);
   -webkit-tap-highlight-color: transparent;
 }
+/* The base color lives on HTML ONLY (2026-08-26). Painting order in the root
+   stacking context is: html background → negative-z-index descendants → in-flow
+   backgrounds. With the foam also set on body, body's OPAQUE background painted
+   OVER the z-index:-1 animated layers and the whole breathing background shipped
+   invisible — except in iOS rubber-band overscroll, where it peeked out past
+   body's box (Dre's screenshot caught exactly that band). Body stays transparent
+   so the glows show through everywhere. */
+html { background: var(--color-bg-grad-from); }
+body { background: transparent; }
 
 /* === Safe-area insets (edge-to-edge, 2026-08-16) ===
    index.html sets viewport-fit=cover, so the viewport now covers the entire physical
@@ -485,11 +492,42 @@ body.user-mode[data-screen="home"] header { display: none; }
    the page, settings pinned to the top-right corner and sized to match the
    (now-removed) Reset button's height. Scoped to these two screens only so the
    solve-screen header layout stays untouched. */
+/* Category + Puzzles are the app's only SCROLLING screens, and with edge-to-edge
+   the content scrolled straight through the status-bar strip (sometimes clipped
+   under the clock, sometimes overlapping it — same cause, different scroll
+   offsets). Fix per Dre 2026-08-26: the logo+gear block no longer scrolls. It is
+   fixed over the top with a "blur zone" beneath — content sliding up passes
+   through ~26px where it progressively blurs and fades (strongest nearest the
+   header), the iOS scroll-edge treatment. Implemented as one ::before layer:
+   backdrop-filter for the blur, a foam→transparent gradient for the opacity
+   fade, and a mask so both effects taper off over the zone's last pixels. */
 body.user-mode[data-screen="category"] header,
 body.user-mode[data-screen="puzzles"] header {
-  align-self: stretch;      /* full width so the logo can center on the page */
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  margin: 0;
+  align-self: auto;
   justify-content: center;  /* logo is the only in-flow child → it centers */
-  position: relative;       /* anchor for the absolutely-positioned gear */
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 24px 10px;
+}
+body.user-mode[data-screen="category"] header::before,
+body.user-mode[data-screen="puzzles"] header::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -26px 0;              /* the extra 26px IS the blur zone */
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--color-foam) 0%, var(--color-foam) 58%, rgba(250, 243, 230, 0) 100%);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 26px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 26px), transparent 100%);
+}
+/* Content starts below the fixed header instead of underneath it. */
+body.user-mode[data-screen="category"] #userNav,
+body.user-mode[data-screen="puzzles"] #userNav {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 82px);
 }
 body.user-mode[data-screen="category"] #resetBtn,
 body.user-mode[data-screen="puzzles"] #resetBtn {
@@ -498,9 +536,9 @@ body.user-mode[data-screen="puzzles"] #resetBtn {
 body.user-mode[data-screen="category"] #settingsBtn,
 body.user-mode[data-screen="puzzles"] #settingsBtn {
   position: absolute;
-  top: 12px;             /* up toward the corner — experimental, easy to tune */
-  right: 16px;           /* and a little further right than the 24px padding */
-  padding: 8px 12px;     /* taller — matches Reset's 8px vertical padding */
+  top: calc(env(safe-area-inset-top, 0px) + 8px);   /* rides the fixed header, clear of the status bar */
+  right: 16px;
+  padding: 8px 12px;
 }
 /* Categories screen drops its Back button; the Puzzles screen keeps its own. */
 body.user-mode[data-screen="category"] #screenCategory .back-btn { display: none; }
@@ -540,20 +578,26 @@ body.user-mode[data-screen="solve"] #solveBack { display: inline-flex; }
   margin: 60px 0 36px;
   color: var(--color-espresso);
   letter-spacing: 2px;
-  /* "Being written": a left→right clip wipe over the cursive wordmark reads as the
-     pen laying the word down. Negative top/bottom insets so ascenders/descenders
-     never clip mid-write. Base state is fully visible, the keyframe starts hidden —
-     that pattern means reduce-motion (animation: none) shows the finished title
-     instantly instead of nothing. */
-  animation: hero-write 2s cubic-bezier(0.3, 0, 0.25, 1) 0.2s both;
 }
+/* "Being written", pass 2 (2026-08-26): one WORD at a time — "Nonograms" writes,
+   then "Original". Still a clip wipe per word, not true pen-stroke tracing; the
+   real thing needs the wordmark vectorized to single-stroke SVG paths animated by
+   stroke-dashoffset, which is logged as post-batch polish. Negative insets keep
+   ascenders/descenders unclipped mid-write; base state is visible so reduce-motion
+   shows the finished title instantly. */
+.hero-word {
+  display: inline-block;
+  animation: hero-write 1.05s cubic-bezier(0.32, 0, 0.24, 1) both;
+}
+.hero-word:nth-child(1) { animation-delay: 0.2s; }
+.hero-word:nth-child(2) { animation-delay: 1.35s; }
 @keyframes hero-write {
   from { clip-path: inset(-25% 100% -25% -5%); opacity: 0.85; }
   to   { clip-path: inset(-25% -5%  -25% -5%); opacity: 1; }
 }
 /* Play arrives after the word finishes writing. */
 body.user-mode[data-screen="home"] #userPlay {
-  animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 1.9s both;
+  animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 2.5s both;   /* after word 2 finishes */
 }
 @keyframes rise-in { from { opacity: 0; transform: translateY(14px); } }
 .user-cta {
@@ -1458,11 +1502,25 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
 
 /* Gear icon shared by header #settingsBtn + in-solve #solveSettings. Inline
    SVG (Feather Icons, MIT-licensed). Inherits button color via currentColor so
-   it matches the coffee palette + swaps on hover automatically. */
+   it matches the coffee palette + swaps on hover automatically.
+   stroke-width raised 1.6 → 2.1 (2026-08-26) to match the arrow glyphs' weight —
+   CSS wins over the SVG attribute, so both gear instances thicken together. */
 .icon-gear {
   display: block;
   color: inherit;
   overflow: visible;
+  stroke-width: 2.1;
+}
+/* The ← ↻ ⤺ glyphs were coming out of Compagnon with mismatched weights and
+   baselines (⤺ isn't even in the face and fell back thin — Dre read it as the
+   buttons having "different thickness" and being off-center, and he was right).
+   One system family renders all three arrows at a uniform weight and true
+   vertical center. */
+body.user-mode[data-screen="solve"] #solveBack,
+body.user-mode[data-screen="solve"] #solveReset,
+body.user-mode[data-screen="solve"] #solveStats #undoBtn .undo-icon {
+  font-family: -apple-system, system-ui, "Segoe UI Symbol", sans-serif;
+  font-weight: 600;
 }
 
 body.font-dev #fontDevBtn {
@@ -1536,23 +1594,35 @@ body.font-dev *:hover {
   box-shadow: var(--shadow-soft);
   white-space: nowrap;
 }
+/* Portrait: chips sit ON THE LOGO LINE (top ≈ header text), not below it — at the
+   old +12px they collided with the outer buttons of P3's control row, whose header
+   is only 2px-padded. On the logo line they're horizontally clear of the centered
+   wordmark and vertically clear of every control row. */
 body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #timer {
   position: fixed;
-  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  top: calc(env(safe-area-inset-top, 0px) + 5px);
   left: 12px;
   z-index: 40;
 }
 body.user-mode[data-screen="solve"]:is(.profile-square-nodpad, .profile-tall-nodpad, .profile-portrait-dpad) #mistakes {
   position: fixed;
-  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  top: calc(env(safe-area-inset-top, 0px) + 5px);
   right: 12px;
   z-index: 40;
 }
+/* Landscape: chips stack in the puzzle grid's empty CORNER (top-left, under the
+   mini-logo) — the one region guaranteed dead in both landscape profiles. The old
+   home (implicit rows inside the 2x2 grid) shifted with the block's nudge and
+   overlapped Fill/Cross. position:absolute anchors to main (position:relative on
+   these profiles), and being inside main means they rotate with the app. */
 body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #timer,
 body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #mistakes {
-  grid-column: 1 / -1;
-  justify-self: end;
+  position: absolute;
+  left: 6px;
+  z-index: 25;
 }
+body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #timer { top: 26px; }
+body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #mistakes { top: 56px; }
 #solveStats .stat.hidden { display: none; }
 #solveStats #undoBtn {
   font: inherit;
@@ -2317,13 +2387,15 @@ body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad)
 body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #solveStats #undoBtn {
   font-size: 20px;   /* keeps Dre's original "ever so slightly larger" +2px, rebased from 18 */
 }
-/* Both landscape 2x2 blocks drop 15px (P4 2026-08-23, P5 the same for parity).
-   `transform`, not margin: row 1 of these grids is `auto`, so a margin would grow the
-   track and shift the whole right column, while a transform only repaints.
-   SHARED deliberately — P4 carried this inline and P5 would have needed a duplicate,
-   which is exactly how the button sizing silently diverged one revision ago. */
+/* Both landscape 2x2 blocks drop 15px. Was `transform: translateY(15px)` —
+   reverted to margin on 2026-08-26 because a transform makes #solveStats the
+   CONTAINING BLOCK for its absolutely-positioned descendants, which broke the
+   chip relocation (chips must anchor to main), and the shifted-but-not-moved
+   block was also what let the chips overlap Fill/Cross. The margin costs the 1fr
+   spacer row 15px instead, which is harmless: Fill floats centered in it and the
+   dpad is end-anchored, so nothing visible moves except the 2x2 itself. */
 body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad) #solveStats {
-  transform: translateY(15px);
+  margin-top: 15px;
 }
 body.profile-wide-nodpad .puzzle-and-ref {
   grid-area: puzzle;
@@ -2461,6 +2533,15 @@ body.profile-wide-dpad:not(.disable-action-btn-on) #modeBtn.mode-fill  .mode-hal
 body.profile-wide-dpad:not(.disable-action-btn-on) #modeBtn.mode-cross .mode-half-fill {
   display: none;
 }
+/* With "Disable action button" on, BOTH halves are required (each commits its own
+   action) — they stack vertically in the same 154 column instead of cramming into
+   one 54px row. (2026-08-26; the collapse-to-one rule below still governs the
+   normal toggle case.) */
+body.profile-wide-dpad.disable-action-btn-on #modeBtn {
+  flex-direction: column;
+  height: auto;
+}
+body.profile-wide-dpad.disable-action-btn-on .mode-half { padding: 13px 8px; }
 body.profile-wide-dpad .mode-half {
   padding: 8px 10px;
   font-size: 17px;
@@ -2626,7 +2707,7 @@ body.dpad-on.user-mode[data-screen="solve"] #dpad { display: block; }
    like pushing something buoyant underwater and letting go. Class set in JS on
    pointerdown/up. */
 body.dpad-on.user-mode[data-screen="solve"] #dpad { animation: float-bob 4.8s ease-in-out infinite; }
-@keyframes float-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes float-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4.5px); } }
 #dpad svg {
   width: 100%; height: 100%; display: block;
   transition: transform 0.34s cubic-bezier(0.3, 1.7, 0.55, 1);

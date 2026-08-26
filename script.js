@@ -82,7 +82,6 @@ const SETTINGS_DEFAULT = {
 const SETTINGS_INFO = [
   ["timer",            "Timer",                     "Show solve time."],
   ["mistakes",         "Mistake counter",           "Count fills placed on cells that don't belong in the picture."],
-  ["undo",             "Undo (Ctrl+Z)",             "Revert your last brush stroke."],
   ["fadedReveal",      "Faded reveal",              "Correctly-filled cells hint at their reveal color."],
   ["autoCross",        "Auto-cross",                "Auto-cross remaining cells when a row or column is satisfied."],
   ["soundEffects",     "Sound effects",             "Gentle taps and pops while solving, and a soft chime on the win."],
@@ -99,7 +98,11 @@ function loadSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
     if (!raw) return { ...SETTINGS_DEFAULT };
-    return { ...SETTINGS_DEFAULT, ...JSON.parse(raw) };
+    const merged = { ...SETTINGS_DEFAULT, ...JSON.parse(raw) };
+    // Undo stopped being optional on 2026-08-26 (settings row removed) — heal any
+    // stored `false` so nobody is left with the button hidden forever.
+    merged.undo = true;
+    return merged;
   } catch { return { ...SETTINGS_DEFAULT }; }
 }
 
@@ -931,14 +934,15 @@ function buildUserPuzzleList(catName) {
 
 function applySettings() {
   document.body.classList.toggle("reduce-motion", settings.reduceMotion);
-  // Dev tools are double-gated: the setting AND admin mode. A user who somehow
-  // flips the stored flag without admin still sees nothing.
-  document.body.classList.toggle("dev-mode", adminMode && !!settings.devMode);
+  // The Dev tools ROW is only reachable in admin mode, but the flag itself works
+  // in user mode too — Dre debugs from the user-facing side, so gating the aids on
+  // live admin state made them unreachable exactly where he needs them (2026-08-26).
+  document.body.classList.toggle("dev-mode", !!settings.devMode);
   // Toggle visibility of solve-stats elements (always hidden in editor mode regardless)
   const inSolve = !editorMode;
   document.getElementById("timer").classList.toggle("hidden", !inSolve || !settings.timer);
   document.getElementById("mistakes").classList.toggle("hidden", !inSolve || !settings.mistakes);
-  document.getElementById("undoBtn").classList.toggle("hidden", !inSolve || !settings.undo);
+  document.getElementById("undoBtn").classList.toggle("hidden", !inSolve);   // undo is always on (2026-08-26)
   // Dpad visibility. Tap-to-select is implicit whenever the dpad is on — no
   // separate toggle, since painting-by-tap with a dpad up would be redundant.
   document.body.classList.toggle("dpad-on", inSolve && settings.dpad);
@@ -1009,7 +1013,7 @@ function resetMistakes() {
 }
 
 function undo() {
-  if (!settings.undo || won) return;
+  if (won) return;
   const stroke = undoStack.pop();
   if (!stroke || stroke.length === 0) return;
   for (const { r, c, prev } of stroke) {
@@ -1131,7 +1135,7 @@ function updateRotationClass() {
 // before ship: this function + its calls + #profileNum CSS + #board position.
 function updateProfileLabel() {
   const onSolve = document.body.dataset.screen === "solve" && activePuzzle && !editorMode;
-  const devOn = adminMode && !!settings.devMode;   // bundled under Dev tools 2026-08-25
+  const devOn = !!settings.devMode;   // works in user mode once set — see applySettings
   let el = document.getElementById("profileNum");
   if (!onSolve || !devOn) { if (el) el.style.display = "none"; return; }
   if (!el) {
@@ -1850,9 +1854,10 @@ function moveCursor(dr, dc) {
   if (!selectedCell) {
     selectedCell = { r: 0, c: 0 };
   } else {
-    const nr = Math.max(0, Math.min(activeH - 1, selectedCell.r + dr));
-    const nc = Math.max(0, Math.min(activeW - 1, selectedCell.c + dc));
-    if (nr === selectedCell.r && nc === selectedCell.c) return;
+    // Wrap-around (2026-08-26, "like pac man"): walking off any edge re-enters on
+    // the opposite side. The double-modulo keeps negatives positive.
+    const nr = ((selectedCell.r + dr) % activeH + activeH) % activeH;
+    const nc = ((selectedCell.c + dc) % activeW + activeW) % activeW;
     selectedCell = { r: nr, c: nc };
   }
   renderCursor();
