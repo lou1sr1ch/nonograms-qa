@@ -790,7 +790,10 @@ function buildSettingsModal() {
   const list = document.querySelector(".settings-list");
   list.innerHTML = "";
   for (const [key, name, desc] of SETTINGS_INFO) {
-    if (key === "devMode" && !adminMode) continue;  // dev row is admin-only
+    // Dev row shows in admin mode OR while the flag is on — otherwise, once Dre
+    // 7-tapped back to user mode there was no way to turn dev tools OFF (round-2
+    // finding). Default-off users still never see it; enabling still needs admin.
+    if (key === "devMode" && !adminMode && !settings.devMode) continue;
     const li = document.createElement("li");
     li.className = "setting-row";
 

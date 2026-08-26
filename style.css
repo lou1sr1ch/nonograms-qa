@@ -148,32 +148,47 @@ body::before,
 body::after {
   content: "";
   position: fixed;
-  inset: -25%;
+  inset: -30%;
   z-index: -1;
   pointer-events: none;
 }
+/* v2 (2026-08-26): v1's near-background blobs at 0.1-0.2 alpha were invisible in
+   practice — Dre: "obvious but not too extravagant… abstract geometrical
+   stretches", PS4-home-screen reference, colors NOTICEABLY different from the
+   ground. So: ::before carries two broad DIAGONAL RIBBONS (banded linear
+   gradients — the geometric stretches) sweeping slowly across; ::after carries
+   two big soft orbs drifting the opposite way with a slight rotation. Cinnamon /
+   latte / mocha at 0.2-0.4 alpha — visibly warmer and darker than the foam, but
+   the same family. Still transform-only; still halved on solve screens. */
 body::before {
-  background:
-    radial-gradient(42% 34% at 20% 24%, rgba(199, 152, 112, 0.17), transparent 70%),
-    radial-gradient(50% 40% at 82% 14%, rgba(227, 207, 168, 0.22), transparent 72%),
-    radial-gradient(46% 38% at 72% 84%, rgba(138, 74, 42, 0.11), transparent 74%),
-    radial-gradient(34% 30% at 10% 78%, rgba(199, 152, 112, 0.13), transparent 70%);
-  animation: bg-drift 46s ease-in-out infinite alternate;
+  background: linear-gradient(115deg,
+    transparent 0%,
+    transparent 14%,
+    rgba(199, 152, 112, 0.32) 24%,
+    rgba(227, 207, 168, 0.42) 32%,
+    transparent 44%,
+    transparent 58%,
+    rgba(227, 207, 168, 0.45) 68%,
+    rgba(199, 152, 112, 0.26) 76%,
+    transparent 88%);
+  animation: bg-sweep 40s ease-in-out infinite alternate;
 }
 body::after {
-  background: radial-gradient(58% 48% at 50% 46%, rgba(253, 250, 242, 0.55), transparent 75%);
-  animation: bg-breathe 12s ease-in-out infinite alternate;
+  background:
+    radial-gradient(34% 28% at 26% 28%, rgba(138, 74, 42, 0.18), transparent 68%),
+    radial-gradient(44% 36% at 76% 72%, rgba(199, 152, 112, 0.34), transparent 70%);
+  animation: bg-orbit 55s ease-in-out infinite alternate;
 }
-@keyframes bg-drift {
-  from { transform: translate3d(-2.2%, -1.4%, 0) scale(1); }
-  to   { transform: translate3d(2.2%, 1.8%, 0) scale(1.06); }
+@keyframes bg-sweep {
+  from { transform: translate3d(-5%, -3%, 0); }
+  to   { transform: translate3d(5%, 3%, 0); }
 }
-@keyframes bg-breathe {
-  from { opacity: 0.35; }
-  to   { opacity: 0.8; }
+@keyframes bg-orbit {
+  from { transform: translate3d(3%, -2.5%, 0) rotate(0deg); }
+  to   { transform: translate3d(-3%, 2.5%, 0) rotate(4deg); }
 }
-body[data-screen="solve"]::before { animation-duration: 90s; opacity: 0.75; }
-body[data-screen="solve"]::after  { animation-duration: 20s; }
+body[data-screen="solve"]::before { opacity: 0.5; animation-duration: 75s; }
+body[data-screen="solve"]::after  { opacity: 0.5; animation-duration: 95s; }
 
 html, body {
   margin: 0;
@@ -515,19 +530,22 @@ body.user-mode[data-screen="category"] header::before,
 body.user-mode[data-screen="puzzles"] header::before {
   content: "";
   position: absolute;
-  inset: 0 0 -26px 0;              /* the extra 26px IS the blur zone */
+  inset: 0 0 -50px 0;              /* the extra 50px IS the blur zone (26 -> 50 per Dre round 2) */
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(to bottom, var(--color-foam) 0%, var(--color-foam) 58%, rgba(250, 243, 230, 0) 100%);
-  -webkit-backdrop-filter: blur(9px);
-  backdrop-filter: blur(9px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 26px), transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 26px), transparent 100%);
+  background: linear-gradient(to bottom, var(--color-foam) 0%, var(--color-foam) 45%, rgba(250, 243, 230, 0.75) 68%, rgba(250, 243, 230, 0.35) 84%, rgba(250, 243, 230, 0) 100%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  /* Eased (more "gaussian") falloff: intermediate stops instead of a linear ramp,
+     so the blur stays near-full close to the header and lets go quickly at the
+     bottom of the zone. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 50px), rgba(0,0,0,0.7) calc(100% - 32px), rgba(0,0,0,0.35) calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 50px), rgba(0,0,0,0.7) calc(100% - 32px), rgba(0,0,0,0.35) calc(100% - 16px), transparent 100%);
 }
 /* Content starts below the fixed header instead of underneath it. */
 body.user-mode[data-screen="category"] #userNav,
 body.user-mode[data-screen="puzzles"] #userNav {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 82px);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 96px);
 }
 body.user-mode[data-screen="category"] #resetBtn,
 body.user-mode[data-screen="puzzles"] #resetBtn {
@@ -1522,6 +1540,13 @@ body.user-mode[data-screen="solve"] #solveStats #undoBtn .undo-icon {
   font-family: -apple-system, system-ui, "Segoe UI Symbol", sans-serif;
   font-weight: 600;
 }
+/* The ⤺ glyph draws small within its em box — scaled up (~1.7x) to read at the
+   same visual size as ← and ↻ (Dre round 2). line-height 0 keeps the bigger
+   glyph from stretching the 35px button. */
+body.user-mode[data-screen="solve"] #solveStats #undoBtn .undo-icon {
+  font-size: 30px;
+  line-height: 0;
+}
 
 body.font-dev #fontDevBtn {
   background: linear-gradient(135deg, var(--color-mocha) 0%, var(--color-cocoa) 100%);
@@ -2513,7 +2538,7 @@ body.profile-wide-dpad #modeBtn {
   align-self: center;     /* floats in the 1fr gap between the 2x2 and the dpad */
   justify-self: end;
   flex-direction: row;    /* one visible half, so a horizontal bar reads better */
-  width: 154px;           /* matches the dpad, so the column edge is flush */
+  width: 144px;           /* midway between the 2x2 block (134) and the dpad (154), per Dre round 2 */
   height: 54px;
   transform: none;
 }
