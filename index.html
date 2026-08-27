@@ -34,6 +34,11 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Round 3 (2026-08-27): background layers — see style.css. #topVeil fades the
+       breathing background into the flat status-bar strip; #scrollEdge is the
+       category/puzzles scroll-edge blur (a real element, not a header pseudo, so
+       its backdrop root is the whole page — the pseudo version blurred nothing). -->
+  <div id="topVeil" aria-hidden="true"></div>
   <header>
     <button id="solveBack" class="user-only back-btn" data-back="puzzles" type="button" aria-label="Back to puzzles" title="Back to puzzles">←</button>
     <h1>Nonograms Original</h1>
@@ -42,6 +47,12 @@
     <button id="settingsBtn" type="button" aria-label="Settings" title="Settings"><svg class="icon-gear" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <button id="fontDevBtn" type="button" title="Font experiment mode — right-click any text to change its font">Aa</button>
   </header>
+  <div id="scrollEdge" aria-hidden="true">
+    <div class="edge-blur edge-blur-1"></div>
+    <div class="edge-blur edge-blur-2"></div>
+    <div class="edge-blur edge-blur-3"></div>
+    <div class="edge-grad"></div>
+  </div>
   <div class="layout">
     <aside id="library"></aside>
     <main>

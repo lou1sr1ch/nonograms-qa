@@ -190,6 +190,32 @@ body::after {
 body[data-screen="solve"]::before { opacity: 0.5; animation-duration: 75s; }
 body[data-screen="solve"]::after  { opacity: 0.5; animation-duration: 95s; }
 
+/* Top safe-area veil (round 3, 2026-08-27). MEASURED on Dre's iPhone: the
+   status-bar strip is a perfectly flat #faf3e6 band (0.3 lum variance) ending
+   exactly at the safe-area boundary, with the ribbons resuming right below it —
+   the fixed inset:-30% pseudo-layers do not paint there no matter their overscan.
+   Whether iOS now paints that strip itself with the theme-color or our
+   negative-z layers are clipped out of it, no page layer reaches those pixels —
+   so "extend the background end to end" is not available. This is Dre's
+   fallback, quoted: "the background stops a bit before that border… a buffer
+   zone… a gradient into that solid color, so you can't see the harsh immediate
+   change." Solid matching foam up to the boundary, then a ~52px ease-out so the
+   eye can't find the join. z-index:-1 keeps it strictly in the background layer
+   stack — it can never wash over text or controls. */
+#topVeil {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: calc(env(safe-area-inset-top, 0px) + 52px);
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom,
+    var(--color-bg-grad-from) 0%,
+    var(--color-bg-grad-from) calc(env(safe-area-inset-top, 0px)),
+    rgba(250, 243, 230, 0.62) calc(env(safe-area-inset-top, 0px) + 16px),
+    rgba(250, 243, 230, 0.28) calc(env(safe-area-inset-top, 0px) + 34px),
+    rgba(250, 243, 230, 0) 100%);
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -511,11 +537,8 @@ body.user-mode[data-screen="home"] header { display: none; }
    the content scrolled straight through the status-bar strip (sometimes clipped
    under the clock, sometimes overlapping it — same cause, different scroll
    offsets). Fix per Dre 2026-08-26: the logo+gear block no longer scrolls. It is
-   fixed over the top with a "blur zone" beneath — content sliding up passes
-   through ~26px where it progressively blurs and fades (strongest nearest the
-   header), the iOS scroll-edge treatment. Implemented as one ::before layer:
-   backdrop-filter for the blur, a foam→transparent gradient for the opacity
-   fade, and a mask so both effects taper off over the zone's last pixels. */
+   fixed over the top with a "blur zone" beneath (the #scrollEdge element — see
+   the round-3 comment below for why it can no longer live on header::before). */
 body.user-mode[data-screen="category"] header,
 body.user-mode[data-screen="puzzles"] header {
   position: fixed;
@@ -526,21 +549,71 @@ body.user-mode[data-screen="puzzles"] header {
   justify-content: center;  /* logo is the only in-flow child → it centers */
   padding: calc(env(safe-area-inset-top, 0px) + 8px) 24px 10px;
 }
-body.user-mode[data-screen="category"] header::before,
-body.user-mode[data-screen="puzzles"] header::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 -50px 0;              /* the extra 50px IS the blur zone (26 -> 50 per Dre round 2) */
-  z-index: -1;
+/* Category + Puzzles are the app's only SCROLLING screens, and with edge-to-edge
+   the content scrolled straight through the status-bar strip (sometimes clipped
+   under the clock, sometimes overlapping it — same cause, different scroll
+   offsets). Fix per Dre 2026-08-26: the logo+gear block no longer scrolls. It is
+   fixed over the top with a "blur zone" beneath — content sliding up passes
+   through ~50px where it progressively blurs and fades (strongest nearest the
+   header), the iOS scroll-edge treatment.
+
+   ROUND 3 REBUILD (2026-08-27) — v2 put backdrop-filter + mask on header::before
+   with z-index:-1 INSIDE the header's own stacking context (z-index:200), so the
+   element's Backdrop Root was the header itself: the backdrop contained none of
+   the scrolling page and iOS rendered the foam gradient with ZERO blur (Dre:
+   "slight shift in opacity… I just don't notice any blur"). v3 moves the effect
+   to #scrollEdge, a SIBLING of the header, so the backdrop root is the root
+   element and the whole scrolling page is the backdrop. Two more rules learned:
+   a mask on the blur element (or any ancestor) is itself a Backdrop Root
+   trigger — it kills the effect again — so the blur falloff can't be feathered
+   with a mask and is instead approximated with three stepped strips (16/9/4px);
+   the foam fade is .edge-grad's own alpha ramp, no mask needed. Opacity ramp
+   strengthened per Dre ("slightly more drastic"). z-index 190: above the
+   scrolling page, below the header (200) so logo and gear stay crisp. */
+#scrollEdge {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: calc(env(safe-area-inset-top, 0px) + 106px);  /* header (~56) + 50px zone */
+  z-index: 190;
   pointer-events: none;
-  background: linear-gradient(to bottom, var(--color-foam) 0%, var(--color-foam) 45%, rgba(250, 243, 230, 0.75) 68%, rgba(250, 243, 230, 0.35) 84%, rgba(250, 243, 230, 0) 100%);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  /* Eased (more "gaussian") falloff: intermediate stops instead of a linear ramp,
-     so the blur stays near-full close to the header and lets go quickly at the
-     bottom of the zone. */
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 50px), rgba(0,0,0,0.7) calc(100% - 32px), rgba(0,0,0,0.35) calc(100% - 16px), transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 50px), rgba(0,0,0,0.7) calc(100% - 32px), rgba(0,0,0,0.35) calc(100% - 16px), transparent 100%);
+}
+body.user-mode[data-screen="category"] #scrollEdge,
+body.user-mode[data-screen="puzzles"] #scrollEdge {
+  display: block;
+}
+#scrollEdge .edge-grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+    var(--color-foam) 0%,
+    var(--color-foam) 40%,
+    rgba(250, 243, 230, 0.85) 56%,
+    rgba(250, 243, 230, 0.52) 72%,
+    rgba(250, 243, 230, 0.22) 86%,
+    rgba(250, 243, 230, 0) 100%);
+}
+#scrollEdge .edge-blur {
+  position: absolute;
+  left: 0; right: 0;
+}
+#scrollEdge .edge-blur-1 {
+  top: 0;
+  height: calc(env(safe-area-inset-top, 0px) + 62px);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+#scrollEdge .edge-blur-2 {
+  top: calc(env(safe-area-inset-top, 0px) + 62px);
+  height: 24px;
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+}
+#scrollEdge .edge-blur-3 {
+  top: calc(env(safe-area-inset-top, 0px) + 86px);
+  height: 20px;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 /* Content starts below the fixed header instead of underneath it. */
 body.user-mode[data-screen="category"] #userNav,
@@ -2501,7 +2574,7 @@ body.profile-wide-dpad .layout main {
 body.profile-wide-dpad #solveStats {
   grid-area: stats;
   align-self: start;
-  justify-self: end;
+  justify-self: center;  /* round 3: centered on the 154 column, like Fill/Cross + dpad */
   display: grid;
   grid-template-columns: auto auto;
   grid-template-rows: auto auto;
@@ -2536,7 +2609,7 @@ body.profile-wide-dpad .solve-bottom-bar {
 body.profile-wide-dpad #modeBtn {
   grid-area: fill;
   align-self: center;     /* floats in the 1fr gap between the 2x2 and the dpad */
-  justify-self: end;
+  justify-self: center;   /* round 3: shares the column centerline — 5px of Fill/Cross shows on either side of the 2x2 */
   flex-direction: row;    /* one visible half, so a horizontal bar reads better */
   width: 144px;           /* midway between the 2x2 block (134) and the dpad (154), per Dre round 2 */
   height: 54px;
@@ -2545,7 +2618,7 @@ body.profile-wide-dpad #modeBtn {
 body.profile-wide-dpad #dpad {
   grid-area: dpad;
   align-self: end;
-  justify-self: end;
+  justify-self: center;   /* round 3: the 154 column is exactly the dpad's width, so centering changes nothing here — it just joins the shared centerline */
   width: 154px;
 }
 /* ONE button, not two halves. With the dpad on, taps anywhere on #modeBtn call
@@ -2627,17 +2700,25 @@ body.profile-wide-dpad .fact-card {
    rotated landscape puzzles — a viewport-fixed modal would render sideways there.
    position:absolute against .layout (made position:relative on solve) for the same
    reason. Backdrop is deliberately light: the revealed picture is the star. */
-#winModal { position: absolute; inset: 0; z-index: 500; }
+#winModal {
+  position: absolute; inset: 0; z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
 #winModal.hidden { display: none; }
 #winModal .modal-backdrop { background: rgba(45, 31, 23, 0.26); }
+/* Round 3 (2026-08-27): the card is now CENTERED (was bottom-pinned at 14px) and
+   NEVER scrolls (was max-height:72vh + overflow-y:auto) — it gets the whole
+   screen's worth of room, and the internals below are sized to always fit. */
 .win-card {
-  position: absolute;
-  left: 50%;
-  bottom: 14px;
-  transform: translateX(-50%);
+  position: relative;
   width: min(92vw, 400px);
-  max-height: min(72vh, 540px);
-  overflow-y: auto;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-alt) 100%);
   border: 1.5px solid var(--color-espresso);
   border-radius: var(--radius-lg);
@@ -2646,7 +2727,7 @@ body.profile-wide-dpad .fact-card {
   animation: win-card-in 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) 0.05s both;
 }
 @keyframes win-card-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(30px) scale(0.96); }
+  from { opacity: 0; transform: translateY(30px) scale(0.96); }
 }
 .win-title-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 2px; }
 #winName { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 21px; color: var(--color-espresso); }
@@ -2665,12 +2746,24 @@ body.profile-wide-dpad .fact-card {
 .win-stat:empty { display: none; }
 .win-preview-wrap {
   position: relative;
+  flex: 0 1 auto;      /* gives height back first if the card ever gets tight */
+  min-height: 0;
   border: 1.5px solid var(--color-espresso);
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--color-foam);
 }
 #winPreview { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+/* Rotated landscape profiles: vh/vw measure the PHYSICAL (portrait) viewport,
+   not the rotated app, so the height cap must be px. 170px keeps title + stats +
+   preview + fact + actions inside the ~360pt-tall rotated card with no scroll. */
+body.profile-wide-nodpad #winPreview,
+body.profile-wide-dpad #winPreview {
+  width: auto;
+  max-width: 100%;
+  max-height: 170px;
+  margin: 0 auto;
+}
 #winPhoto {
   position: absolute;
   inset: 0;

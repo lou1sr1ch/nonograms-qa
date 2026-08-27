@@ -77,6 +77,7 @@ const SETTINGS_DEFAULT = {
   dpad: false,
   disableActionBtn: false,
   devMode: false,
+  devUnlocked: false,
 };
 
 const SETTINGS_INFO = [
@@ -88,7 +89,8 @@ const SETTINGS_INFO = [
   ["reduceMotion",     "Reduce motion",             "Disables animations and transitions."],
   ["dpad",             "Dpad",                      "Show a directional pad on the right for cursor-based navigation. Tapping a cell moves the cursor; commit fills/crosses with the dpad's center button. Useful for large boards with tiny cells."],
   ["disableActionBtn", "Disable action button",     "Removes the dpad's center action button. Fill and Cross buttons execute the action directly on the cursor cell instead of toggling mode. Requires Dpad."],
-  // DEV-ONLY row — only rendered when adminMode is on (see buildSettingsModal).
+  // DEV-ONLY row — rendered in admin mode, while the flag is on, or once it has
+  // ever been enabled on this device (devUnlocked; see buildSettingsModal).
   // Bundles every debug aid behind one switch so the real user experience is one
   // toggle away. Strip this row + the dev-mode blocks at ship.
   ["devMode",          "Dev tools",                 "Show developer aids: board profile number + gap readout, P1–P5 badges in puzzle lists, and the instant-win button."],
@@ -790,10 +792,14 @@ function buildSettingsModal() {
   const list = document.querySelector(".settings-list");
   list.innerHTML = "";
   for (const [key, name, desc] of SETTINGS_INFO) {
-    // Dev row shows in admin mode OR while the flag is on — otherwise, once Dre
-    // 7-tapped back to user mode there was no way to turn dev tools OFF (round-2
-    // finding). Default-off users still never see it; enabling still needs admin.
-    if (key === "devMode" && !adminMode && !settings.devMode) continue;
+    // Dev row shows in admin mode, while the flag is on, OR once it has ever been
+    // enabled on this device (devUnlocked) — round 3: Dre enabled it, played a
+    // puzzle, and the row was gone from settings ("doesn't persist"). Nothing in
+    // code can reset devMode (grep: only the toggle writes settings.*), so the
+    // likely culprit was turning it off and having the row self-hide per the
+    // round-2 gate — which read as a bug. Now the row stays findable forever
+    // once unlocked; never-enabled users still never see it.
+    if (key === "devMode" && !adminMode && !settings.devMode && !settings.devUnlocked) continue;
     const li = document.createElement("li");
     li.className = "setting-row";
 
@@ -815,6 +821,9 @@ function buildSettingsModal() {
     toggle.checked = settings[key];
     toggle.addEventListener("change", () => {
       settings[key] = toggle.checked;
+      // Once dev tools have been enabled anywhere, keep the row visible in every
+      // mode so it can always be found again (the round-3 "doesn't persist" fix).
+      if (key === "devMode" && toggle.checked) settings.devUnlocked = true;
       saveSettings();
       applySettings();
     });
@@ -2115,7 +2124,7 @@ function showWinModal() {
   const t = document.getElementById("winTime");
   if (settings.timer && elapsedMs > 0) {
     const sec = Math.floor(elapsedMs / 1000);
-    t.textContent = `⏱ ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+    t.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
   } else t.textContent = "";
   const mk = document.getElementById("winMistakes");
   mk.textContent = settings.mistakes ? `✕ ${mistakeCount}` : "";
