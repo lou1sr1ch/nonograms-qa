@@ -616,6 +616,35 @@ document.getElementById("devWinBtn")?.addEventListener("click", devWinPuzzle);
 document.getElementById("settingsClose").addEventListener("click", closeSettingsModal);
 document.querySelector("#settingsModal .modal-backdrop").addEventListener("click", closeSettingsModal);
 
+// === Scroll-edge blur gradient strips (round 5, 2026-08-27) ===
+// Dre asked for the blur to read closer to a true gradient: "20 different
+// levels, strips 1/4 the height." A mask would kill backdrop-filter (the
+// Backdrop Root rule — see style.css #scrollEdge), so we stack thin strips
+// with the blur easing 16 → 0.4px across the visible zone below edge-blur-1.
+// Strip tops use calc(env(...) + px) — env() is valid inside inline styles.
+// Perf: ~11 live layers after the sub-0.4 cutoff; bump SCROLL_EDGE_STRIPS down
+// if scroll jank ever shows on older phones.
+const SCROLL_EDGE_STRIPS = 14;
+(function buildScrollEdgeStrips() {
+  const edge = document.getElementById("scrollEdge");
+  if (!edge) return;
+  const ZONE_TOP = 60;   // px below the safe-area line, where edge-blur-1 ends
+  const ZONE_H = 56;     // the visible fade zone (scrollEdge total: inset + 116)
+  const step = ZONE_H / SCROLL_EDGE_STRIPS;
+  for (let i = 0; i < SCROLL_EDGE_STRIPS; i++) {
+    const t = i / (SCROLL_EDGE_STRIPS - 1);
+    const blur = 16 * Math.pow(1 - t, 2);            // ease-out: 16 → 0
+    if (blur < 0.4) break;                           // invisible — skip the layer
+    const el = document.createElement("div");
+    el.className = "edge-blur-fade";
+    el.style.top = `calc(env(safe-area-inset-top, 0px) + ${(ZONE_TOP + i * step).toFixed(1)}px)`;
+    el.style.height = `${(step + 0.5).toFixed(1)}px`; // hairline overlap, no seams between strips
+    el.style.webkitBackdropFilter = `blur(${blur.toFixed(1)}px)`;
+    el.style.backdropFilter = `blur(${blur.toFixed(1)}px)`;
+    edge.insertBefore(el, edge.querySelector(".edge-grad"));
+  }
+})();
+
 // Font dev mode — right-click any text to swap font/weight/style for live experimentation
 const FONT_DEV_OPTIONS = [
   "Aghja",
@@ -2162,26 +2191,19 @@ function showWinModal() {
   }
 
   document.getElementById("winFact").textContent = activePuzzle.fact || "";
+  // Round 5: photo creds ONLY (Dre) — no "source" / "fact source" link rows.
   const srcA = document.getElementById("winSource");
   const src = activePuzzle.source;
-  if (src && src.url) {
-    srcA.href = src.url;
-    srcA.textContent = src.attribution ? src.attribution : "source";
-  } else if (src && src.attribution) {
-    srcA.removeAttribute("href");
+  if (src && src.attribution) {
+    if (src.url) srcA.href = src.url; else srcA.removeAttribute("href");
     srcA.textContent = src.attribution;
   } else {
     srcA.removeAttribute("href");
     srcA.textContent = "";
   }
   const refA = document.getElementById("winFactSrc");
-  if (activePuzzle.factSource) {
-    refA.href = activePuzzle.factSource;
-    refA.textContent = "fact source";
-  } else {
-    refA.removeAttribute("href");
-    refA.textContent = "";
-  }
+  refA.removeAttribute("href");
+  refA.textContent = "";
 
   // Next is disabled on the last puzzle of a category rather than wrapping —
   // wrapping felt like being trapped in a loop; "go pick" is the honest state.
@@ -2197,6 +2219,31 @@ function showWinModal() {
   nextBtn.dataset.cat = cat || "";
 
   modal.classList.remove("hidden");
+
+  // Round 5: exact-fit preview — the border hugs the pixel art, no foam matte
+  // (Dre's zebra screenshot). The wrap's slot is stretched at this point, so
+  // its width IS the space the card offers; for height we collapse the canvas,
+  // read the card's text-stack height, and give the preview whatever is left.
+  // Synchronous after unhide = one forced layout, no visual flash.
+  const cardEl = modal.querySelector(".win-card");
+  const rotated = document.body.classList.contains("profile-wide-nodpad") ||
+                  document.body.classList.contains("profile-wide-dpad");
+  cv.style.width = ""; cv.style.height = "0px";
+  wrap.style.width = ""; wrap.style.alignSelf = ""; wrap.style.justifySelf = "";
+  const availW = wrap.clientWidth - 3;                        // wrap border
+  const chromeH = cardEl.offsetHeight;                        // card with zero-height preview
+  const availH = rotated
+    ? modal.clientHeight - 53                                 // modal pad 24 + card pad 26 + borders 3
+    : modal.clientHeight - 24 - chromeH - 3;                  // whatever the text stack didn't take
+  const aspect = activeW / activeH;
+  let fitW = Math.max(60, availW), fitH = fitW / aspect;
+  if (fitH > availH) { fitH = Math.max(60, availH); fitW = fitH * aspect; }
+  fitW = Math.round(fitW); fitH = Math.round(fitH);
+  cv.style.width = fitW + "px";
+  cv.style.height = fitH + "px";
+  wrap.style.width = (fitW + 3) + "px";
+  wrap.style.alignSelf = "center";
+  wrap.style.justifySelf = "center";
 }
 
 function hideWinModal() {
@@ -2250,28 +2297,19 @@ function showFactCard() {
     textEl.textContent = "";
     textEl.style.display = "none";
   }
+  // Round 5: photo creds ONLY (Dre) — no "source" / "fact source" link rows.
   const src = activePuzzle.source;
-  if (src && src.url) {
-    sourceEl.href = src.url;
-    sourceEl.textContent = src.attribution ? src.attribution : "source";
-  } else if (src && src.attribution) {
-    sourceEl.removeAttribute("href");
+  if (src && src.attribution) {
+    if (src.url) sourceEl.href = src.url; else sourceEl.removeAttribute("href");
     sourceEl.textContent = src.attribution;
   } else {
     sourceEl.removeAttribute("href");
     sourceEl.textContent = "";
   }
-  // Fact source (separate URL — where the fact came from, e.g. Wikipedia)
   const refEl = document.getElementById("solveFactSourceRef");
-  const factSrc = activePuzzle.factSource;
   if (refEl) {
-    if (factSrc) {
-      refEl.href = factSrc;
-      refEl.textContent = "fact source";
-    } else {
-      refEl.removeAttribute("href");
-      refEl.textContent = "";
-    }
+    refEl.removeAttribute("href");
+    refEl.textContent = "";
   }
   card.classList.remove("hidden");
   // Fact card now consumes flex space — shrink the board to compensate.
