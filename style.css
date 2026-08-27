@@ -190,29 +190,37 @@ body::after {
 body[data-screen="solve"]::before { opacity: 0.5; animation-duration: 75s; }
 body[data-screen="solve"]::after  { opacity: 0.5; animation-duration: 95s; }
 
-/* Top safe-area veil (round 3, 2026-08-27). MEASURED on Dre's iPhone: the
-   status-bar strip is a perfectly flat #faf3e6 band (0.3 lum variance) ending
-   exactly at the safe-area boundary, with the ribbons resuming right below it —
-   the fixed inset:-30% pseudo-layers do not paint there no matter their overscan.
-   Whether iOS now paints that strip itself with the theme-color or our
-   negative-z layers are clipped out of it, no page layer reaches those pixels —
-   so "extend the background end to end" is not available. This is Dre's
-   fallback, quoted: "the background stops a bit before that border… a buffer
-   zone… a gradient into that solid color, so you can't see the harsh immediate
-   change." Solid matching foam up to the boundary, then a ~52px ease-out so the
-   eye can't find the join. z-index:-1 keeps it strictly in the background layer
-   stack — it can never wash over text or controls. */
+/* Top safe-area veil (round 3, 2026-08-27; fade reworked round 4, same day).
+   MEASURED on Dre's iPhone: the status-bar strip is a perfectly flat #faf3e6
+   band (0.3 lum variance) ending exactly at the safe-area boundary, with the
+   ribbons resuming right below it — the fixed inset:-30% pseudo-layers do not
+   paint there no matter their overscan. No page layer reaches those pixels in
+   the PWA (the Capacitor build CAN own them — StatusBar overlaysWebView — so
+   this veil is a harness shim; revisit at Phase 4). Dre's fallback, quoted:
+   "a buffer zone… a gradient into that solid color, so you can't see the harsh
+   immediate change." ROUND 4: the v1 fade was short (52px) and LINEAR — a
+   linear ramp ends with a nonzero slope, and the eye catches that kink as an
+   edge (Mach bands), which is exactly the "seam" Dre kept seeing, worst on the
+   home screen where nothing covers the fade's tail. Now the fade is ~120px
+   and EASED: dense stops with the slope flattening to zero at the tail, so
+   there is no boundary anywhere for the eye to find. z-index:-1 keeps it
+   strictly in the background layer stack — never washes over text/controls. */
 #topVeil {
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: calc(env(safe-area-inset-top, 0px) + 52px);
+  height: calc(env(safe-area-inset-top, 0px) + 120px);
   z-index: -1;
   pointer-events: none;
   background: linear-gradient(to bottom,
     var(--color-bg-grad-from) 0%,
-    var(--color-bg-grad-from) calc(env(safe-area-inset-top, 0px)),
-    rgba(250, 243, 230, 0.62) calc(env(safe-area-inset-top, 0px) + 16px),
-    rgba(250, 243, 230, 0.28) calc(env(safe-area-inset-top, 0px) + 34px),
+    var(--color-bg-grad-from) calc(env(safe-area-inset-top, 0px) + 2px),
+    rgba(250, 243, 230, 0.90) calc(env(safe-area-inset-top, 0px) + 14px),
+    rgba(250, 243, 230, 0.76) calc(env(safe-area-inset-top, 0px) + 30px),
+    rgba(250, 243, 230, 0.58) calc(env(safe-area-inset-top, 0px) + 48px),
+    rgba(250, 243, 230, 0.40) calc(env(safe-area-inset-top, 0px) + 66px),
+    rgba(250, 243, 230, 0.24) calc(env(safe-area-inset-top, 0px) + 84px),
+    rgba(250, 243, 230, 0.12) calc(env(safe-area-inset-top, 0px) + 100px),
+    rgba(250, 243, 230, 0.04) calc(env(safe-area-inset-top, 0px) + 112px),
     rgba(250, 243, 230, 0) 100%);
 }
 
@@ -566,15 +574,22 @@ body.user-mode[data-screen="puzzles"] header {
    element and the whole scrolling page is the backdrop. Two more rules learned:
    a mask on the blur element (or any ancestor) is itself a Backdrop Root
    trigger — it kills the effect again — so the blur falloff can't be feathered
-   with a mask and is instead approximated with three stepped strips (16/9/4px);
-   the foam fade is .edge-grad's own alpha ramp, no mask needed. Opacity ramp
-   strengthened per Dre ("slightly more drastic"). z-index 190: above the
-   scrolling page, below the header (200) so logo and gear stay crisp. */
+   with a mask and is instead approximated with stepped strips; the foam fade is
+   .edge-grad's own alpha ramp, no mask needed. z-index 190: above the scrolling
+   page, below the header (200) so logo and gear stay crisp.
+
+   ROUND 4 (2026-08-27, later): Dre confirmed real blur and asked for it to
+   GRADUATE — strongest at the top, dissolving downward into the solid strip.
+   A true per-pixel blur gradient needs a mask, and a mask kills backdrop-filter
+   (Backdrop Root rule above) — so the gradient is approximated with FIVE
+   stepped strips instead of three (18/12/7/3.5/1.2px), the finest resolution
+   CSS allows here. Foam ramp likewise rebuilt with eased stops so neither
+   layer has a slope kink for the eye to catch. */
 #scrollEdge {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: calc(env(safe-area-inset-top, 0px) + 106px);  /* header (~56) + 50px zone */
+  height: calc(env(safe-area-inset-top, 0px) + 116px);  /* header (~56) + 60px zone */
   z-index: 190;
   pointer-events: none;
 }
@@ -587,10 +602,13 @@ body.user-mode[data-screen="puzzles"] #scrollEdge {
   inset: 0;
   background: linear-gradient(to bottom,
     var(--color-foam) 0%,
-    var(--color-foam) 40%,
-    rgba(250, 243, 230, 0.85) 56%,
-    rgba(250, 243, 230, 0.52) 72%,
-    rgba(250, 243, 230, 0.22) 86%,
+    var(--color-foam) 38%,
+    rgba(250, 243, 230, 0.92) 48%,
+    rgba(250, 243, 230, 0.78) 58%,
+    rgba(250, 243, 230, 0.60) 68%,
+    rgba(250, 243, 230, 0.42) 78%,
+    rgba(250, 243, 230, 0.25) 87%,
+    rgba(250, 243, 230, 0.10) 94%,
     rgba(250, 243, 230, 0) 100%);
 }
 #scrollEdge .edge-blur {
@@ -599,21 +617,33 @@ body.user-mode[data-screen="puzzles"] #scrollEdge {
 }
 #scrollEdge .edge-blur-1 {
   top: 0;
-  height: calc(env(safe-area-inset-top, 0px) + 62px);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+  height: calc(env(safe-area-inset-top, 0px) + 60px);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
 }
 #scrollEdge .edge-blur-2 {
-  top: calc(env(safe-area-inset-top, 0px) + 62px);
-  height: 24px;
-  -webkit-backdrop-filter: blur(9px);
-  backdrop-filter: blur(9px);
+  top: calc(env(safe-area-inset-top, 0px) + 60px);
+  height: 14px;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 #scrollEdge .edge-blur-3 {
-  top: calc(env(safe-area-inset-top, 0px) + 86px);
-  height: 20px;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
+  top: calc(env(safe-area-inset-top, 0px) + 74px);
+  height: 14px;
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+}
+#scrollEdge .edge-blur-4 {
+  top: calc(env(safe-area-inset-top, 0px) + 88px);
+  height: 14px;
+  -webkit-backdrop-filter: blur(3.5px);
+  backdrop-filter: blur(3.5px);
+}
+#scrollEdge .edge-blur-5 {
+  top: calc(env(safe-area-inset-top, 0px) + 102px);
+  height: 14px;
+  -webkit-backdrop-filter: blur(1.2px);
+  backdrop-filter: blur(1.2px);
 }
 /* Content starts below the fixed header instead of underneath it. */
 body.user-mode[data-screen="category"] #userNav,
@@ -2748,21 +2778,66 @@ body.profile-wide-dpad .fact-card {
   position: relative;
   flex: 0 1 auto;      /* gives height back first if the card ever gets tight */
   min-height: 0;
+  display: flex;               /* centers the canvas when a cap makes it narrower */
+  align-items: center;
+  justify-content: center;
   border: 1.5px solid var(--color-espresso);
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--color-foam);
 }
 #winPreview { display: block; width: 100%; height: auto; image-rendering: pixelated; }
-/* Rotated landscape profiles: vh/vw measure the PHYSICAL (portrait) viewport,
-   not the rotated app, so the height cap must be px. 170px keeps title + stats +
-   preview + fact + actions inside the ~360pt-tall rotated card with no scroll. */
+/* Round 4: portrait preview cap. The canvas is width-driven, so a TALL puzzle
+   (10×15 etc.) produced a preview taller than the screen allows — the card
+   overflowed and the bottom buttons clipped (Dre's pine-tree screenshot).
+   Cap the canvas by height on non-rotated profiles (vh is valid there) and
+   let width follow the aspect. 44vh leaves room for title + stats + fact +
+   links + actions even on short phones. */
+body:not(.profile-wide-nodpad):not(.profile-wide-dpad) #winPreview {
+  width: auto;
+  max-width: 100%;
+  max-height: 44vh;
+  margin: 0 auto;
+}
+/* Round 4: LANDSCAPE win card redesign (Dre: "image mostly larger, text and
+   buttons off to the side"). Two columns — preview owns the left at full card
+   height, text stack owns the right. In rotated profiles the app's WIDTH is the
+   physical viewport HEIGHT and vice versa (vh/vw measure the physical portrait
+   viewport), so card width is set in vh; max-height:100% still works because
+   #winModal is inset:0 of the rotated .layout. Replaces the round-3 170px
+   preview cap — the preview now gets the whole column height instead. */
+body.profile-wide-nodpad .win-card,
+body.profile-wide-dpad .win-card {
+  width: min(92vh, 620px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  column-gap: 14px;
+  align-items: start;
+}
+body.profile-wide-nodpad .win-preview-wrap,
+body.profile-wide-dpad .win-preview-wrap {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: stretch;
+  flex: none;
+}
 body.profile-wide-nodpad #winPreview,
 body.profile-wide-dpad #winPreview {
   width: auto;
+  height: auto;
   max-width: 100%;
-  max-height: 170px;
-  margin: 0 auto;
+  max-height: 100%;
+}
+/* Long facts can't be allowed to blow the card's height budget in landscape —
+   the row is flexible (minmax(0,1fr)) and the text clamps with an ellipsis
+   rather than pushing the actions off the card. */
+body.profile-wide-nodpad #winFact,
+body.profile-wide-dpad #winFact {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
 }
 #winPhoto {
   position: absolute;
@@ -2796,6 +2871,16 @@ body.profile-wide-dpad #winPreview {
 }
 .win-links a:empty { display: none; }
 .win-actions { display: flex; gap: 10px; margin-top: 12px; }
+/* Round 4: padding-centering lets the typewriter font's line box sit slightly
+   off the visual middle (Dre caught it on all three win buttons). Flex + a
+   unitless line-height centers the text itself, font metrics aside. */
+#winNext, #winBack, #winPhotoToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-align: center;
+}
 #winNext {
   flex: 1 1 auto;
   background: linear-gradient(135deg, var(--color-mocha) 0%, var(--color-cocoa) 100%);

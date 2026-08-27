@@ -2166,10 +2166,10 @@ function showWinModal() {
   const src = activePuzzle.source;
   if (src && src.url) {
     srcA.href = src.url;
-    srcA.textContent = src.attribution ? `image: ${src.attribution}` : "image source";
+    srcA.textContent = src.attribution ? src.attribution : "source";
   } else if (src && src.attribution) {
     srcA.removeAttribute("href");
-    srcA.textContent = `image: ${src.attribution}`;
+    srcA.textContent = src.attribution;
   } else {
     srcA.removeAttribute("href");
     srcA.textContent = "";
@@ -2253,10 +2253,10 @@ function showFactCard() {
   const src = activePuzzle.source;
   if (src && src.url) {
     sourceEl.href = src.url;
-    sourceEl.textContent = src.attribution ? `image: ${src.attribution}` : "image source";
+    sourceEl.textContent = src.attribution ? src.attribution : "source";
   } else if (src && src.attribution) {
     sourceEl.removeAttribute("href");
-    sourceEl.textContent = `image: ${src.attribution}`;
+    sourceEl.textContent = src.attribution;
   } else {
     sourceEl.removeAttribute("href");
     sourceEl.textContent = "";
