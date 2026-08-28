@@ -1543,6 +1543,22 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
 }
 .modal-header button:hover { color: #c0392b; background: transparent; }
 
+/* Round 8 (2026-08-28): rotate-app sizing corollary. vh/vw ALWAYS measure the
+   physical portrait viewport — they never rotate with .layout. In rotate-app
+   (landscape puzzle, portrait device) the app's visible height is the
+   physical WIDTH, so the unrotated max-height:80vh let the settings card
+   grow ~2× taller than the visible app box — top and bottom rows clipped and
+   unreachable (Dre's screenshot: header row and last settings both cut off).
+   Round 3/5 moved overlays INSIDE the rotated root; this is the missing
+   other half: their SIZE must be measured against the rotated root too.
+   Mirror the axes: height against dvw, width against dvh. Inert outside
+   rotate-app. (#winModal's .win-card is unaffected — it sizes in % of its
+   fixed container, and the wide-profile rules already use the correct axis.) */
+body.rotate-app .modal-content {
+  max-height: 80dvw;  /* app height under rotation = physical width */
+  max-width: 90dvh;   /* app width under rotation = physical height */
+}
+
 .settings-list { list-style: none; padding: 0; margin: 0; }
 .setting-row {
   display: flex;
