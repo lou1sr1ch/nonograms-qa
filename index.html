@@ -48,13 +48,10 @@
     <button id="fontDevBtn" type="button" title="Font experiment mode — right-click any text to change its font">Aa</button>
   </header>
   <div id="scrollEdge" aria-hidden="true">
-    <div class="edge-blur edge-blur-1"></div>
-    <!-- Round 6: TRUE progressive blur. The mask lives on the WRAPPER, not on the
-         blur element — a mask on the blur element itself empties its backdrop
-         (Backdrop Root rule), but a masked wrapper feathers the already-blurred
-         output. One blur pass, zero steps. If iOS ever renders this blur-less,
-         revert to the strip generator (git history, round 5). -->
-    <div class="edge-blur-mask"><div class="edge-blur-full"></div></div>
+    <!-- Round 7: blur retired — strips banded, and the wrapper-mask rendered
+         blur-less on-device (iOS rejects the ancestor-mask too). Foam ramp
+         only now; the dissolve lives on the CONTENT — script.js fades each
+         row's own opacity to 0 as it crosses this zone (see script.js). -->
     <div class="edge-grad"></div>
   </div>
   <div class="layout">

@@ -616,11 +616,74 @@ document.getElementById("devWinBtn")?.addEventListener("click", devWinPuzzle);
 document.getElementById("settingsClose").addEventListener("click", closeSettingsModal);
 document.querySelector("#settingsModal .modal-backdrop").addEventListener("click", closeSettingsModal);
 
-// Scroll-edge blur: round 6 (2026-08-28) replaced the 14 generated strips
-// with the wrapper-mask progressive blur in style.css (#scrollEdge). The
-// strips asymptoted — every boundary was a slope kink the eye catches (Dre:
-// "14 still allows you to see the obvious borders between them"). The strip
-// generator survives in git history if the mask approach ever needs reverting.
+// === Scroll-edge content dissolve (round 7, 2026-08-28) ===
+// The blur experiment is over: strips banded (round 5→6), the wrapper-mask
+// rendered blur-less on-device (round 6 verdict — iOS rejects the ancestor-
+// mask too), and Dre retired the feature: "no blur, just opacity." But a foam
+// opacity OVERLAY still hard-covers rows at its solid line (Dre: "you can
+// still clearly see where it immediately disappears underneath the section
+// above it"). The true dissolve has to live on the CONTENT: each row's own
+// opacity goes 0 → 1 LINEARLY (Dre's explicit call) as its top edge crosses
+// the ramp's translucent span — the 44–116px band below the safe-area line
+// (44 = where the foam ramp turns solid, 116 = zone bottom; both mirror the
+// .edge-grad geometry in style.css). Body is the scroller, so no CSS mask can
+// do this — a mask rides the element's own box and scrolls away with it —
+// hence a rAF-throttled scroll handler. Rows at rest below the zone keep NO
+// inline opacity (it's cleared, not set to 1), so nothing can strand a row
+// invisible.
+(function initScrollEdgeDissolve() {
+  const FADE_TOP = 44;     // px below the safe-area line → opacity 0
+  const FADE_BOTTOM = 116; // px below the safe-area line → opacity 1
+  const FADE_SPAN = FADE_BOTTOM - FADE_TOP;
+
+  // env(safe-area-inset-top) isn't readable from JS — measure it off a probe.
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:fixed;top:0;left:0;width:0;height:env(safe-area-inset-top,0px);" +
+    "visibility:hidden;pointer-events:none";
+  probe.setAttribute("aria-hidden", "true");
+  document.body.appendChild(probe);
+
+  let targets = [];
+  let ticking = false;
+
+  function collectTargets() {
+    const screenId = { category: "screenCategory", puzzles: "screenPuzzles" }[document.body.dataset.screen];
+    const screen = screenId ? document.getElementById(screenId) : null;
+    if (!document.body.classList.contains("user-mode") || !screen) { targets = []; return; }
+    targets = Array.from(
+      screen.querySelectorAll(":scope > .back-btn, :scope > .screen-heading, :scope > .user-list > li")
+    );
+  }
+
+  function applyDissolve() {
+    ticking = false;
+    if (!targets.length) return;
+    const zero = probe.getBoundingClientRect().height + FADE_TOP;
+    for (const el of targets) {
+      const t = el.getBoundingClientRect().top;
+      const o = Math.min(1, Math.max(0, (t - zero) / FADE_SPAN));
+      el.style.opacity = o >= 1 ? "" : o.toFixed(3);
+    }
+  }
+
+  function onScroll() {
+    if (!ticking) { ticking = true; requestAnimationFrame(applyDissolve); }
+  }
+
+  // Lists re-render and screens switch outside this module — watch, don't hook.
+  const observer = new MutationObserver(() => { collectTargets(); applyDissolve(); });
+  observer.observe(document.body, { attributes: true, attributeFilter: ["data-screen", "class"] });
+  for (const id of ["userCategoryList", "userPuzzleList"]) {
+    const list = document.getElementById(id);
+    if (list) observer.observe(list, { childList: true });
+  }
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+  collectTargets();
+  applyDissolve();
+})();
 
 // Font dev mode — right-click any text to swap font/weight/style for live experimentation
 const FONT_DEV_OPTIONS = [

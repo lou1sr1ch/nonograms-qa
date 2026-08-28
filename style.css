@@ -597,7 +597,17 @@ body.user-mode[data-screen="puzzles"] header {
    element itself; the ancestor-mask case was never isolated. This round
    isolates it. If iOS renders the fade zone blur-less, revert one commit
    (the round-5 strip generator survives in git history). edge-blur-1 stays
-   unmasked as the guaranteed-working base either way. */
+   unmasked as the guaranteed-working base either way.
+
+   ROUND 7 VERDICT (2026-08-28): the wrapper-mask rendered BLUR-LESS on
+   device — iOS rejects the ancestor-mask too, so the Backdrop Root rule now
+   stands proven for masks at ANY level (self or ancestor). Dre retired the
+   blur entirely: "no blur, just opacity." All .edge-blur-* layers are gone;
+   #scrollEdge is the foam ramp alone. The dissolve Dre actually wanted —
+   scrolled content fading to opacity 0 instead of being covered — can't be
+   an overlay at all; it lives on the CONTENT as a JS per-row opacity fade
+   (see initScrollEdgeDissolve in script.js — body is the scroller, and a CSS
+   mask rides the element's own box, so no mask can track the viewport). */
 #scrollEdge {
   display: none;
   position: fixed;
@@ -623,52 +633,6 @@ body.user-mode[data-screen="puzzles"] #scrollEdge {
     rgba(250, 243, 230, 0.25) 87%,
     rgba(250, 243, 230, 0.10) 94%,
     rgba(250, 243, 230, 0) 100%);
-}
-#scrollEdge .edge-blur {
-  position: absolute;
-  left: 0; right: 0;
-}
-#scrollEdge .edge-blur-1 {
-  top: 0;
-  height: calc(env(safe-area-inset-top, 0px) + 60px);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-}
-/* Round 6: the fade zone below the header block is ONE blur pass feathered by
-   a mask on its WRAPPER (round-6 comment above). The wrapper's mask eases
-   1 → 0 with a zero-slope tail (a linear tail reads as a line — Mach bands);
-   the child carries a constant blur(16px) and the mask cross-fades it to
-   sharp — continuous, no strip boundaries, one composited pass. The zone
-   starts exactly where edge-blur-1 ends (60px) and runs to the bottom of
-   #scrollEdge (116px). */
-#scrollEdge .edge-blur-mask {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 60px);
-  left: 0; right: 0; bottom: 0;
-  -webkit-mask-image: linear-gradient(to bottom,
-    rgba(0, 0, 0, 1)    0%,
-    rgba(0, 0, 0, 0.85) 15%,
-    rgba(0, 0, 0, 0.64) 30%,
-    rgba(0, 0, 0, 0.44) 45%,
-    rgba(0, 0, 0, 0.27) 60%,
-    rgba(0, 0, 0, 0.14) 74%,
-    rgba(0, 0, 0, 0.05) 88%,
-    rgba(0, 0, 0, 0)    100%);
-  mask-image: linear-gradient(to bottom,
-    rgba(0, 0, 0, 1)    0%,
-    rgba(0, 0, 0, 0.85) 15%,
-    rgba(0, 0, 0, 0.64) 30%,
-    rgba(0, 0, 0, 0.44) 45%,
-    rgba(0, 0, 0, 0.27) 60%,
-    rgba(0, 0, 0, 0.14) 74%,
-    rgba(0, 0, 0, 0.05) 88%,
-    rgba(0, 0, 0, 0)    100%);
-}
-#scrollEdge .edge-blur-full {
-  position: absolute;
-  inset: 0;
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
 }
 /* Content starts below the fixed header instead of underneath it. */
 body.user-mode[data-screen="category"] #userNav,
