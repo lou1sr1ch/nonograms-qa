@@ -616,34 +616,11 @@ document.getElementById("devWinBtn")?.addEventListener("click", devWinPuzzle);
 document.getElementById("settingsClose").addEventListener("click", closeSettingsModal);
 document.querySelector("#settingsModal .modal-backdrop").addEventListener("click", closeSettingsModal);
 
-// === Scroll-edge blur gradient strips (round 5, 2026-08-27) ===
-// Dre asked for the blur to read closer to a true gradient: "20 different
-// levels, strips 1/4 the height." A mask would kill backdrop-filter (the
-// Backdrop Root rule — see style.css #scrollEdge), so we stack thin strips
-// with the blur easing 16 → 0.4px across the visible zone below edge-blur-1.
-// Strip tops use calc(env(...) + px) — env() is valid inside inline styles.
-// Perf: ~11 live layers after the sub-0.4 cutoff; bump SCROLL_EDGE_STRIPS down
-// if scroll jank ever shows on older phones.
-const SCROLL_EDGE_STRIPS = 14;
-(function buildScrollEdgeStrips() {
-  const edge = document.getElementById("scrollEdge");
-  if (!edge) return;
-  const ZONE_TOP = 60;   // px below the safe-area line, where edge-blur-1 ends
-  const ZONE_H = 56;     // the visible fade zone (scrollEdge total: inset + 116)
-  const step = ZONE_H / SCROLL_EDGE_STRIPS;
-  for (let i = 0; i < SCROLL_EDGE_STRIPS; i++) {
-    const t = i / (SCROLL_EDGE_STRIPS - 1);
-    const blur = 16 * Math.pow(1 - t, 2);            // ease-out: 16 → 0
-    if (blur < 0.4) break;                           // invisible — skip the layer
-    const el = document.createElement("div");
-    el.className = "edge-blur-fade";
-    el.style.top = `calc(env(safe-area-inset-top, 0px) + ${(ZONE_TOP + i * step).toFixed(1)}px)`;
-    el.style.height = `${(step + 0.5).toFixed(1)}px`; // hairline overlap, no seams between strips
-    el.style.webkitBackdropFilter = `blur(${blur.toFixed(1)}px)`;
-    el.style.backdropFilter = `blur(${blur.toFixed(1)}px)`;
-    edge.insertBefore(el, edge.querySelector(".edge-grad"));
-  }
-})();
+// Scroll-edge blur: round 6 (2026-08-28) replaced the 14 generated strips
+// with the wrapper-mask progressive blur in style.css (#scrollEdge). The
+// strips asymptoted — every boundary was a slope kink the eye catches (Dre:
+// "14 still allows you to see the obvious borders between them"). The strip
+// generator survives in git history if the mask approach ever needs reverting.
 
 // Font dev mode — right-click any text to swap font/weight/style for live experimentation
 const FONT_DEV_OPTIONS = [
