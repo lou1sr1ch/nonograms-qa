@@ -2866,6 +2866,10 @@ body.profile-wide-dpad #winFact {
   opacity: 0;
   transition: opacity 0.35s ease;
   pointer-events: none;
+  /* Six symbol "photos" (0050-0055) are alpha PNGs, 61-98% transparent — without a
+     backing fill the pixel canvas showed straight through in photo mode (Dre: "the
+     pixel art persists and overlays"). Foam = the exact cream the canvas draws on. */
+  background: var(--color-foam);
 }
 .win-preview-wrap.show-photo #winPhoto { opacity: 1; }
 .win-preview-wrap.no-photo #winPhotoToggle { display: none; }
