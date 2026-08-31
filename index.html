@@ -248,9 +248,11 @@
       <ul class="settings-list"></ul>
     </div>
   </div>
-  <!-- Givens explainer — shown once (localStorage picross.givensSeen) the first time
-       a puzzle carrying gift cells opens. Lives INSIDE .layout like every overlay
-       (rotated profiles: body children render sideways — the round-5 lesson). -->
+  <!-- Givens explainer — shown once per VERSION (localStorage picross.givensSeen)
+       the first time a puzzle carrying gift cells opens. Lives INSIDE .layout
+       like every overlay (rotated profiles: body children render sideways — the
+       round-5 lesson). v2: three slides; slide 3 runs a tiny 2×2 demo showing
+       both diagonals fitting the same clues, then the gift breaking the tie. -->
   <div id="givensModal" class="modal hidden" aria-modal="true" role="dialog">
     <div class="modal-backdrop"></div>
     <div class="modal-content givens-card">
@@ -261,14 +263,54 @@
           <span class="demo-cell"></span><span class="demo-cell filled given"></span><span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span>
           <span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span>
         </div>
-        <p>Some puzzles begin with a few cells already filled in — gifts to get the logic rolling.</p>
+        <p>Some puzzles begin with a few cells already filled in. These are gifts — locked in place, and always right.</p>
       </div>
       <div class="givens-slide hidden" data-slide="1">
-        <h2>Locked, on purpose</h2>
-        <p>Gift cells wear a soft ring and can't be changed. They're always right — build out from them.</p>
+        <h2>When clues aren't enough</h2>
+        <div class="ga-grid ga-still-empty" aria-hidden="true">
+          <span class="ga-corner"></span><span class="ga-clue">1</span><span class="ga-clue">1</span>
+          <span class="ga-clue">1</span><span class="ga-cell"></span><span class="ga-cell"></span>
+          <span class="ga-clue">1</span><span class="ga-cell"></span><span class="ga-cell"></span>
+        </div>
+        <p>Sometimes the number clues alone can't settle the picture — more than one answer can fit every clue.</p>
+      </div>
+      <div class="givens-slide hidden" data-slide="2">
+        <h2>Two answers, one truth</h2>
+        <!-- Animated variant: cycles solution A -> solution B -> A + gift ring.
+             JS drives it (skipped under reduce-motion, which gets the static
+             side-by-side below instead). -->
+        <div class="ga-anim" aria-hidden="true">
+          <div class="ga-grid">
+            <span class="ga-corner"></span><span class="ga-clue">1</span><span class="ga-clue">1</span>
+            <span class="ga-clue">1</span><span class="ga-cell"></span><span class="ga-cell"></span>
+            <span class="ga-clue">1</span><span class="ga-cell"></span><span class="ga-cell"></span>
+          </div>
+          <div class="ga-verdict">Fits every clue ✓</div>
+        </div>
+        <!-- Static reduce-motion variant: both solutions side by side, gift on
+             the left one — the whole story with no motion. -->
+        <div class="ga-still" aria-hidden="true">
+          <div class="ga-col">
+            <div class="ga-grid">
+              <span class="ga-corner"></span><span class="ga-clue">1</span><span class="ga-clue">1</span>
+              <span class="ga-clue">1</span><span class="ga-cell filled given"></span><span class="ga-cell"></span>
+              <span class="ga-clue">1</span><span class="ga-cell"></span><span class="ga-cell filled"></span>
+            </div>
+            <div class="ga-verdict">Fits ✓</div>
+          </div>
+          <div class="ga-col">
+            <div class="ga-grid">
+              <span class="ga-corner"></span><span class="ga-clue">1</span><span class="ga-clue">1</span>
+              <span class="ga-clue">1</span><span class="ga-cell"></span><span class="ga-cell filled"></span>
+              <span class="ga-clue">1</span><span class="ga-cell filled"></span><span class="ga-cell"></span>
+            </div>
+            <div class="ga-verdict">Also fits ✓</div>
+          </div>
+        </div>
+        <p>Both diagonals satisfy every clue here. A gift cell breaks the tie — so you always have solid ground to build from.</p>
       </div>
       <div class="givens-nav">
-        <span class="givens-dots"><span class="dot active"></span><span class="dot"></span></span>
+        <span class="givens-dots"><span class="dot active"></span><span class="dot"></span><span class="dot"></span></span>
         <button id="givensNext" type="button">Next</button>
       </div>
     </div>

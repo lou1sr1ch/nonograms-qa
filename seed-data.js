@@ -1,4 +1,4 @@
-// Auto-generated from seed-data.json. Do not edit by hand.
+// Generated from seed-data.json — do not edit by hand. Run sync_seed.py after changing seed-data.json.
 const SEED_DATA = {
   "puzzles": {
     "0001": {
@@ -29749,8 +29749,7 @@ const SEED_DATA = {
         "Astronomy": [],
         "Chemistry": [
           "0069",
-          "0071",
-          "0070"
+          "0071"
         ],
         "Biology": [
           "0068"
@@ -29779,7 +29778,8 @@ const SEED_DATA = {
         "0051",
         "0053",
         "0057",
-        "0062"
+        "0062",
+        "0070"
       ]
     },
     "archive": {
@@ -29814,5 +29814,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 2026083102
+  "seedVersion": 2026083103
 };

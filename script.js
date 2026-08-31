@@ -2318,23 +2318,32 @@ function hideWinModal() {
   modal?.querySelector(".win-preview-wrap")?.classList.remove("show-photo");
 }
 
-// --- Givens explainer (one-shot) ------------------------------------------
+// --- Givens explainer (one-shot per version) --------------------------------
 // Shown the first time a puzzle carrying gift cells opens; dismissed into a
 // localStorage flag so it never interrupts again. Backdrop tap dismisses too.
+// The flag is VERSIONED: bump it whenever the explainer's content changes so
+// players who saw an older version get the new one exactly once (installs that
+// saw v1 carry "1" — truthy but stale — so they re-see v2, then never again).
+const GIVENS_EXPLAINER_VERSION = "2";
+
 function maybeShowGivensExplainer() {
   if (editorMode || givenCells.size === 0) return;
   try {
-    if (localStorage.getItem("picross.givensSeen")) return;
-    localStorage.setItem("picross.givensSeen", "1");
+    if (localStorage.getItem("picross.givensSeen") === GIVENS_EXPLAINER_VERSION) return;
+    localStorage.setItem("picross.givensSeen", GIVENS_EXPLAINER_VERSION);
   } catch {}
   const modal = document.getElementById("givensModal");
-  if (modal) modal.classList.remove("hidden");
+  if (modal) {
+    modal.classList.remove("hidden");
+    startGivensAmbigDemo(modal);
+  }
 }
 
 function hideGivensModal() {
   const modal = document.getElementById("givensModal");
   if (!modal || modal.classList.contains("hidden")) return;
   modal.classList.add("hidden");
+  stopGivensAmbigDemo();
   // Reset to slide 1 for the next show (the flag makes re-shows rare, but a
   // fresh profile/new device should never land on the "Got it" state).
   const slideIdx = 0;
@@ -2342,6 +2351,45 @@ function hideGivensModal() {
   modal.querySelectorAll(".givens-dots .dot").forEach((d, i) => d.classList.toggle("active", i === slideIdx));
   const btn = document.getElementById("givensNext");
   if (btn) btn.textContent = "Next";
+}
+
+// --- 2×2 ambiguity demo (slide 3) -------------------------------------------
+// A tiny slideshow inside the slideshow: in a 2×2 with every clue equal to 1,
+// BOTH diagonals are valid solutions. The demo cycles solution A -> solution B
+// -> A wearing the gift ring, landing on why gift cells exist. Under
+// reduce-motion nothing here runs — CSS swaps in the static side-by-side.
+const GIVEN_AMBIG_STATES = [
+  { cells: [0, 3], gift: -1, verdict: "Fits every clue ✓", ms: 1500 },
+  { cells: [1, 2], gift: -1, verdict: "…but so does this one ✓", ms: 1500 },
+  { cells: [0, 3], gift: 0, verdict: "The gift cell breaks the tie", ms: 2600 },
+];
+let givenAmbigTimer = null;
+
+function startGivensAmbigDemo(modal) {
+  stopGivensAmbigDemo();
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cells = [...modal.querySelectorAll(".ga-anim .ga-cell")];
+  const verdict = modal.querySelector(".ga-anim .ga-verdict");
+  if (cells.length !== 4 || !verdict) return;
+  let i = 0;
+  const apply = () => {
+    const s = GIVEN_AMBIG_STATES[i];
+    cells.forEach((c, idx) => {
+      c.classList.toggle("filled", s.cells.includes(idx));
+      c.classList.toggle("given", idx === s.gift);
+    });
+    verdict.textContent = s.verdict;
+    i = (i + 1) % GIVEN_AMBIG_STATES.length;
+    givenAmbigTimer = setTimeout(apply, s.ms);
+  };
+  apply();
+}
+
+function stopGivensAmbigDemo() {
+  if (givenAmbigTimer) {
+    clearTimeout(givenAmbigTimer);
+    givenAmbigTimer = null;
+  }
 }
 
 {

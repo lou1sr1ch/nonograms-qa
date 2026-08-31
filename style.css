@@ -79,6 +79,7 @@
   --color-steam:    #cfc4b0;  /* muted greybrown, dividers */
   --color-cherry:   #b14040;  /* warm red for "unsaved" / errors */
   --color-leaf:     #6b8e4e;  /* muted green for completed ✓ */
+  --color-caramel:  #e5ac4e;  /* warm gold — gift-cell orbit light */
 
   /* Solve / app surfaces — gradient endpoints */
   --color-bg-grad-from: var(--color-foam);
@@ -457,26 +458,50 @@ main {
 #board.won .cell.crossed::before { content: ""; }
 #board.won .cell { cursor: default; transition: background-color 0.4s ease; }
 
-/* Given (gift) cells — pre-filled locked cells marked with a soft pulsing ring.
-   Foam ring over the espresso fill; the pulse is opacity+scale only so
-   reduce-motion can freeze it at the visible resting state (base-state
-   discipline). Ring hides on win so the reveal shows pure art. */
-.cell.given::after {
+/* Given (gift) cells — pre-filled locked cells marked by a golden "comet" of
+   light traveling the cell's perimeter (Dre's brief: a soft stream of light,
+   loading-icon-like but calmer). The conic gradient keeps a faint full ring
+   and brightens into a short tail; @property animates the start angle (iOS
+   16.4+; older browsers leave the comet resting at the top and the faint ring
+   still reads as a deliberate accent — graceful static state). Shared by the
+   board and the explainer demos so what you see is what you get. Ring hides
+   on win so the reveal shows pure art. */
+@property --given-orbit {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.cell.given::after,
+.givens-demo .demo-cell.given::after,
+.ga-cell.given::after {
   content: "";
   position: absolute;
-  inset: 18%;
-  border-radius: 50%;
-  border: 1.5px solid var(--color-foam);
-  opacity: 0.85;
-  animation: given-pulse 2.4s ease-in-out infinite;
+  inset: 2px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background: conic-gradient(
+    from var(--given-orbit, 0deg),
+    rgba(229, 172, 78, 0.14) 0deg,
+    rgba(229, 172, 78, 0.14) 245deg,
+    rgba(229, 172, 78, 0.5) 295deg,
+    rgba(229, 172, 78, 0.95) 332deg,
+    rgba(255, 233, 184, 1) 348deg,
+    rgba(229, 172, 78, 0.14) 360deg
+  ) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: given-orbit 3.2s linear infinite;
   pointer-events: none;
 }
-@keyframes given-pulse {
-  0%, 100% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 0.95; transform: scale(1); }
+@keyframes given-orbit {
+  to { --given-orbit: 360deg; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .cell.given::after { animation: none; opacity: 0.8; transform: none; }
+  .cell.given::after,
+  .givens-demo .demo-cell.given::after,
+  .ga-cell.given::after { animation: none; }
 }
 #board.won .cell.given::after { display: none; }
 
@@ -1541,12 +1566,19 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   color: var(--color-espresso);
 }
 
-/* Givens explainer card — compact two-slide intro to gift cells. The demo row
-   reuses the board's ring animation so what you see is what you get. */
+/* Givens explainer card — compact three-slide intro to gift cells. The demo
+   row and the 2×2 grids reuse the board's orbit ring so what you see is what
+   you get. Slides fade-rise on entry (display:none -> block restarts the CSS
+   animation each time a slide is unhidden). */
 .modal-content.givens-card {
   min-width: 0;
   width: min(88vw, 340px);
   text-align: center;
+}
+.givens-slide { animation: givens-in 0.35s ease both; }
+@keyframes givens-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
 }
 .givens-card h2 { margin: 0 0 6px; font-family: var(--font-display); }
 .givens-card p { margin: 10px 0 0; line-height: 1.45; font-size: 15px; }
@@ -1564,13 +1596,50 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   position: relative;
 }
 .givens-demo .demo-cell.filled { background: var(--color-espresso); }
-.givens-demo .demo-cell.given::after {
-  content: "";
-  position: absolute;
-  inset: 18%;
-  border-radius: 50%;
-  border: 1.5px solid var(--color-foam);
-  animation: given-pulse 2.4s ease-in-out infinite;
+/* The 2×2 mini nonogram: corner blank, clue labels, four cells. Slides 2 and 3
+   both use it — empty on slide 2, cycling solutions on slide 3. */
+.ga-grid {
+  display: grid;
+  grid-template-columns: 16px 26px 26px;
+  grid-template-rows: 16px 26px 26px;
+  gap: 1px;
+  justify-content: center;
+}
+.ga-clue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--color-cocoa);
+}
+.ga-cell {
+  background: var(--color-foam);
+  border: 1px solid var(--color-oat);
+  position: relative;
+  transition: background-color 0.35s ease;
+}
+.ga-cell.filled { background: var(--color-espresso); }
+.ga-anim { margin: 12px 0 2px; }
+.ga-still-empty { margin: 12px 0 2px; }
+.ga-verdict {
+  margin-top: 8px;
+  min-height: 1.3em;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--color-cocoa);
+}
+/* Static reduce-motion variant of slide 3: both solutions side by side. */
+.ga-still { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .givens-slide { animation: none; }
+  .ga-cell { transition: none; }
+  .ga-anim { display: none; }
+  .ga-still {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin: 12px 0 2px;
+  }
 }
 .givens-nav {
   display: flex;
