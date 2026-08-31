@@ -4,11 +4,28 @@
 (function seedFromShippedData() {
   if (typeof SEED_DATA === "undefined") return;
   try {
-    if (!localStorage.getItem("picross.puzzles") && SEED_DATA.puzzles) {
+    const firstVisit = !localStorage.getItem("picross.puzzles");
+    if (firstVisit && SEED_DATA.puzzles) {
       localStorage.setItem("picross.puzzles", JSON.stringify(SEED_DATA.puzzles));
     }
     if (!localStorage.getItem("picross.library") && SEED_DATA.library) {
       localStorage.setItem("picross.library", JSON.stringify(SEED_DATA.library));
+    }
+    // 2026-08-30 — VERSIONED AUTO-SYNC. Before this, only first-visit visitors ever
+    // received seed data: truth/colors/library in localStorage were a fossil of
+    // whenever the app was first opened, and deployed puzzle edits never reached
+    // existing devices (Dre: "none of the changes took effect"). Now a bumped
+    // SEED_DATA.seedVersion re-syncs every SHIPPED puzzle and the library into
+    // localStorage on next load. Preserved: stored puzzles NOT in the seed (user-
+    // created), picross.completed, settings. Rule: every seed edit bumps the
+    // version (YYYYMMDD) or devices never see it.
+    const shippedVersion = SEED_DATA.seedVersion ? String(SEED_DATA.seedVersion) : null;
+    if (shippedVersion && localStorage.getItem("picross.seedVersion") !== shippedVersion) {
+      const stored = JSON.parse(localStorage.getItem("picross.puzzles") || "{}");
+      for (const pid of Object.keys(SEED_DATA.puzzles || {})) stored[pid] = SEED_DATA.puzzles[pid];
+      localStorage.setItem("picross.puzzles", JSON.stringify(stored));
+      if (SEED_DATA.library) localStorage.setItem("picross.library", JSON.stringify(SEED_DATA.library));
+      localStorage.setItem("picross.seedVersion", shippedVersion);
     }
     // Merge: for existing users with stored puzzles, fill in metadata fields
     // (fact, source, factSource) that are empty but exist in the current seed.
