@@ -2318,19 +2318,16 @@ function hideWinModal() {
   modal?.querySelector(".win-preview-wrap")?.classList.remove("show-photo");
 }
 
-// --- Givens explainer (one-shot per version) --------------------------------
-// Shown the first time a puzzle carrying gift cells opens; dismissed into a
-// localStorage flag so it never interrupts again. Backdrop tap dismisses too.
-// The flag is VERSIONED: bump it whenever the explainer's content changes so
-// players who saw an older version get the new one exactly once (installs that
-// saw v1 carry "1" — truthy but stale — so they re-see v2, then never again).
-const GIVENS_EXPLAINER_VERSION = "2";
-
+// --- Givens explainer (recurring until "Don't show again") ------------------
+// Opens EVERY time a puzzle carrying gift cells opens. Only the "Don't show
+// again" button writes the suppression flag; backdrop and "Got it" dismiss
+// without it, so the card repopulates on the next gift puzzle — Dre's playtest
+// loop (2026-08-31). Prod users get the permanent kill switch on the last
+// slide. (The retired picross.givensSeen key from the one-shot era is inert.)
 function maybeShowGivensExplainer() {
   if (editorMode || givenCells.size === 0) return;
   try {
-    if (localStorage.getItem("picross.givensSeen") === GIVENS_EXPLAINER_VERSION) return;
-    localStorage.setItem("picross.givensSeen", GIVENS_EXPLAINER_VERSION);
+    if (localStorage.getItem("picross.givensHidden")) return;
   } catch {}
   const modal = document.getElementById("givensModal");
   if (modal) {
@@ -2395,6 +2392,7 @@ function stopGivensAmbigDemo() {
 {
   const givensModal = document.getElementById("givensModal");
   const givensNext = document.getElementById("givensNext");
+  const givensNever = document.getElementById("givensNever");
   if (givensModal && givensNext) {
     givensNext.addEventListener("click", () => {
       const slides = [...givensModal.querySelectorAll(".givens-slide")];
@@ -2405,8 +2403,12 @@ function stopGivensAmbigDemo() {
         givensModal.querySelectorAll(".givens-dots .dot").forEach((d, i) => d.classList.toggle("active", i === current + 1));
         if (current + 1 === slides.length - 1) givensNext.textContent = "Got it";
       } else {
-        hideGivensModal();
+        hideGivensModal(); // "Got it" dismisses WITHOUT suppressing — it repopulates next open
       }
+    });
+    givensNever?.addEventListener("click", () => {
+      try { localStorage.setItem("picross.givensHidden", "1"); } catch {}
+      hideGivensModal();
     });
     givensModal.querySelector(".modal-backdrop")?.addEventListener("click", hideGivensModal);
   }

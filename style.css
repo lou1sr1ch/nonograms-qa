@@ -458,14 +458,15 @@ main {
 #board.won .cell.crossed::before { content: ""; }
 #board.won .cell { cursor: default; transition: background-color 0.4s ease; }
 
-/* Given (gift) cells — pre-filled locked cells marked by a golden "comet" of
-   light traveling the cell's perimeter (Dre's brief: a soft stream of light,
-   loading-icon-like but calmer). The conic gradient keeps a faint full ring
-   and brightens into a short tail; @property animates the start angle (iOS
-   16.4+; older browsers leave the comet resting at the top and the faint ring
-   still reads as a deliberate accent — graceful static state). Shared by the
-   board and the explainer demos so what you see is what you get. Ring hides
-   on win so the reveal shows pure art. */
+/* Given (gift) cells — a golden beam of light traveling the cell's very BORDER,
+   overlaying its gridline (Dre v2 brief: "outlining it with a gold beam of
+   light that slightly thickens in a repeating pattern — sine wave opacity and
+   thickness"). The conic gradient keeps a faint full ring and brightens into a
+   short comet tail; @property animates the start angle (iOS 16.4+; older
+   browsers get the comet resting at the top — still deliberate). A second
+   animation breathes opacity 0.55->1 and thickness 1.5->2.5px on a sine-like
+   curve. Shared by the board and the explainer demos so what you see is what
+   you get. Ring hides on win so the reveal shows pure art. */
 @property --given-orbit {
   syntax: "<angle>";
   initial-value: 0deg;
@@ -476,9 +477,9 @@ main {
 .ga-cell.given::after {
   content: "";
   position: absolute;
-  inset: 2px;
-  border: 2px solid transparent;
-  border-radius: 4px;
+  inset: 0;
+  border: 1.5px solid transparent;
+  border-radius: 2px;
   background: conic-gradient(
     from var(--given-orbit, 0deg),
     rgba(229, 172, 78, 0.14) 0deg,
@@ -492,16 +493,22 @@ main {
   -webkit-mask-composite: xor;
           mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
           mask-composite: exclude;
-  animation: given-orbit 3.2s linear infinite;
+  animation:
+    given-orbit 3.2s linear infinite,
+    given-breathe 2.6s cubic-bezier(0.37, 0, 0.63, 1) infinite;
   pointer-events: none;
 }
 @keyframes given-orbit {
   to { --given-orbit: 360deg; }
 }
+@keyframes given-breathe {
+  0%, 100% { opacity: 0.55; border-width: 1.5px; }
+  50%      { opacity: 1;    border-width: 2.5px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .cell.given::after,
   .givens-demo .demo-cell.given::after,
-  .ga-cell.given::after { animation: none; }
+  .ga-cell.given::after { animation: none; opacity: 0.75; }
 }
 #board.won .cell.given::after { display: none; }
 
@@ -1566,14 +1573,28 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   color: var(--color-espresso);
 }
 
-/* Givens explainer card — compact three-slide intro to gift cells. The demo
-   row and the 2×2 grids reuse the board's orbit ring so what you see is what
-   you get. Slides fade-rise on entry (display:none -> block restarts the CSS
-   animation each time a slide is unhidden). */
+/* Givens explainer card — compact three-slide intro to gift cells. Flex column:
+   the slides area scrolls if it must, the nav (dots / buttons) is pinned and
+   can NEVER fall out of view. max-height is a PERCENTAGE of .modal — the
+   rotated root — not vh, which in rotated profiles measures the physical
+   viewport and can center the card mostly off-screen (round-5/habit-17 lesson;
+   the base .modal-content's 80vh is exactly that trap). The demo row and the
+   2×2 grids reuse the board's orbit ring so what you see is what you get.
+   Slides fade-rise on entry (display:none -> block restarts the CSS animation
+   each time a slide is unhidden). */
 .modal-content.givens-card {
   min-width: 0;
   width: min(88vw, 340px);
+  max-height: calc(100% - 24px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   text-align: center;
+}
+.givens-slides {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 .givens-slide { animation: givens-in 0.35s ease both; }
 @keyframes givens-in {
@@ -1600,8 +1621,8 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
    both use it — empty on slide 2, cycling solutions on slide 3. */
 .ga-grid {
   display: grid;
-  grid-template-columns: 16px 26px 26px;
-  grid-template-rows: 16px 26px 26px;
+  grid-template-columns: 14px 22px 22px;
+  grid-template-rows: 14px 22px 22px;
   gap: 1px;
   justify-content: center;
 }
@@ -1619,10 +1640,10 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   transition: background-color 0.35s ease;
 }
 .ga-cell.filled { background: var(--color-espresso); }
-.ga-anim { margin: 12px 0 2px; }
-.ga-still-empty { margin: 12px 0 2px; }
+.ga-anim { margin: 10px 0 2px; }
+.ga-still-empty { margin: 10px 0 2px; }
 .ga-verdict {
-  margin-top: 8px;
+  margin-top: 6px;
   min-height: 1.3em;
   font-size: 13px;
   font-style: italic;
@@ -1638,14 +1659,16 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
     display: flex;
     gap: 22px;
     justify-content: center;
-    margin: 12px 0 2px;
+    margin: 10px 0 2px;
   }
 }
 .givens-nav {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 14px;
 }
 .givens-dots .dot {
   display: inline-block;
@@ -1655,6 +1678,17 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   margin-right: 5px;
 }
 .givens-dots .dot.active { background: var(--color-espresso); }
+#givensNever {
+  background: transparent;
+  color: var(--color-cocoa);
+  border: none;
+  padding: 8px 4px;
+  font-family: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 #givensNext {
   background: var(--color-espresso);
   color: var(--color-foam);
