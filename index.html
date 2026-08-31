@@ -31,7 +31,7 @@
   <meta name="apple-mobile-web-app-title" content="Nonograms" />
   <meta name="theme-color" content="#faf3e6" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="style.css?v=1788180292" />
+  <link rel="stylesheet" href="style.css?v=1788186809" />
 </head>
 <body>
   <!-- Round 3 (2026-08-27): background layers — see style.css. #topVeil fades the
@@ -269,7 +269,7 @@
             <span class="demo-cell"></span><span class="demo-cell filled given"></span><span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span>
             <span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span>
           </div>
-          <p>Some puzzles begin with a few cells already filled in. These are hint cells, which can't be changed and are always right. Look for the golden ring.</p>
+          <p>Some puzzles begin with a few cells already filled in. These are hint cells, which can't be changed and are always right. They are outlined by a golden ring.</p>
         </div>
         <div class="givens-slide hidden" data-slide="1">
           <!-- Animated variant: cycles solution A -> solution B -> A + hint ring.
@@ -281,7 +281,7 @@
               <span class="ga-clue">1</span><span class="ga-cell"></span><span class="ga-cell"></span>
               <span class="ga-clue">1</span><span class="ga-cell"></span><span class="ga-cell"></span>
             </div>
-            <div class="ga-verdict">Fits every clue ✓</div>
+            <div class="ga-verdict">This solution fits every clue</div>
           </div>
           <!-- Static reduce-motion variant: both solutions side by side, hint on
                the left one — the whole story with no motion. -->
@@ -292,7 +292,7 @@
                 <span class="ga-clue">1</span><span class="ga-cell filled given"></span><span class="ga-cell"></span>
                 <span class="ga-clue">1</span><span class="ga-cell"></span><span class="ga-cell filled"></span>
               </div>
-              <div class="ga-verdict">Fits ✓</div>
+              <div class="ga-verdict">This solution fits every clue</div>
             </div>
             <div class="ga-col">
               <div class="ga-grid">
@@ -300,13 +300,14 @@
                 <span class="ga-clue">1</span><span class="ga-cell"></span><span class="ga-cell filled"></span>
                 <span class="ga-clue">1</span><span class="ga-cell filled"></span><span class="ga-cell"></span>
               </div>
-              <div class="ga-verdict">Also fits ✓</div>
+              <div class="ga-verdict">…but so does this one!</div>
             </div>
           </div>
           <p>Sometimes the number clues alone can't settle the picture. Both diagonals satisfy every clue here. A hint cell breaks the tie, so you can always find the correct solution.</p>
         </div>
       </div>
       <div class="givens-nav">
+        <button id="givensBack" type="button">Back</button>
         <span class="givens-dots"><span class="dot active"></span><span class="dot"></span></span>
         <button id="givensNever" type="button">Don't show again</button>
         <button id="givensNext" type="button">Next</button>
@@ -338,8 +339,8 @@
       </div>
     </div>
   </div>
-  <script src="image-manifest.js?v=1788180292"></script>
-  <script src="seed-data.js?v=1788180292"></script>
-  <script src="script.js?v=1788180292"></script>
+  <script src="image-manifest.js?v=1788186809"></script>
+  <script src="seed-data.js?v=1788186809"></script>
+  <script src="script.js?v=1788186809"></script>
 </body>
 </html>

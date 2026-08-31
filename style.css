@@ -1617,7 +1617,18 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }
 }
-.givens-card h2 { margin: 0 0 6px; font-family: inherit; }
+/* Dre's "same font as the text" ask (packet H) looked unfulfilled even with
+   font-family: inherit — because the UA stylesheet still bolds h2 at 1.5em,
+   and Compagnon Bold that large reads like a different face next to the Roman
+   body copy. The inherit was working; the WEIGHT was the impostor. Pin all
+   three so nothing upstream can drift it again. */
+.givens-card h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 21px;
+  letter-spacing: 0.2px;
+}
 .givens-card p { margin: 10px 0 0; line-height: 1.45; font-size: 15px; }
 .givens-demo {
   display: grid;
@@ -1633,6 +1644,30 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   position: relative;
 }
 .givens-demo .demo-cell.filled { background: var(--color-espresso); }
+/* Entrance: the mini board populates in a left-to-right wave each time slide 1
+   is unhidden (display:none -> block restarts these). The two hint cells land
+   LAST with a fixed delay, then keep a slow fill-breathe (espresso -> cocoa,
+   never emptying — they're locked) so slide 1's visual reads alive the way
+   slide 2's cycling board does (Dre, packet I). Breathe touches only
+   background-color, so it composes with the entrance and the orbit ring. */
+.givens-demo .demo-cell { animation: demo-cell-in 0.45s ease both; }
+.givens-demo .demo-cell:nth-child(5n+2) { animation-delay: 0.06s; }
+.givens-demo .demo-cell:nth-child(5n+3) { animation-delay: 0.12s; }
+.givens-demo .demo-cell:nth-child(5n+4) { animation-delay: 0.18s; }
+.givens-demo .demo-cell:nth-child(5n+5) { animation-delay: 0.24s; }
+@keyframes demo-cell-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+.givens-demo .demo-cell.filled.given {
+  animation:
+    demo-cell-in 0.45s ease 0.3s both,
+    demo-hint-breathe 2.6s cubic-bezier(0.37, 0, 0.63, 1) 0.8s infinite;
+}
+@keyframes demo-hint-breathe {
+  0%, 100% { background-color: var(--color-espresso); }
+  50%      { background-color: var(--color-cocoa); }
+}
 /* The 2×2 mini nonogram: corner blank, clue labels, four cells. Slides 2 and 3
    both use it — empty on slide 2, cycling solutions on slide 3. */
 .ga-grid {
@@ -1656,6 +1691,15 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   transition: background-color 0.35s ease;
 }
 .ga-cell.filled { background: var(--color-espresso); }
+/* On the "hint breaks the tie" beat the FORCED cell (the filled one that isn't
+   the hint) blinks — the hint leaves it no choice (Dre, packet I). JS toggles
+   the class; only ever applied in the JS-driven variant, but the reduce-motion
+   block below kills it too for safety. */
+.ga-cell.blink { animation: ga-blink 0.6s ease-in-out infinite; }
+@keyframes ga-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
 .ga-anim { margin: 10px 0 2px; }
 .ga-verdict {
   margin-top: 6px;
@@ -1669,6 +1713,9 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
 @media (prefers-reduced-motion: reduce) {
   .givens-slide { animation: none; }
   .ga-cell { transition: none; }
+  .ga-cell.blink { animation: none; }
+  .givens-demo .demo-cell,
+  .givens-demo .demo-cell.filled.given { animation: none; }
   .ga-anim { display: none; }
   .ga-still {
     display: flex;
@@ -1693,26 +1740,33 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   margin-right: 5px;
 }
 .givens-dots .dot.active { background: var(--color-espresso); }
-#givensNever {
+#givensNever,
+#givensBack {
   background: transparent;
   color: var(--color-cocoa);
   border: none;
   padding: 8px 4px;
   font-family: inherit;
   font-size: 13px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
   cursor: pointer;
 }
+/* Back holds its space while invisible on slide 1 (visibility, not display) so
+   the dots/Never/Next positions don't reflow between slides. */
+#givensBack { visibility: hidden; }
+#givensBack.show { visibility: visible; }
+/* Mirrors the active Fill half of #modeBtn — same gradient tokens, radius and
+   shadow (habit 4: "make X look like Y" means share Y's definition). First
+   piece of the post-push visual-revamp language Dre wants to explore. */
 #givensNext {
-  background: var(--color-espresso);
+  background: linear-gradient(135deg, var(--color-espresso) 0%, var(--color-cocoa) 100%);
   color: var(--color-foam);
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   padding: 8px 18px;
   font-family: inherit;
   font-size: 15px;
   cursor: pointer;
+  box-shadow: var(--shadow-soft);
 }
 #givensNext:active { transform: scale(0.97); }
 .modal-header {

@@ -2348,6 +2348,7 @@ function hideGivensModal() {
   modal.querySelectorAll(".givens-dots .dot").forEach((d, i) => d.classList.toggle("active", i === slideIdx));
   const btn = document.getElementById("givensNext");
   if (btn) btn.textContent = "Next";
+  document.getElementById("givensBack")?.classList.remove("show");
 }
 
 // --- 2×2 ambiguity demo (slide 2) -------------------------------------------
@@ -2356,9 +2357,9 @@ function hideGivensModal() {
 // -> A wearing the hint ring, landing on why hint cells exist. Under
 // reduce-motion nothing here runs — CSS swaps in the static side-by-side.
 const GIVEN_AMBIG_STATES = [
-  { cells: [0, 3], hint: -1, verdict: "Fits every clue ✓", ms: 2000 },
-  { cells: [1, 2], hint: -1, verdict: "…but so does this one ✓", ms: 2000 },
-  { cells: [0, 3], hint: 0, verdict: "The hint cell breaks the tie", ms: 2400 },
+  { cells: [0, 3], hint: -1, blink: -1, verdict: "This solution fits every clue", ms: 2000 },
+  { cells: [1, 2], hint: -1, blink: -1, verdict: "…but so does this one!", ms: 2000 },
+  { cells: [0, 3], hint: 0, blink: 3, verdict: "The hint cell breaks the tie", ms: 2400 },
 ];
 let givenAmbigTimer = null;
 
@@ -2374,6 +2375,7 @@ function startGivensAmbigDemo(modal) {
     cells.forEach((c, idx) => {
       c.classList.toggle("filled", s.cells.includes(idx));
       c.classList.toggle("given", idx === s.hint);
+      c.classList.toggle("blink", idx === s.blink); // the cell the hint FORCES — flashes on the tie-break beat (packet I)
     });
     verdict.textContent = s.verdict;
     i = (i + 1) % GIVEN_AMBIG_STATES.length;
@@ -2393,19 +2395,29 @@ function stopGivensAmbigDemo() {
   const givensModal = document.getElementById("givensModal");
   const givensNext = document.getElementById("givensNext");
   const givensNever = document.getElementById("givensNever");
+  const givensBack = document.getElementById("givensBack");
   if (givensModal && givensNext) {
-    givensNext.addEventListener("click", () => {
+    // One slide-switch path for Next/Back: slides + dots + Next label + Back
+    // visibility all derive from the target index (Back exists because Dre
+    // wanted "a way to go to slide 1 from 2", packet I).
+    const currentGivensSlide = () =>
+      [...givensModal.querySelectorAll(".givens-slide")].findIndex(s => !s.classList.contains("hidden"));
+    const showGivensSlide = (idx) => {
       const slides = [...givensModal.querySelectorAll(".givens-slide")];
-      const current = slides.findIndex(s => !s.classList.contains("hidden"));
-      if (current < slides.length - 1) {
-        slides[current].classList.add("hidden");
-        slides[current + 1].classList.remove("hidden");
-        givensModal.querySelectorAll(".givens-dots .dot").forEach((d, i) => d.classList.toggle("active", i === current + 1));
-        if (current + 1 === slides.length - 1) givensNext.textContent = "Got it";
+      slides.forEach((s, i) => s.classList.toggle("hidden", i !== idx));
+      givensModal.querySelectorAll(".givens-dots .dot").forEach((d, i) => d.classList.toggle("active", i === idx));
+      givensNext.textContent = idx === slides.length - 1 ? "Got it" : "Next";
+      givensBack?.classList.toggle("show", idx > 0);
+    };
+    givensNext.addEventListener("click", () => {
+      const current = currentGivensSlide();
+      if (current < givensModal.querySelectorAll(".givens-slide").length - 1) {
+        showGivensSlide(current + 1);
       } else {
         hideGivensModal(); // "Got it" dismisses WITHOUT suppressing — it repopulates next open
       }
     });
+    givensBack?.addEventListener("click", () => showGivensSlide(Math.max(0, currentGivensSlide() - 1)));
     givensNever?.addEventListener("click", () => {
       try { localStorage.setItem("picross.givensHidden", "1"); } catch {}
       hideGivensModal();
