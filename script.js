@@ -940,6 +940,7 @@ function setUserScreen(name) {
   document.body.scrollTop = 0;
   currentUserScreen = name;
   document.body.dataset.screen = name;
+  if (name !== "solve") hideGivensModal(); // never leave the explainer floating over list screens
   if (name === "category") buildUserCategoryList();
   else if (name === "puzzles") buildUserPuzzleList(currentUserCategoryName);
   // Rotation depends on data-screen === "solve"; clear it when leaving solve
@@ -1837,6 +1838,7 @@ function renderBoard() {
       // Skip the last col/row since the board's outer border already provides that edge.
       if ((c + 1) % 5 === 0 && c !== activeW - 1) cell.classList.add("col-divider");
       if ((r + 1) % 5 === 0 && r !== activeH - 1) cell.classList.add("row-divider");
+      if (givenCells.has(`${r},${c}`)) cell.classList.add("given");
       cell.style.background = "";
       applyCellState(cell, board[r][c]);
       boardEl.appendChild(cell);
@@ -1937,6 +1939,12 @@ function popCell(cell, state) {
 // selectedCell = { r, c } | null. Persists across puzzle switches so first
 // dpad press after load lands at 0,0.
 let selectedCell = null;
+
+// Given (gift) cells for the active puzzle: a Set of "r,c" keys, planted at
+// loadPuzzle and re-planted by clearBoard. paintCell refuses to change them,
+// so they never enter the undo stack — the one guard covers tap, drag, and
+// dpad commit, since every solve-mode change funnels through paintCell.
+let givenCells = new Set();
 
 function renderCursor() {
   if (!boardEl) return;
@@ -2042,6 +2050,7 @@ function updateModeButton() {
 
 function paintCell(cell, r, c) {
   const key = `${r},${c}`;
+  if (givenCells.has(key)) return; // gift cells are locked — no paint, no undo entry
   if (visited.has(key)) return;
   visited.add(key);
   const prev = board[r][c];
@@ -2309,6 +2318,52 @@ function hideWinModal() {
   modal?.querySelector(".win-preview-wrap")?.classList.remove("show-photo");
 }
 
+// --- Givens explainer (one-shot) ------------------------------------------
+// Shown the first time a puzzle carrying gift cells opens; dismissed into a
+// localStorage flag so it never interrupts again. Backdrop tap dismisses too.
+function maybeShowGivensExplainer() {
+  if (editorMode || givenCells.size === 0) return;
+  try {
+    if (localStorage.getItem("picross.givensSeen")) return;
+    localStorage.setItem("picross.givensSeen", "1");
+  } catch {}
+  const modal = document.getElementById("givensModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function hideGivensModal() {
+  const modal = document.getElementById("givensModal");
+  if (!modal || modal.classList.contains("hidden")) return;
+  modal.classList.add("hidden");
+  // Reset to slide 1 for the next show (the flag makes re-shows rare, but a
+  // fresh profile/new device should never land on the "Got it" state).
+  const slideIdx = 0;
+  modal.querySelectorAll(".givens-slide").forEach((s, i) => s.classList.toggle("hidden", i !== slideIdx));
+  modal.querySelectorAll(".givens-dots .dot").forEach((d, i) => d.classList.toggle("active", i === slideIdx));
+  const btn = document.getElementById("givensNext");
+  if (btn) btn.textContent = "Next";
+}
+
+{
+  const givensModal = document.getElementById("givensModal");
+  const givensNext = document.getElementById("givensNext");
+  if (givensModal && givensNext) {
+    givensNext.addEventListener("click", () => {
+      const slides = [...givensModal.querySelectorAll(".givens-slide")];
+      const current = slides.findIndex(s => !s.classList.contains("hidden"));
+      if (current < slides.length - 1) {
+        slides[current].classList.add("hidden");
+        slides[current + 1].classList.remove("hidden");
+        givensModal.querySelectorAll(".givens-dots .dot").forEach((d, i) => d.classList.toggle("active", i === current + 1));
+        if (current + 1 === slides.length - 1) givensNext.textContent = "Got it";
+      } else {
+        hideGivensModal();
+      }
+    });
+    givensModal.querySelector(".modal-backdrop")?.addEventListener("click", hideGivensModal);
+  }
+}
+
 function checkWin() {
   if (!activePuzzle) return false; // user mode home/category screens have no active puzzle
   const truth = activePuzzle.truth;
@@ -2435,6 +2490,16 @@ function loadPuzzle(id) {
   const w = activePuzzle.truth[0].length;
   applyDimensions(w, h);
   board = createEmptyBoard(w, h);
+  // Plant gift cells before the first render so they appear from the start.
+  // Seed format: "givens": [[x, y], ...] (0-based col, row); every one is a
+  // filled truth cell by construction (asserted in the edit scripts).
+  givenCells = new Set();
+  for (const [gx, gy] of activePuzzle.givens || []) {
+    if (gy < h && gx < w && activePuzzle.truth[gy][gx]) {
+      board[gy][gx] = STATE_FILLED;
+      givenCells.add(`${gy},${gx}`);
+    }
+  }
   hints = computeHints(activePuzzle.truth);
   renderHints(hints);
   won = false;
@@ -2455,11 +2520,17 @@ function loadPuzzle(id) {
   // Puzzle dimensions may have changed → re-evaluate rotation + refit board.
   updateRotationClass();
   if (!editorMode) requestAnimationFrame(resizeBoardToFit);
+  maybeShowGivensExplainer();
 }
 
 function clearBoard() {
   for (let r = 0; r < activeH; r++) {
     for (let c = 0; c < activeW; c++) board[r][c] = STATE_EMPTY;
+  }
+  // Reset restores the gifts too — they're part of the puzzle's starting state.
+  for (const key of givenCells) {
+    const [r, c] = key.split(",").map(Number);
+    board[r][c] = STATE_FILLED;
   }
   won = false;
   boardEl.classList.remove("won");

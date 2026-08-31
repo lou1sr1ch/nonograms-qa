@@ -3800,7 +3800,7 @@ const SEED_DATA = {
       "fact": "The monsterra deliciosa plant is consistently the most searched houseplant in over 15 states (US), and would likely be the most popular houseplant if it weren't for the Aloe Vera.",
       "source": {
         "url": "https://flowerpowerdaily.com/most-popular-u-s-houseplants-state-by-state/",
-        "attribution": "Photo by Maur\u00c3\u0192\u00c2\u00adcio Guardiano"
+        "attribution": "Photo by Maur\u00edcio Guardiano"
       },
       "image": "0012.jpg"
     },
@@ -6488,7 +6488,13 @@ const SEED_DATA = {
         "url": "https://www.venus-flytraps.com/facts-about-venus-flytraps/",
         "attribution": "Photo by Gabe Spen"
       },
-      "image": "0019.jpg"
+      "image": "0019.jpg",
+      "givens": [
+        [
+          13,
+          6
+        ]
+      ]
     },
     "0020": {
       "name": "wild cabbage",
@@ -7536,9 +7542,15 @@ const SEED_DATA = {
       "fact": "Located on the wall of Hildesheim Cathedral in Germany, the oldest living rose bush in the world is approximately 1,000 years old, which famously survived the cathedral being bombed and destroyed during World War II.",
       "source": {
         "url": "https://figandbloom.com/blogs/news/fun-facts-about-roses",
-        "attribution": "Photo by Fabio Andr\u00c3\u0192\u00c2\u00a9s"
+        "attribution": "Photo by Fabio Andr\u00e9s"
       },
-      "image": "0021.jpg"
+      "image": "0021.jpg",
+      "givens": [
+        [
+          6,
+          12
+        ]
+      ]
     },
     "0022": {
       "name": "cacao",
@@ -7793,7 +7805,17 @@ const SEED_DATA = {
         "url": "https://toakchocolate.com/blogs/news/15-things-you-never-knew-about-chocolate",
         "attribution": "Photo by Monika Guzikowska"
       },
-      "image": "0022.avif"
+      "image": "0022.avif",
+      "givens": [
+        [
+          7,
+          0
+        ],
+        [
+          2,
+          2
+        ]
+      ]
     },
     "0023": {
       "name": "sunflower",
@@ -8316,7 +8338,7 @@ const SEED_DATA = {
       "fact": "They are used in a process called phytoremediation to extract toxins such as lead, arsenic, and uranium from contaminated soil, having been notably planted after the Chernobyl and Fukushima nuclear disasters.",
       "source": {
         "url": "https://www.sciencekids.co.nz/sciencefacts/plants/sunflowers.html",
-        "attribution": "Photo by Ceren B\u00c3\u0192\u00c2\u00bc\u00c3\u2026\u00c5\u00b8ra SEVTEK\u00c3\u201e\u00c2\u00b0N"
+        "attribution": "Photo by Ceren B\u00fc\u015fra SEVTEK\u0130N"
       },
       "image": "0023.jpg"
     },
@@ -10348,7 +10370,7 @@ const SEED_DATA = {
           "#473b3b"
         ]
       ],
-      "fact": "Pigs are among the most intelligent animals \u00e2\u20ac\u201d outperforming dogs and 3-year-old children on some cognitive tests. They can play video games, recognize themselves in mirrors, and learn from watching others.",
+      "fact": "Pigs are among the most intelligent animals \u2014 outperforming dogs and 3-year-old children on some cognitive tests. They can play video games, recognize themselves in mirrors, and learn from watching others.",
       "source": {
         "url": "https://unsplash.com/photos/pink-pig-on-green-grass-field-during-daytime-KbgJbt2kIbk",
         "attribution": ""
@@ -10878,7 +10900,7 @@ const SEED_DATA = {
         "url": "https://unsplash.com/photos/brown-chicken-on-green-grass-field-during-daytime-yEW23jxVsNI",
         "attribution": "Photo by James Wainscoat"
       },
-      "fact": "There are over 33 billion chickens on Earth \u00e2\u20ac\u201d more than any other bird species and about four chickens for every human. Their closest living relative, per DNA analysis, is the Tyrannosaurus rex.",
+      "fact": "There are over 33 billion chickens on Earth \u2014 more than any other bird species and about four chickens for every human. Their closest living relative, per DNA analysis, is the Tyrannosaurus rex.",
       "factSource": "https://en.wikipedia.org/wiki/Chicken",
       "image": "0029.jpg"
     },
@@ -11400,7 +11422,7 @@ const SEED_DATA = {
           "#b77c47"
         ]
       ],
-      "fact": "A giraffe's neck has just 7 vertebrae \u00e2\u20ac\u201d same as a human \u00e2\u20ac\u201d but each can be over 25 cm long. Their heart weighs about 11 kg and pumps blood at nearly double human pressure to reach the brain.",
+      "fact": "A giraffe's neck has just 7 vertebrae \u2014 same as a human \u2014 but each can be over 25 cm long. Their heart weighs about 11 kg and pumps blood at nearly double human pressure to reach the brain.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Giraffe",
         "attribution": ""
@@ -11926,7 +11948,7 @@ const SEED_DATA = {
           "#635f3c"
         ]
       ],
-      "fact": "Horses have the largest eyes of any land mammal, positioned on the sides of the head for nearly 350\u00c2\u00b0 panoramic vision \u00e2\u20ac\u201d with just two blind spots, directly in front and directly behind.",
+      "fact": "Horses have the largest eyes of any land mammal, positioned on the sides of the head for nearly 350\u00b0 panoramic vision \u2014 with just two blind spots, directly in front and directly behind.",
       "source": {
         "url": "https://www.pexels.com/photo/a-black-horse-on-a-grassland-13340069/",
         "attribution": ""
@@ -13083,7 +13105,7 @@ const SEED_DATA = {
           "#211907"
         ]
       ],
-      "fact": "Painted c. 1665 by Johannes Vermeer, Girl with a Pearl Earring is a tronie \u00e2\u20ac\u201d a Dutch study of a face, not a portrait of a real person. The pearl may actually be a polished tin bulb.",
+      "fact": "Painted c. 1665 by Johannes Vermeer, Girl with a Pearl Earring is a tronie \u2014 a Dutch study of a face, not a portrait of a real person. The pearl may actually be a polished tin bulb.",
       "source": {
         "url": "https://wallpaperscraft.com/download/johannes_vermeer_girl_with_a_pearl_earring_oil_canvas_art_117721/4095x4794",
         "attribution": ""
@@ -13779,7 +13801,7 @@ const SEED_DATA = {
           "#1d1a19"
         ]
       ],
-      "fact": "Grant Wood painted American Gothic in 1930 using his sister Nan and his dentist as models. The house behind them is real \u00e2\u20ac\u201d a small gothic-window cottage in Eldon, Iowa still standing today.",
+      "fact": "Grant Wood painted American Gothic in 1930 using his sister Nan and his dentist as models. The house behind them is real \u2014 a small gothic-window cottage in Eldon, Iowa still standing today.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/American_Gothic",
         "attribution": ""
@@ -14491,7 +14513,7 @@ const SEED_DATA = {
           "#684530"
         ]
       ],
-      "fact": "Antarctica is technically the world's largest desert. Deserts are defined by low precipitation (under 25 cm/year), not heat \u00e2\u20ac\u201d Antarctica averages just 5 cm annually, mostly as snow.",
+      "fact": "Antarctica is technically the world's largest desert. Deserts are defined by low precipitation (under 25 cm/year), not heat \u2014 Antarctica averages just 5 cm annually, mostly as snow.",
       "source": {
         "url": "https://www.pexels.com/photo/sand-desert-sand-dunes-dune-50628/",
         "attribution": ""
@@ -14753,7 +14775,13 @@ const SEED_DATA = {
         "attribution": ""
       },
       "factSource": "https://en.wikipedia.org/wiki/Plain",
-      "image": "0038.jpg"
+      "image": "0038.jpg",
+      "givens": [
+        [
+          1,
+          2
+        ]
+      ]
     },
     "0039": {
       "name": "peninsula",
@@ -15273,7 +15301,7 @@ const SEED_DATA = {
           "#00302b"
         ]
       ],
-      "fact": "The Arabian Peninsula is the world's largest peninsula (3.24 million km\u00c2\u00b2), containing seven countries. Its coastline stretches about 6,400 km along three different seas \u00e2\u20ac\u201d the Red, Arabian, and Persian Gulf.",
+      "fact": "The Arabian Peninsula is the world's largest peninsula (3.24 million km\u00b2), containing seven countries. Its coastline stretches about 6,400 km along three different seas \u2014 the Red, Arabian, and Persian Gulf.",
       "source": {
         "url": "https://unsplash.com/photos/aerial-view-of-green-and-gray-island-Zt0br07_S34",
         "attribution": ""
@@ -16205,7 +16233,7 @@ const SEED_DATA = {
           "#545351"
         ]
       ],
-      "fact": "The Ganges-Brahmaputra Delta covers 105,000 square kilometers across Bangladesh and India \u00e2\u20ac\u201d the world's largest river delta and, with 130+ million residents, one of the most densely populated regions on Earth.",
+      "fact": "The Ganges-Brahmaputra Delta covers 105,000 square kilometers across Bangladesh and India \u2014 the world's largest river delta and, with 130+ million residents, one of the most densely populated regions on Earth.",
       "source": {
         "url": "https://www.pexels.com/photo/painting-of-river-with-sandbanks-8130636/",
         "attribution": ""
@@ -16881,13 +16909,19 @@ const SEED_DATA = {
           "#034584"
         ]
       ],
-      "fact": "Greenland is the world's largest island (2.16 million km\u00c2\u00b2) \u00e2\u20ac\u201d three times the size of Texas. Despite its name, 80% of Greenland is covered in ice; Iceland, its neighbor, is genuinely greener.",
+      "fact": "Greenland is the world's largest island (2.16 million km\u00b2) \u2014 three times the size of Texas. Despite its name, 80% of Greenland is covered in ice; Iceland, its neighbor, is genuinely greener.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Greenland",
         "attribution": ""
       },
       "factSource": "https://en.wikipedia.org/wiki/Greenland",
-      "image": "0042.jpg"
+      "image": "0042.jpg",
+      "givens": [
+        [
+          0,
+          2
+        ]
+      ]
     },
     "0043": {
       "name": "valley",
@@ -17557,7 +17591,7 @@ const SEED_DATA = {
           "#517422"
         ]
       ],
-      "fact": "The Great Rift Valley stretches about 6,000 km from Mozambique to Lebanon and is visible from space. It's forming as the African plate slowly splits \u00e2\u20ac\u201d a geological process taking millions of years.",
+      "fact": "The Great Rift Valley stretches about 6,000 km from Mozambique to Lebanon and is visible from space. It's forming as the African plate slowly splits \u2014 a geological process taking millions of years.",
       "source": {
         "url": "https://www.pexels.com/photo/a-river-flowing-through-a-grassy-valley-28198479/",
         "attribution": ""
@@ -17913,13 +17947,27 @@ const SEED_DATA = {
           "#162224"
         ]
       ],
-      "fact": "Lake Baikal in Siberia contains about 23% of the world's fresh surface water \u00e2\u20ac\u201d more than all the North American Great Lakes combined. It's also the world's deepest and oldest lake at 25 million years.",
+      "fact": "Lake Baikal in Siberia contains about 23% of the world's fresh surface water \u2014 more than all the North American Great Lakes combined. It's also the world's deepest and oldest lake at 25 million years.",
       "source": {
         "url": "https://www.pexels.com/photo/tranquil-mountain-lake-with-scenic-view-34462412/",
         "attribution": ""
       },
       "factSource": "https://en.wikipedia.org/wiki/Lake_Baikal",
-      "image": "0044.jpg"
+      "image": "0044.jpg",
+      "givens": [
+        [
+          6,
+          3
+        ],
+        [
+          12,
+          3
+        ],
+        [
+          0,
+          3
+        ]
+      ]
     },
     "0045": {
       "name": "river",
@@ -18269,13 +18317,19 @@ const SEED_DATA = {
           "#012b01"
         ]
       ],
-      "fact": "The Amazon River discharges more water than the next seven largest rivers combined \u00e2\u20ac\u201d about 209,000 cubic meters per second. Its freshwater plume extends nearly 400 km out into the Atlantic Ocean.",
+      "fact": "The Amazon River discharges more water than the next seven largest rivers combined \u2014 about 209,000 cubic meters per second. Its freshwater plume extends nearly 400 km out into the Atlantic Ocean.",
       "source": {
         "url": "https://www.pexels.com/photo/deep-forest-around-river-18117979/",
         "attribution": ""
       },
       "factSource": "https://en.wikipedia.org/wiki/Amazon_River",
-      "image": "0045.jpg"
+      "image": "0045.jpg",
+      "givens": [
+        [
+          0,
+          2
+        ]
+      ]
     },
     "0046": {
       "name": "piano",
@@ -18625,7 +18679,7 @@ const SEED_DATA = {
           "#d4d5d4"
         ]
       ],
-      "fact": "A grand piano has 220-240 strings under a combined tension of about 20 tons \u00e2\u20ac\u201d enough force to lift 30 pickup trucks. The cast iron frame was invented specifically to withstand this pressure.",
+      "fact": "A grand piano has 220-240 strings under a combined tension of about 20 tons \u2014 enough force to lift 30 pickup trucks. The cast iron frame was invented specifically to withstand this pressure.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Piano",
         "attribution": ""
@@ -19301,7 +19355,7 @@ const SEED_DATA = {
           "#5e421b"
         ]
       ],
-      "fact": "Silver trumpets dating to 1500 BCE were found in Tutankhamun's tomb. When played on BBC radio in 1939 after 3,000 years of silence, one of them shattered \u00e2\u20ac\u201d replicas were used for later recordings.",
+      "fact": "Silver trumpets dating to 1500 BCE were found in Tutankhamun's tomb. When played on BBC radio in 1939 after 3,000 years of silence, one of them shattered \u2014 replicas were used for later recordings.",
       "source": {
         "url": "https://unsplash.com/photos/brass-colored-trumpet-fTPSm7KD_d0",
         "attribution": ""
@@ -20169,7 +20223,7 @@ const SEED_DATA = {
           ""
         ]
       ],
-      "fact": "The \u00c3\u00b7 symbol, called an obelus, was first used for division by Swiss mathematician Johann Rahn in 1659. Its shape represents a fraction \u00e2\u20ac\u201d a line with dots standing in for numerator and denominator.",
+      "fact": "The \u00f7 symbol, called an obelus, was first used for division by Swiss mathematician Johann Rahn in 1659. Its shape represents a fraction \u2014 a line with dots standing in for numerator and denominator.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Division_sign",
         "attribution": ""
@@ -20845,7 +20899,7 @@ const SEED_DATA = {
           ""
         ]
       ],
-      "fact": "English mathematician John Wallis introduced the infinity symbol \u00e2\u02c6\u017e in 1655. He may have based it on the Roman numeral for 1,000 (CI\u00e2\u2020\u0192), which was sometimes used loosely to represent 'many' or 'countless.'",
+      "fact": "English mathematician John Wallis introduced the infinity symbol \u221e in 1655. He may have based it on the Roman numeral for 1,000 (CI\u2183), which was sometimes used loosely to represent 'many' or 'countless.'",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Infinity_symbol",
         "attribution": ""
@@ -21221,13 +21275,27 @@ const SEED_DATA = {
           ""
         ]
       ],
-      "fact": "The integral symbol \u00e2\u02c6\u00ab is an elongated S introduced by Gottfried Leibniz in 1675, standing for summa (Latin for sum). It captures the idea that integration is the continuous sum of infinitely many infinitesimal quantities.",
+      "fact": "The integral symbol \u222b is an elongated S introduced by Gottfried Leibniz in 1675, standing for summa (Latin for sum). It captures the idea that integration is the continuous sum of infinitely many infinitesimal quantities.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Integral_symbol",
         "attribution": ""
       },
       "factSource": "https://en.wikipedia.org/wiki/Integral_symbol",
-      "image": "0052.png"
+      "image": "0052.png",
+      "givens": [
+        [
+          6,
+          1
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          7,
+          2
+        ]
+      ]
     },
     "0053": {
       "name": "multiplication",
@@ -21477,7 +21545,7 @@ const SEED_DATA = {
           ""
         ]
       ],
-      "fact": "William Oughtred introduced the \u00c3\u2014 symbol for multiplication in 1631. Leibniz later objected that \u00c3\u2014 was too easily confused with the letter x, which is why calculators and code often display \u00c2\u00b7 or * instead.",
+      "fact": "William Oughtred introduced the \u00d7 symbol for multiplication in 1631. Leibniz later objected that \u00d7 was too easily confused with the letter x, which is why calculators and code often display \u00b7 or * instead.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Multiplication_sign",
         "attribution": ""
@@ -22003,13 +22071,23 @@ const SEED_DATA = {
           ""
         ]
       ],
-      "fact": "Phi (\u00cf\u2020 \u00e2\u2030\u02c6 1.618) is the golden ratio, defined so that (a+b)/a = a/b. It appears in sunflower-seed spirals, nautilus shells, and famously in art and architecture \u00e2\u20ac\u201d from the Parthenon to Salvador Dal\u00c3\u00ad's paintings.",
+      "fact": "Phi (\u03c6 \u2248 1.618) is the golden ratio, defined so that (a+b)/a = a/b. It appears in sunflower-seed spirals, nautilus shells, and famously in art and architecture \u2014 from the Parthenon to Salvador Dal\u00ed's paintings.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Golden_ratio",
         "attribution": ""
       },
       "factSource": "https://en.wikipedia.org/wiki/Golden_ratio",
-      "image": "0054.png"
+      "image": "0054.png",
+      "givens": [
+        [
+          10,
+          3
+        ],
+        [
+          4,
+          3
+        ]
+      ]
     },
     "0055": {
       "name": "pi",
@@ -22529,7 +22607,7 @@ const SEED_DATA = {
           "#faf3e6"
         ]
       ],
-      "fact": "Archimedes computed \u00cf\u20ac to two decimals in 250 BCE using inscribed polygons. Today, computers have calculated over 100 trillion digits \u00e2\u20ac\u201d but just 39 digits are enough to compute the observable universe's circumference to atomic width.",
+      "fact": "Archimedes computed \u03c0 to two decimals in 250 BCE using inscribed polygons. Today, computers have calculated over 100 trillion digits \u2014 but just 39 digits are enough to compute the observable universe's circumference to atomic width.",
       "source": {
         "url": "https://www.pineconefestival.org/fun-facts  |  Photo by Vera Emilie",
         "attribution": ""
@@ -22785,7 +22863,7 @@ const SEED_DATA = {
           "#fffffe"
         ]
       ],
-      "fact": "Leonhard Euler popularized the capital Greek \u00ce\u00a3 (sigma) for summation in 1755. In statistics, its lowercase form \u00cf\u0192 represents standard deviation \u00e2\u20ac\u201d one of the most fundamental measures of data variability.",
+      "fact": "Leonhard Euler popularized the capital Greek \u03a3 (sigma) for summation in 1755. In statistics, its lowercase form \u03c3 represents standard deviation \u2014 one of the most fundamental measures of data variability.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Sigma",
         "attribution": ""
@@ -24363,7 +24441,7 @@ const SEED_DATA = {
           "#917452"
         ]
       ],
-      "fact": "William Herschel discovered infrared radiation in 1800 by accident \u00e2\u20ac\u201d measuring temperatures of different colors of sunlight, he noticed the highest reading was in the invisible region just past red.",
+      "fact": "William Herschel discovered infrared radiation in 1800 by accident \u2014 measuring temperatures of different colors of sunlight, he noticed the highest reading was in the invisible region just past red.",
       "source": {
         "url": "https://www.pexels.com/photo/toaster-with-bread-7936648/",
         "attribution": ""
@@ -25395,7 +25473,7 @@ const SEED_DATA = {
           "#011307"
         ]
       ],
-      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km \u00e2\u20ac\u201d the longest can penetrate seawater and are used for submarine communication.",
+      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km \u2014 the longest can penetrate seawater and are used for submarine communication.",
       "source": {
         "url": "https://www.pexels.com/photo/old-fashioned-radio-19924600/",
         "attribution": ""
@@ -26071,7 +26149,7 @@ const SEED_DATA = {
           "#040933"
         ]
       ],
-      "fact": "Johann Ritter discovered ultraviolet in 1801, just one year after infrared. He found that invisible light beyond violet darkened silver chloride faster than visible light \u00e2\u20ac\u201d a discovery that later enabled photography.",
+      "fact": "Johann Ritter discovered ultraviolet in 1801, just one year after infrared. He found that invisible light beyond violet darkened silver chloride faster than visible light \u2014 a discovery that later enabled photography.",
       "source": {
         "url": "https://unsplash.com/photos/a-blue-light-hanging-from-the-ceiling-of-a-room--4Ai-CNqaCM",
         "attribution": ""
@@ -26603,7 +26681,13 @@ const SEED_DATA = {
         "url": "https://www.pexels.com/photo/optical-glass-triangular-prism-3845161/",
         "attribution": "Photo by Design Bits"
       },
-      "image": "0063.jpg"
+      "image": "0063.jpg",
+      "givens": [
+        [
+          0,
+          12
+        ]
+      ]
     },
     "0064": {
       "name": "xray waves",
@@ -26953,7 +27037,7 @@ const SEED_DATA = {
           "#261c1a"
         ]
       ],
-      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km \u00e2\u20ac\u201d the longest can penetrate seawater and are used for submarine communication.",
+      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km \u2014 the longest can penetrate seawater and are used for submarine communication.",
       "source": {
         "url": "https://www.pexels.com/photo/old-fashioned-radio-19924600/",
         "attribution": ""
@@ -27308,7 +27392,7 @@ const SEED_DATA = {
           "#261c1a"
         ]
       ],
-      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km \u00e2\u20ac\u201d the longest can penetrate seawater and are used for submarine communication.",
+      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km \u2014 the longest can penetrate seawater and are used for submarine communication.",
       "source": {
         "url": "https://www.pexels.com/photo/old-fashioned-radio-19924600/",
         "attribution": ""
@@ -28275,7 +28359,7 @@ const SEED_DATA = {
           "#dadbdd"
         ]
       ],
-      "fact": "The average adult has about 5 liters of blood, which travels roughly 19,000 km through blood vessels each day \u00e2\u20ac\u201d nearly halfway around the equator.",
+      "fact": "The average adult has about 5 liters of blood, which travels roughly 19,000 km through blood vessels each day \u2014 nearly halfway around the equator.",
       "source": {
         "url": "https://www.pexels.com/photo/person-in-pink-gloves-holding-a-test-tube-6629361/",
         "attribution": ""
@@ -29207,13 +29291,23 @@ const SEED_DATA = {
           "#caccbe"
         ]
       ],
-      "fact": "A single drop of water contains roughly 1.67 sextillion (1.67 x 10^21) water molecules \u00e2\u20ac\u201d more than the estimated number of stars in the observable universe.",
+      "fact": "A single drop of water contains roughly 1.67 sextillion (1.67 x 10^21) water molecules \u2014 more than the estimated number of stars in the observable universe.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Water_(molecule)",
         "attribution": ""
       },
       "factSource": "https://en.wikipedia.org/wiki/Water_(molecule)",
-      "image": "0070.jpg"
+      "image": "0070.jpg",
+      "givens": [
+        [
+          3,
+          2
+        ],
+        [
+          5,
+          4
+        ]
+      ]
     },
     "0071": {
       "name": "graduated cylinder",
@@ -29583,7 +29677,7 @@ const SEED_DATA = {
           "#b0b6aa"
         ]
       ],
-      "fact": "Graduated cylinders read accurately to about \u00c2\u00b11%. To measure correctly, view the meniscus at eye level and note the bottom of its curve \u00e2\u20ac\u201d the surface tension pulls the liquid up the glass walls.",
+      "fact": "Graduated cylinders read accurately to about \u00b11%. To measure correctly, view the meniscus at eye level and note the bottom of its curve \u2014 the surface tension pulls the liquid up the glass walls.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Graduated_cylinder",
         "attribution": ""
@@ -29638,16 +29732,13 @@ const SEED_DATA = {
           "0036"
         ],
         "Mathematics": [
-          "0051",
           "0052",
           "0054",
           "0055",
           "0056",
-          "0050",
-          "0053"
+          "0050"
         ],
         "Physics": [
-          "0057",
           "0058",
           "0059",
           "0060",
@@ -29658,7 +29749,8 @@ const SEED_DATA = {
         "Astronomy": [],
         "Chemistry": [
           "0069",
-          "0071"
+          "0071",
+          "0070"
         ],
         "Biology": [
           "0068"
@@ -29684,8 +29776,10 @@ const SEED_DATA = {
     "standby": {
       "folders": {},
       "puzzles": [
-        "0062",
-        "0070"
+        "0051",
+        "0053",
+        "0057",
+        "0062"
       ]
     },
     "archive": {
@@ -29720,5 +29814,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 20260831
+  "seedVersion": 2026083102
 };

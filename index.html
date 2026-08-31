@@ -248,6 +248,31 @@
       <ul class="settings-list"></ul>
     </div>
   </div>
+  <!-- Givens explainer — shown once (localStorage picross.givensSeen) the first time
+       a puzzle carrying gift cells opens. Lives INSIDE .layout like every overlay
+       (rotated profiles: body children render sideways — the round-5 lesson). -->
+  <div id="givensModal" class="modal hidden" aria-modal="true" role="dialog">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content givens-card">
+      <div class="givens-slide" data-slide="0">
+        <h2>Gift cells</h2>
+        <div class="givens-demo" aria-hidden="true">
+          <span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell filled given"></span><span class="demo-cell"></span><span class="demo-cell"></span>
+          <span class="demo-cell"></span><span class="demo-cell filled given"></span><span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span>
+          <span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span><span class="demo-cell"></span>
+        </div>
+        <p>Some puzzles begin with a few cells already filled in — gifts to get the logic rolling.</p>
+      </div>
+      <div class="givens-slide hidden" data-slide="1">
+        <h2>Locked, on purpose</h2>
+        <p>Gift cells wear a soft ring and can't be changed. They're always right — build out from them.</p>
+      </div>
+      <div class="givens-nav">
+        <span class="givens-dots"><span class="dot active"></span><span class="dot"></span></span>
+        <button id="givensNext" type="button">Next</button>
+      </div>
+    </div>
+  </div>
   </div>
   <div id="contextMenu" class="hidden"></div>
   <div id="cropModal" class="modal hidden">
