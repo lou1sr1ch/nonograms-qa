@@ -1940,7 +1940,7 @@ function popCell(cell, state) {
 // dpad press after load lands at 0,0.
 let selectedCell = null;
 
-// Given (gift) cells for the active puzzle: a Set of "r,c" keys, planted at
+// Given (hint) cells for the active puzzle: a Set of "r,c" keys, planted at
 // loadPuzzle and re-planted by clearBoard. paintCell refuses to change them,
 // so they never enter the undo stack — the one guard covers tap, drag, and
 // dpad commit, since every solve-mode change funnels through paintCell.
@@ -2050,7 +2050,7 @@ function updateModeButton() {
 
 function paintCell(cell, r, c) {
   const key = `${r},${c}`;
-  if (givenCells.has(key)) return; // gift cells are locked — no paint, no undo entry
+  if (givenCells.has(key)) return; // hint cells are locked — no paint, no undo entry
   if (visited.has(key)) return;
   visited.add(key);
   const prev = board[r][c];
@@ -2319,9 +2319,9 @@ function hideWinModal() {
 }
 
 // --- Givens explainer (recurring until "Don't show again") ------------------
-// Opens EVERY time a puzzle carrying gift cells opens. Only the "Don't show
+// Opens EVERY time a puzzle carrying hint cells opens. Only the "Don't show
 // again" button writes the suppression flag; backdrop and "Got it" dismiss
-// without it, so the card repopulates on the next gift puzzle — Dre's playtest
+// without it, so the card repopulates on the next hint puzzle — Dre's playtest
 // loop (2026-08-31). Prod users get the permanent kill switch on the last
 // slide. (The retired picross.givensSeen key from the one-shot era is inert.)
 function maybeShowGivensExplainer() {
@@ -2350,15 +2350,15 @@ function hideGivensModal() {
   if (btn) btn.textContent = "Next";
 }
 
-// --- 2×2 ambiguity demo (slide 3) -------------------------------------------
+// --- 2×2 ambiguity demo (slide 2) -------------------------------------------
 // A tiny slideshow inside the slideshow: in a 2×2 with every clue equal to 1,
 // BOTH diagonals are valid solutions. The demo cycles solution A -> solution B
-// -> A wearing the gift ring, landing on why gift cells exist. Under
+// -> A wearing the hint ring, landing on why hint cells exist. Under
 // reduce-motion nothing here runs — CSS swaps in the static side-by-side.
 const GIVEN_AMBIG_STATES = [
-  { cells: [0, 3], gift: -1, verdict: "Fits every clue ✓", ms: 1500 },
-  { cells: [1, 2], gift: -1, verdict: "…but so does this one ✓", ms: 1500 },
-  { cells: [0, 3], gift: 0, verdict: "The gift cell breaks the tie", ms: 2600 },
+  { cells: [0, 3], hint: -1, verdict: "Fits every clue ✓", ms: 2000 },
+  { cells: [1, 2], hint: -1, verdict: "…but so does this one ✓", ms: 2000 },
+  { cells: [0, 3], hint: 0, verdict: "The hint cell breaks the tie", ms: 2400 },
 ];
 let givenAmbigTimer = null;
 
@@ -2373,7 +2373,7 @@ function startGivensAmbigDemo(modal) {
     const s = GIVEN_AMBIG_STATES[i];
     cells.forEach((c, idx) => {
       c.classList.toggle("filled", s.cells.includes(idx));
-      c.classList.toggle("given", idx === s.gift);
+      c.classList.toggle("given", idx === s.hint);
     });
     verdict.textContent = s.verdict;
     i = (i + 1) % GIVEN_AMBIG_STATES.length;
@@ -2540,7 +2540,7 @@ function loadPuzzle(id) {
   const w = activePuzzle.truth[0].length;
   applyDimensions(w, h);
   board = createEmptyBoard(w, h);
-  // Plant gift cells before the first render so they appear from the start.
+  // Plant hint cells before the first render so they appear from the start.
   // Seed format: "givens": [[x, y], ...] (0-based col, row); every one is a
   // filled truth cell by construction (asserted in the edit scripts).
   givenCells = new Set();
@@ -2577,7 +2577,7 @@ function clearBoard() {
   for (let r = 0; r < activeH; r++) {
     for (let c = 0; c < activeW; c++) board[r][c] = STATE_EMPTY;
   }
-  // Reset restores the gifts too — they're part of the puzzle's starting state.
+  // Reset restores the hint cells too — they're part of the puzzle's starting state.
   for (const key of givenCells) {
     const [r, c] = key.split(",").map(Number);
     board[r][c] = STATE_FILLED;

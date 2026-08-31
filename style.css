@@ -79,7 +79,7 @@
   --color-steam:    #cfc4b0;  /* muted greybrown, dividers */
   --color-cherry:   #b14040;  /* warm red for "unsaved" / errors */
   --color-leaf:     #6b8e4e;  /* muted green for completed ✓ */
-  --color-caramel:  #e5ac4e;  /* warm gold — gift-cell orbit light */
+  --color-caramel:  #e5ac4e;  /* warm gold — hint-cell orbit light */
 
   /* Solve / app surfaces — gradient endpoints */
   --color-bg-grad-from: var(--color-foam);
@@ -458,35 +458,46 @@ main {
 #board.won .cell.crossed::before { content: ""; }
 #board.won .cell { cursor: default; transition: background-color 0.4s ease; }
 
-/* Given (gift) cells — a golden beam of light traveling the cell's very BORDER,
-   overlaying its gridline (Dre v2 brief: "outlining it with a gold beam of
-   light that slightly thickens in a repeating pattern — sine wave opacity and
-   thickness"). The conic gradient keeps a faint full ring and brightens into a
-   short comet tail; @property animates the start angle (iOS 16.4+; older
-   browsers get the comet resting at the top — still deliberate). A second
-   animation breathes opacity 0.55->1 and thickness 1.5->2.5px on a sine-like
-   curve. Shared by the board and the explainer demos so what you see is what
-   you get. Ring hides on win so the reveal shows pure art. */
+/* Hint (given) cells — TWO golden beams chasing each other around the cell's
+   outline, REPLACING the black gridline (Dre v3 brief: "duplicate the beam on
+   the exact opposite position of the same path, so they are chasing each
+   other"). The board's gridlines are #board's espresso background showing
+   through 1px gaps, so the ring sits at inset:-1px — painting over the gap —
+   and .cell.given gets overflow:visible so the -1px isn't clipped (safe: hint
+   cells are locked, never crossed, so the ×-marker clipping the base rule
+   protects never applies). One conic gradient carries both comets 180° apart
+   plus a faint full ring; @property animates the start angle (iOS 16.4+;
+   older browsers get resting comets — still deliberate). A second animation
+   breathes opacity 0.55->1 and thickness 1.5->2.5px on a sine-like curve.
+   Shared by the board and the explainer demos. Ring hides on win so the
+   reveal shows pure art. */
 @property --given-orbit {
   syntax: "<angle>";
   initial-value: 0deg;
   inherits: false;
 }
+.cell.given { overflow: visible; }
 .cell.given::after,
 .givens-demo .demo-cell.given::after,
 .ga-cell.given::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border: 1.5px solid transparent;
   border-radius: 2px;
   background: conic-gradient(
     from var(--given-orbit, 0deg),
     rgba(229, 172, 78, 0.14) 0deg,
-    rgba(229, 172, 78, 0.14) 245deg,
-    rgba(229, 172, 78, 0.5) 295deg,
-    rgba(229, 172, 78, 0.95) 332deg,
-    rgba(255, 233, 184, 1) 348deg,
+    rgba(229, 172, 78, 0.14) 62deg,
+    rgba(229, 172, 78, 0.5) 90deg,
+    rgba(229, 172, 78, 0.95) 105deg,
+    rgba(255, 233, 184, 1) 112deg,
+    rgba(229, 172, 78, 0.14) 126deg,
+    rgba(229, 172, 78, 0.14) 242deg,
+    rgba(229, 172, 78, 0.5) 270deg,
+    rgba(229, 172, 78, 0.95) 285deg,
+    rgba(255, 233, 184, 1) 292deg,
+    rgba(229, 172, 78, 0.14) 306deg,
     rgba(229, 172, 78, 0.14) 360deg
   ) border-box;
   -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
@@ -494,7 +505,7 @@ main {
           mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
           mask-composite: exclude;
   animation:
-    given-orbit 3.2s linear infinite,
+    given-orbit 2.8s linear infinite,
     given-breathe 2.6s cubic-bezier(0.37, 0, 0.63, 1) infinite;
   pointer-events: none;
 }
@@ -1573,7 +1584,7 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   color: var(--color-espresso);
 }
 
-/* Givens explainer card — compact three-slide intro to gift cells. Flex column:
+/* Givens explainer card — compact three-slide intro to hint cells. Flex column:
    the slides area scrolls if it must, the nav (dots / buttons) is pinned and
    can NEVER fall out of view. max-height is a PERCENTAGE of .modal — the
    rotated root — not vh, which in rotated profiles measures the physical
@@ -1596,12 +1607,17 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   min-height: 0;
   overflow-y: auto;
 }
+/* .hidden is NOT a global utility in this stylesheet — it's scoped per
+   component (.modal.hidden, #contextMenu.hidden…). Slides hid behind nothing
+   for two rounds (the stacked-slides bug Dre reported 2026-08-31); this rule
+   is the actual fix. */
+.givens-slide.hidden { display: none; }
 .givens-slide { animation: givens-in 0.35s ease both; }
 @keyframes givens-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }
 }
-.givens-card h2 { margin: 0 0 6px; font-family: var(--font-display); }
+.givens-card h2 { margin: 0 0 6px; font-family: inherit; }
 .givens-card p { margin: 10px 0 0; line-height: 1.45; font-size: 15px; }
 .givens-demo {
   display: grid;
@@ -1641,7 +1657,6 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
 }
 .ga-cell.filled { background: var(--color-espresso); }
 .ga-anim { margin: 10px 0 2px; }
-.ga-still-empty { margin: 10px 0 2px; }
 .ga-verdict {
   margin-top: 6px;
   min-height: 1.3em;
