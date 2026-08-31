@@ -31,7 +31,7 @@
   <meta name="apple-mobile-web-app-title" content="Nonograms" />
   <meta name="theme-color" content="#faf3e6" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="style.css?v=1788186809" />
+  <link rel="stylesheet" href="style.css?v=1788190004" />
 </head>
 <body>
   <!-- Round 3 (2026-08-27): background layers — see style.css. #topVeil fades the
@@ -261,6 +261,16 @@
   <div id="givensModal" class="modal hidden" aria-modal="true" role="dialog">
     <div class="modal-backdrop"></div>
     <div class="modal-content givens-card">
+      <!-- Shared paint server for the nav icon buttons (gold gradient stroke). -->
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+          <linearGradient id="givensGold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#c79870"/>
+            <stop offset="0.5" stop-color="#e5ac4e"/>
+            <stop offset="1" stop-color="#f6d491"/>
+          </linearGradient>
+        </defs>
+      </svg>
       <div class="givens-slides">
         <div class="givens-slide" data-slide="0">
           <h2>Hint cells</h2>
@@ -306,12 +316,26 @@
           <p>Sometimes the number clues alone can't settle the picture. Both diagonals satisfy every clue here. A hint cell breaks the tie, so you can always find the correct solution.</p>
         </div>
       </div>
+      <!-- Packet-J nav (batch C5): icon buttons with the gold stream, a
+           text-naked "Don't show again" (slide 2 only), and the pagination
+           BAR below — every slot holds its space via visibility, so the row
+           never reflows between slides; only the right-slot icon swaps
+           (arrow -> check, literally "where the right arrow was"). -->
       <div class="givens-nav">
-        <button id="givensBack" type="button">Back</button>
-        <span class="givens-dots"><span class="dot active"></span><span class="dot"></span></span>
+        <button id="givensBack" class="givens-icon" type="button" aria-label="Back">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path class="gi-fill" d="M25 16 H8 M16 7 L8 16 L16 25"/><path class="gi-beam" pathLength="100" d="M25 16 H8 M16 7 L8 16 L16 25"/></svg>
+        </button>
         <button id="givensNever" type="button">Don't show again</button>
-        <button id="givensNext" type="button">Next</button>
+        <span class="givens-primary">
+          <button id="givensNext" class="givens-icon show" type="button" aria-label="Next">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path class="gi-fill" d="M7 16 H24 M16 7 L24 16 L16 25"/><path class="gi-beam" pathLength="100" d="M7 16 H24 M16 7 L24 16 L16 25"/></svg>
+          </button>
+          <button id="givensDone" class="givens-icon" type="button" aria-label="Got it">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path class="gi-fill" d="M7 17.5 L13.5 24 L25 9"/><path class="gi-beam" pathLength="100" d="M7 17.5 L13.5 24 L25 9"/></svg>
+          </button>
+        </span>
       </div>
+      <div class="givens-bar" aria-hidden="true"><span class="givens-bar-dot"></span></div>
     </div>
   </div>
   </div>
@@ -339,8 +363,8 @@
       </div>
     </div>
   </div>
-  <script src="image-manifest.js?v=1788186809"></script>
-  <script src="seed-data.js?v=1788186809"></script>
-  <script src="script.js?v=1788186809"></script>
+  <script src="image-manifest.js?v=1788190004"></script>
+  <script src="seed-data.js?v=1788190004"></script>
+  <script src="script.js?v=1788190004"></script>
 </body>
 </html>

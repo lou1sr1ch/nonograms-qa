@@ -2333,6 +2333,14 @@ function maybeShowGivensExplainer() {
   if (modal) {
     modal.classList.remove("hidden");
     startGivensAmbigDemo(modal);
+    // iOS Safari often never STARTS CSS animations living in a subtree whose
+    // display just flipped (Dre, batch C5: slide 1's demo "isn't animated
+    // until I go to slide 2, then back"). Clear -> reflow -> restore forces
+    // the entrance wave + hint breathe to begin on FIRST open too.
+    const demoCells = modal.querySelectorAll(".givens-demo .demo-cell");
+    demoCells.forEach((c) => { c.style.animation = "none"; });
+    void modal.offsetWidth;
+    demoCells.forEach((c) => { c.style.animation = ""; });
   }
 }
 
@@ -2341,14 +2349,21 @@ function hideGivensModal() {
   if (!modal || modal.classList.contains("hidden")) return;
   modal.classList.add("hidden");
   stopGivensAmbigDemo();
-  // Reset to slide 1 for the next show (the flag makes re-shows rare, but a
-  // fresh profile/new device should never land on the "Got it" state).
+  // Reset to slide 1 + the slide-1 nav state for the next show (the flag makes
+  // re-shows rare, but a fresh profile/new device should never land on the
+  // slide-2 state).
   const slideIdx = 0;
   modal.querySelectorAll(".givens-slide").forEach((s, i) => s.classList.toggle("hidden", i !== slideIdx));
-  modal.querySelectorAll(".givens-dots .dot").forEach((d, i) => d.classList.toggle("active", i === slideIdx));
-  const btn = document.getElementById("givensNext");
-  if (btn) btn.textContent = "Next";
   document.getElementById("givensBack")?.classList.remove("show");
+  document.getElementById("givensNever")?.classList.remove("show", "selected");
+  document.getElementById("givensNext")?.classList.add("show");
+  document.getElementById("givensDone")?.classList.remove("show");
+  modal.querySelector(".givens-bar-dot")?.classList.remove("pos-1", "moving");
+  // The solve screen can't scroll by design — the board must FIT. A fit
+  // measured while this modal (or Safari's URL bar) was settling can leave the
+  // board a hair too tall, clipping the top controls with no way to scroll
+  // (Dre's unreproducible dog-puzzle report, batch C5). Re-fit on close.
+  requestAnimationFrame(() => { try { resizeBoardToFit(); } catch {} });
 }
 
 // --- 2×2 ambiguity demo (slide 2) -------------------------------------------
@@ -2394,33 +2409,47 @@ function stopGivensAmbigDemo() {
 {
   const givensModal = document.getElementById("givensModal");
   const givensNext = document.getElementById("givensNext");
+  const givensDone = document.getElementById("givensDone");
   const givensNever = document.getElementById("givensNever");
   const givensBack = document.getElementById("givensBack");
-  if (givensModal && givensNext) {
-    // One slide-switch path for Next/Back: slides + dots + Next label + Back
-    // visibility all derive from the target index (Back exists because Dre
-    // wanted "a way to go to slide 1 from 2", packet I).
+  if (givensModal && givensNext && givensDone) {
+    const barDot = givensModal.querySelector(".givens-bar-dot");
     const currentGivensSlide = () =>
       [...givensModal.querySelectorAll(".givens-slide")].findIndex(s => !s.classList.contains("hidden"));
+    // One slide-switch path for arrow/back: slides + slot visibility + the bar
+    // dot's squash-stretch trip all derive from the target index. Slots use
+    // VISIBILITY so the row's geometry never changes between slides (packet J).
     const showGivensSlide = (idx) => {
       const slides = [...givensModal.querySelectorAll(".givens-slide")];
       slides.forEach((s, i) => s.classList.toggle("hidden", i !== idx));
-      givensModal.querySelectorAll(".givens-dots .dot").forEach((d, i) => d.classList.toggle("active", i === idx));
-      givensNext.textContent = idx === slides.length - 1 ? "Got it" : "Next";
+      const last = idx === slides.length - 1;
       givensBack?.classList.toggle("show", idx > 0);
+      givensNever?.classList.toggle("show", last);
+      givensNext?.classList.toggle("show", !last);
+      givensDone?.classList.toggle("show", last);
+      if (barDot) {
+        barDot.classList.toggle("pos-1", last);
+        barDot.classList.remove("moving");
+        void barDot.offsetWidth; // restart the stretch on every trip
+        barDot.classList.add("moving");
+      }
     };
     givensNext.addEventListener("click", () => {
       const current = currentGivensSlide();
-      if (current < givensModal.querySelectorAll(".givens-slide").length - 1) {
-        showGivensSlide(current + 1);
-      } else {
-        hideGivensModal(); // "Got it" dismisses WITHOUT suppressing — it repopulates next open
-      }
+      if (current < givensModal.querySelectorAll(".givens-slide").length - 1) showGivensSlide(current + 1);
     });
     givensBack?.addEventListener("click", () => showGivensSlide(Math.max(0, currentGivensSlide() - 1)));
+    givensDone.addEventListener("click", () => {
+      hideGivensModal(); // the check dismisses WITHOUT suppressing — it repopulates next open
+    });
     givensNever?.addEventListener("click", () => {
+      if (givensNever.classList.contains("selected")) return; // spectacle already playing
       try { localStorage.setItem("picross.givensHidden", "1"); } catch {}
-      hideGivensModal();
+      givensNever.classList.add("selected");
+      // Let the selected spectacle read before dismissing (shorter under
+      // reduce-motion, where there's no animation to wait for).
+      const wait = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 250 : 750;
+      setTimeout(hideGivensModal, wait);
     });
     givensModal.querySelector(".modal-backdrop")?.addEventListener("click", hideGivensModal);
   }

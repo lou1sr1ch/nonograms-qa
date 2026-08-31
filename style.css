@@ -459,18 +459,21 @@ main {
 #board.won .cell { cursor: default; transition: background-color 0.4s ease; }
 
 /* Hint (given) cells — TWO golden beams chasing each other around the cell's
-   outline, REPLACING the black gridline (Dre v3 brief: "duplicate the beam on
-   the exact opposite position of the same path, so they are chasing each
-   other"). The board's gridlines are #board's espresso background showing
-   through 1px gaps, so the ring sits at inset:-1px — painting over the gap —
-   and .cell.given gets overflow:visible so the -1px isn't clipped (safe: hint
-   cells are locked, never crossed, so the ×-marker clipping the base rule
-   protects never applies). One conic gradient carries both comets 180° apart
-   plus a faint full ring; @property animates the start angle (iOS 16.4+;
-   older browsers get resting comets — still deliberate). A second animation
-   breathes opacity 0.55->1 and thickness 1.5->2.5px on a sine-like curve.
-   Shared by the board and the explainer demos. Ring hides on win so the
-   reveal shows pure art. */
+   outline, centered ON the gridline with an intentional slight bleed into
+   adjacent cells (Dre v4, batch C5: "sitting in the middle of the outline/grid
+   lines… i'd like to change [the no-bleed] intentionally now"). inset:-1.5px
+   puts the breathe range's centerline mid-gap; z-index:1 lifts the ::after
+   above sibling cells' backgrounds so the bleed is symmetric on all four
+   sides (positioned cells paint in DOM order otherwise, hiding the bleed
+   under later siblings). .cell.given keeps overflow:visible so nothing clips
+   (safe: hint cells are locked, never crossed). One conic gradient carries
+   both comets 180° apart plus a faint full ring; v4 retune per Dre: LONGER
+   tails (~74° fade-up behind each head), fainter base ring, and a MORE
+   pronounced head→tail contrast, while the breathe's OPACITY sine amplitude
+   drops (0.78↔1 — the pulse he felt was too strong); thickness still
+   1.5↔2.5px. @property animates the start angle (iOS 16.4+; older browsers
+   get resting comets — still deliberate). Shared by board + explainer demos.
+   Ring hides on win so the reveal shows pure art. */
 @property --given-orbit {
   syntax: "<angle>";
   initial-value: 0deg;
@@ -482,23 +485,30 @@ main {
 .ga-cell.given::after {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: -1.5px;
+  z-index: 1;
   border: 1.5px solid transparent;
   border-radius: 2px;
   background: conic-gradient(
     from var(--given-orbit, 0deg),
-    rgba(229, 172, 78, 0.14) 0deg,
-    rgba(229, 172, 78, 0.14) 62deg,
-    rgba(229, 172, 78, 0.5) 90deg,
-    rgba(229, 172, 78, 0.95) 105deg,
-    rgba(255, 233, 184, 1) 112deg,
-    rgba(229, 172, 78, 0.14) 126deg,
-    rgba(229, 172, 78, 0.14) 242deg,
-    rgba(229, 172, 78, 0.5) 270deg,
-    rgba(229, 172, 78, 0.95) 285deg,
-    rgba(255, 233, 184, 1) 292deg,
-    rgba(229, 172, 78, 0.14) 306deg,
-    rgba(229, 172, 78, 0.14) 360deg
+    rgba(229, 172, 78, 0.10) 0deg,
+    rgba(229, 172, 78, 0.10) 40deg,
+    rgba(229, 172, 78, 0.22) 70deg,
+    rgba(229, 172, 78, 0.45) 92deg,
+    rgba(229, 172, 78, 0.75) 105deg,
+    rgba(229, 172, 78, 0.95) 110deg,
+    rgba(255, 233, 184, 1) 114deg,
+    rgba(229, 172, 78, 0.25) 120deg,
+    rgba(229, 172, 78, 0.10) 126deg,
+    rgba(229, 172, 78, 0.10) 220deg,
+    rgba(229, 172, 78, 0.22) 250deg,
+    rgba(229, 172, 78, 0.45) 272deg,
+    rgba(229, 172, 78, 0.75) 285deg,
+    rgba(229, 172, 78, 0.95) 290deg,
+    rgba(255, 233, 184, 1) 294deg,
+    rgba(229, 172, 78, 0.25) 300deg,
+    rgba(229, 172, 78, 0.10) 306deg,
+    rgba(229, 172, 78, 0.10) 360deg
   ) border-box;
   -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
@@ -513,7 +523,7 @@ main {
   to { --given-orbit: 360deg; }
 }
 @keyframes given-breathe {
-  0%, 100% { opacity: 0.55; border-width: 1.5px; }
+  0%, 100% { opacity: 0.78; border-width: 1.5px; }
   50%      { opacity: 1;    border-width: 2.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1724,51 +1734,164 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
     margin: 10px 0 2px;
   }
 }
+/* Packet-J nav (batch C5): gold-stream icon buttons, a text-naked "Don't
+   show again" (slide 2 only), and a squash-stretch pagination BAR instead of
+   dots. EVERY slot holds its geometry across slides via visibility (never
+   display) — Dre disliked how much the row changed between slides; now only
+   the right-slot icon swaps. */
 .givens-nav {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 12px;
 }
-.givens-dots .dot {
-  display: inline-block;
-  width: 6px; height: 6px;
-  border-radius: 50%;
+#givensBack, #givensNever, #givensNext, #givensDone { visibility: hidden; }
+#givensBack.show, #givensNever.show, #givensNext.show, #givensDone.show { visibility: visible; }
+.givens-primary { display: grid; }
+.givens-primary > * { grid-area: 1 / 1; }   /* arrow and check share one slot */
+
+/* Icon buttons: a thick stroke filled with the shared gold gradient, plus a
+   brighter thin stroke on top carrying TWO dash comets (pathLength="100"
+   normalizes the dash math) — the hint ring's twin-beam stream riding the
+   icon itself. Padding is invisible hitbox (~44px); the icon reads naked. */
+.givens-icon {
+  background: none;
+  border: none;
+  padding: 7px;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+}
+.givens-icon svg {
+  width: 30px; height: 30px;
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 0 3px rgba(229, 172, 78, 0.35));
+  transition: transform 0.15s ease;
+}
+.givens-icon:active svg { transform: scale(0.9); }
+.gi-fill {
+  fill: none;
+  stroke: url(#givensGold);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gi-beam {
+  fill: none;
+  stroke: rgba(255, 240, 205, 0.95);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 9 41 9 41;
+  animation: gi-stream 2.8s linear infinite;
+}
+@keyframes gi-stream { to { stroke-dashoffset: -100; } }
+
+/* "Don't show again": naked light-grey text (his "hollow/grey"), slightly
+   larger, generous invisible hitbox. On tap it plays the SELECTED spectacle
+   before the card dismisses (~750ms): a gold shimmer sweeps through the
+   letters (gradient clipped to text), the text jelly-pops, a halo blooms,
+   and a single comet sprints around the invisible bounds — the "padding
+   ghost" ring. Reduce-motion gets his stated plan B: plain cocoa text. */
+#givensNever {
+  background: none;
+  border: none;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: 500;
+  color: var(--color-steam);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s ease;
+}
+#givensNever.selected {
+  color: transparent;
+  background: linear-gradient(100deg,
+    var(--color-cocoa) 0%, var(--color-caramel) 35%, #ffecc0 50%,
+    var(--color-caramel) 65%, var(--color-cocoa) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation:
+    never-shimmer 0.9s cubic-bezier(0.3, 0, 0.2, 1) both,
+    never-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    never-glow 0.7s ease-out both;
+}
+@keyframes never-shimmer {
+  from { background-position: 120% 0; }
+  to   { background-position: -20% 0; }
+}
+@keyframes never-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.12); }
+  100% { transform: scale(1.04); }
+}
+@keyframes never-glow {
+  from { box-shadow: 0 0 0 0 rgba(229, 172, 78, 0.55); }
+  to   { box-shadow: 0 0 20px 8px rgba(229, 172, 78, 0); }
+}
+#givensNever.selected::after {
+  content: "";
+  position: absolute;
+  inset: 3px 5px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  background: conic-gradient(
+    from var(--given-orbit, 0deg),
+    rgba(229, 172, 78, 0) 0deg,
+    rgba(229, 172, 78, 0) 250deg,
+    rgba(255, 233, 184, 0.95) 285deg,
+    rgba(229, 172, 78, 0) 322deg,
+    rgba(229, 172, 78, 0) 360deg
+  ) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: given-orbit 0.9s linear infinite;
+  pointer-events: none;
+}
+
+/* Pagination as a BAR (his squash-and-stretch brief): one oval dot on a slim
+   track; on slide change it travels end to end, stretching long mid-flight,
+   squashing on landing, then settling back to neutral. */
+.givens-bar {
+  flex: none;
+  position: relative;
+  height: 4px;
+  margin: 10px 2px 0;
+  border-radius: 999px;
   background: var(--color-oat);
-  margin-right: 5px;
 }
-.givens-dots .dot.active { background: var(--color-espresso); }
-#givensNever,
-#givensBack {
-  background: transparent;
-  color: var(--color-cocoa);
-  border: none;
-  padding: 8px 4px;
-  font-family: inherit;
-  font-size: 13px;
-  cursor: pointer;
+.givens-bar-dot {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 18px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 999px;
+  background: var(--color-espresso);
+  transition: left 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
-/* Back holds its space while invisible on slide 1 (visibility, not display) so
-   the dots/Never/Next positions don't reflow between slides. */
-#givensBack { visibility: hidden; }
-#givensBack.show { visibility: visible; }
-/* Mirrors the active Fill half of #modeBtn — same gradient tokens, radius and
-   shadow (habit 4: "make X look like Y" means share Y's definition). First
-   piece of the post-push visual-revamp language Dre wants to explore. */
-#givensNext {
-  background: linear-gradient(135deg, var(--color-espresso) 0%, var(--color-cocoa) 100%);
-  color: var(--color-foam);
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 8px 18px;
-  font-family: inherit;
-  font-size: 15px;
-  cursor: pointer;
-  box-shadow: var(--shadow-soft);
+.givens-bar-dot.pos-1 { left: calc(100% - 18px); }
+.givens-bar-dot.moving { animation: dot-stretch 0.45s cubic-bezier(0.4, 0, 0.2, 1) both; }
+@keyframes dot-stretch {
+  0%   { transform: scale(1, 1); }
+  35%  { transform: scale(1.9, 0.7); }
+  70%  { transform: scale(0.85, 1.15); }
+  100% { transform: scale(1, 1); }
 }
-#givensNext:active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) {
+  .gi-beam { animation: none; }
+  .givens-bar-dot { transition: none; }
+  .givens-bar-dot.moving { animation: none; }
+  #givensNever.selected { animation: none; color: var(--color-cocoa); background: none; }
+  #givensNever.selected::after { display: none; }
+}
 .modal-header {
   display: flex;
   align-items: center;
