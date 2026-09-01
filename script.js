@@ -2353,7 +2353,15 @@ function hideGivensModal() {
   // re-shows rare, but a fresh profile/new device should never land on the
   // slide-2 state).
   const slideIdx = 0;
-  modal.querySelectorAll(".givens-slide").forEach((s, i) => s.classList.toggle("hidden", i !== slideIdx));
+  givensSlideIdx = slideIdx;
+  if (givensSlideTimer) { // cancel a mid-flight travel cleanup (see its comment)
+    clearTimeout(givensSlideTimer);
+    givensSlideTimer = null;
+  }
+  modal.querySelectorAll(".givens-slide").forEach((s, i) => {
+    s.classList.toggle("hidden", i !== slideIdx);
+    s.classList.remove("exit-left", "exit-right", "enter-left", "enter-right");
+  });
   document.getElementById("givensBack")?.classList.remove("show");
   document.getElementById("givensNever")?.classList.remove("show", "selected");
   document.getElementById("givensNext")?.classList.add("show");
@@ -2406,6 +2414,15 @@ function stopGivensAmbigDemo() {
   }
 }
 
+// Slide-travel state (batch C6): tracked, not derived from .hidden — during a
+// transition BOTH slides are unhidden, so a findIndex would report the old
+// slide and eat a fast Back tap. The timer is shared with hideGivensModal:
+// closing mid-travel must cancel the cleanup, else the stale timeout would
+// re-hide slide 1 behind the closed modal and the next open would show a
+// blank card (both slides hidden).
+let givensSlideIdx = 0;
+let givensSlideTimer = null;
+
 {
   const givensModal = document.getElementById("givensModal");
   const givensNext = document.getElementById("givensNext");
@@ -2414,31 +2431,59 @@ function stopGivensAmbigDemo() {
   const givensBack = document.getElementById("givensBack");
   if (givensModal && givensNext && givensDone) {
     const barDot = givensModal.querySelector(".givens-bar-dot");
-    const currentGivensSlide = () =>
-      [...givensModal.querySelectorAll(".givens-slide")].findIndex(s => !s.classList.contains("hidden"));
-    // One slide-switch path for arrow/back: slides + slot visibility + the bar
-    // dot's squash-stretch trip all derive from the target index. Slots use
-    // VISIBILITY so the row's geometry never changes between slides (packet J).
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const SLIDE_TRAVEL_MS = 340; // 0.32s keyframes + a hair
+    const TRAVEL_CLASSES = ["exit-left", "exit-right", "enter-left", "enter-right"];
+    // One slide-switch path for arrow/back: slots use VISIBILITY so the row's
+    // geometry never changes (packet J), the bar dot's squash-stretch trip
+    // derives from the target index, and the slides themselves travel
+    // DIRECTIONALLY (batch C6) — forward sends the old slide off left with
+    // the new one coming in from the right; back mirrors it.
     const showGivensSlide = (idx) => {
       const slides = [...givensModal.querySelectorAll(".givens-slide")];
-      slides.forEach((s, i) => s.classList.toggle("hidden", i !== idx));
+      const current = givensSlideIdx;
       const last = idx === slides.length - 1;
       givensBack?.classList.toggle("show", idx > 0);
       givensNever?.classList.toggle("show", last);
       givensNext?.classList.toggle("show", !last);
       givensDone?.classList.toggle("show", last);
+      if (idx === current) return;
+      givensSlideIdx = idx;
       if (barDot) {
         barDot.classList.toggle("pos-1", last);
         barDot.classList.remove("moving");
         void barDot.offsetWidth; // restart the stretch on every trip
         barDot.classList.add("moving");
       }
+      const oldSlide = slides[current], newSlide = slides[idx];
+      if (givensSlideTimer) { // a travel is already mid-flight — take it over
+        clearTimeout(givensSlideTimer);
+        givensSlideTimer = null;
+      }
+      slides.forEach(s => s.classList.remove(...TRAVEL_CLASSES));
+      if (reduceMotion) { // instant swap, nothing to animate
+        oldSlide.classList.add("hidden");
+        newSlide.classList.remove("hidden");
+        return;
+      }
+      const forward = idx > current;
+      void oldSlide.offsetWidth; // restart both travel animations fresh
+      oldSlide.classList.add(forward ? "exit-left" : "exit-right");
+      newSlide.classList.remove("hidden");
+      newSlide.classList.add(forward ? "enter-right" : "enter-left");
+      // Park the exited slide once its trip ends — a timer, not animationend,
+      // so cleanup can't be stranded if the animation never starts.
+      givensSlideTimer = setTimeout(() => {
+        oldSlide.classList.add("hidden");
+        oldSlide.classList.remove("exit-left", "exit-right");
+        newSlide.classList.remove("enter-left", "enter-right");
+        givensSlideTimer = null;
+      }, SLIDE_TRAVEL_MS);
     };
     givensNext.addEventListener("click", () => {
-      const current = currentGivensSlide();
-      if (current < givensModal.querySelectorAll(".givens-slide").length - 1) showGivensSlide(current + 1);
+      if (givensSlideIdx < givensModal.querySelectorAll(".givens-slide").length - 1) showGivensSlide(givensSlideIdx + 1);
     });
-    givensBack?.addEventListener("click", () => showGivensSlide(Math.max(0, currentGivensSlide() - 1)));
+    givensBack?.addEventListener("click", () => showGivensSlide(Math.max(0, givensSlideIdx - 1)));
     givensDone.addEventListener("click", () => {
       hideGivensModal(); // the check dismisses WITHOUT suppressing — it repopulates next open
     });

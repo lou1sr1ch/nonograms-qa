@@ -31,7 +31,7 @@
   <meta name="apple-mobile-web-app-title" content="Nonograms" />
   <meta name="theme-color" content="#faf3e6" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="style.css?v=1788190004" />
+  <link rel="stylesheet" href="style.css?v=1788244739" />
 </head>
 <body>
   <!-- Round 3 (2026-08-27): background layers — see style.css. #topVeil fades the
@@ -257,7 +257,8 @@
        row shows their golden ring), then why — the 2×2 demo cycling both
        diagonals past the same clues until the hint breaks the tie.
        NOTE: .hidden is SCOPED in this stylesheet, not global — slides hide via
-       .givens-slide.hidden in style.css (the stacked-slides bug, 2026-08-31). -->
+       .givens-slide.hidden (visibility, not display: both slides share one
+       grid cell so they can travel directionally on switch, batch C6). -->
   <div id="givensModal" class="modal hidden" aria-modal="true" role="dialog">
     <div class="modal-backdrop"></div>
     <div class="modal-content givens-card">
@@ -363,8 +364,8 @@
       </div>
     </div>
   </div>
-  <script src="image-manifest.js?v=1788190004"></script>
-  <script src="seed-data.js?v=1788190004"></script>
-  <script src="script.js?v=1788190004"></script>
+  <script src="image-manifest.js?v=1788244739"></script>
+  <script src="seed-data.js?v=1788244739"></script>
+  <script src="script.js?v=1788244739"></script>
 </body>
 </html>

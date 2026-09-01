@@ -1616,15 +1616,37 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
   flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
+  display: grid;
 }
 /* .hidden is NOT a global utility in this stylesheet — it's scoped per
    component (.modal.hidden, #contextMenu.hidden…). Slides hid behind nothing
-   for two rounds (the stacked-slides bug Dre reported 2026-08-31); this rule
-   is the actual fix. */
-.givens-slide.hidden { display: none; }
-.givens-slide { animation: givens-in 0.35s ease both; }
-@keyframes givens-in {
-  from { opacity: 0; transform: translateY(8px); }
+   for two rounds (the stacked-slides bug Dre reported 2026-08-31); display:none
+   fixed that, then batch C6 (Dre): slides must travel DIRECTIONALLY — Next
+   sends the current slide off left while the new one enters from the right,
+   Back mirrors it — which needs both slides laid out at once. So the stack is
+   one shared grid cell (the .givens-primary icon-slot trick) and "hidden" now
+   means visibility. Bonus: the container is always as tall as the tallest
+   slide, so the nav row never shifts between slides. */
+.givens-slide { grid-area: 1 / 1; }
+.givens-slide.hidden { visibility: hidden; opacity: 0; }
+.givens-slide.exit-left   { animation: givens-exit-left 0.32s ease both; }
+.givens-slide.exit-right  { animation: givens-exit-right 0.32s ease both; }
+.givens-slide.enter-left  { animation: givens-enter-left 0.32s ease both; }
+.givens-slide.enter-right { animation: givens-enter-right 0.32s ease both; }
+@keyframes givens-exit-left {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-26px); }
+}
+@keyframes givens-exit-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(26px); }
+}
+@keyframes givens-enter-left {
+  from { opacity: 0; transform: translateX(-26px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes givens-enter-right {
+  from { opacity: 0; transform: translateX(26px); }
   to   { opacity: 1; transform: none; }
 }
 /* Dre's "same font as the text" ask (packet H) looked unfulfilled even with
@@ -1721,7 +1743,9 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
 /* Static reduce-motion variant of slide 3: both solutions side by side. */
 .ga-still { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .givens-slide { animation: none; }
+  .givens-slide,
+  .givens-slide.exit-left, .givens-slide.exit-right,
+  .givens-slide.enter-left, .givens-slide.enter-right { animation: none; }
   .ga-cell { transition: none; }
   .ga-cell.blink { animation: none; }
   .givens-demo .demo-cell,
@@ -1857,12 +1881,15 @@ body.editor-mode #modeSwitch:hover { background: var(--color-foam); color: var(-
 
 /* Pagination as a BAR (his squash-and-stretch brief): one oval dot on a slim
    track; on slide change it travels end to end, stretching long mid-flight,
-   squashing on landing, then settling back to neutral. */
+   squashing on landing, then settling back to neutral. Track is a third of
+   the card width (Dre, batch C6 — full-width read long for only two slides);
+   auto margins keep it centered under the nav row. */
 .givens-bar {
   flex: none;
   position: relative;
+  width: 34%;
   height: 4px;
-  margin: 10px 2px 0;
+  margin: 10px auto 0;
   border-radius: 999px;
   background: var(--color-oat);
 }
