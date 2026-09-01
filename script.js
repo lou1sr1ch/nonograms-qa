@@ -916,6 +916,32 @@ function buildSettingsModal() {
     li.appendChild(toggle);
     list.appendChild(li);
   }
+  // Replay row for the givens explainer (batch C7): the recovery path for a
+  // device where "Don't show again" is armed — replay the card and disarm the
+  // toggle there. Also the only way to re-review the guide on demand.
+  const replayLi = document.createElement("li");
+  replayLi.className = "setting-row";
+  const replayWrap = document.createElement("div");
+  replayWrap.className = "setting-label-wrap";
+  const replayName = document.createElement("span");
+  replayName.className = "setting-name";
+  replayName.textContent = "Hint-cell guide";
+  const replayDesc = document.createElement("span");
+  replayDesc.className = "setting-desc";
+  replayDesc.textContent = "Replay the two-slide intro to hint cells, or change its Don't-show-again toggle.";
+  replayWrap.appendChild(replayName);
+  replayWrap.appendChild(replayDesc);
+  replayLi.appendChild(replayWrap);
+  const replayBtn = document.createElement("button");
+  replayBtn.type = "button";
+  replayBtn.className = "setting-action-btn";
+  replayBtn.textContent = "Replay";
+  replayBtn.addEventListener("click", () => {
+    closeSettingsModal();
+    showGivensExplainer();
+  });
+  replayLi.appendChild(replayBtn);
+  list.appendChild(replayLi);
 }
 
 // === User-mode navigation (Home → Categories → Puzzles → Solve) ===
@@ -926,11 +952,21 @@ function initUserNav() {
   });
 }
 
+// Where the puzzles list was scrolled when a puzzle opened — restored on Back
+// so the player returns to the same spot. (2026-09-01: the solve-lock fix
+// below zeroes the offset the list used to KEEP accidentally via the
+// lazy-clamp bug — this preserves the convenience without the bug.)
+let savedPuzzleListScroll = 0;
+
 function setUserScreen(name) {
   if (currentUserScreen !== null && currentUserScreen !== name) sfx.swoosh();
+  const leavingScreen = currentUserScreen;
+  if (name === "solve" && leavingScreen !== "solve") {
+    savedPuzzleListScroll = window.scrollY || document.documentElement.scrollTop || 0;
+  }
   // Reset scroll BEFORE the screen class changes. html/body scroll on the list
   // screens (overflow-y: auto), but the solve view locks scrolling
-  // (overflow: hidden; height: 100dvh). Tapping a puzzle from a scrolled-down list
+  // (html.solve-lock, below). Tapping a puzzle from a scrolled-down list
   // therefore carried that offset into a view that can no longer scroll — the top
   // control row sat clipped off-screen with no way to reach it. Must happen while
   // the page is still scrollable, hence before dataset.screen is reassigned.
@@ -940,9 +976,28 @@ function setUserScreen(name) {
   document.body.scrollTop = 0;
   currentUserScreen = name;
   document.body.dataset.screen = name;
+  // The real lock for that same bug class, finally reproduced 2026-09-01
+  // (plains, Geomorphology — the "dog glitch"): WebKit does NOT reliably
+  // re-clamp scrollTop when the list's display:none shrinks the document, so
+  // the resets above could still lose to a lazy re-clamp (or a stale offset
+  // could never be clamped at all) — the solve view rendered shifted up, top
+  // controls clipped, dead space below, no way to scroll. With overflow:hidden
+  // on the ROOT scroller there is no scroll range for an offset to live in.
+  document.documentElement.classList.toggle("solve-lock", name === "solve");
   if (name !== "solve") hideGivensModal(); // never leave the explainer floating over list screens
   if (name === "category") buildUserCategoryList();
-  else if (name === "puzzles") buildUserPuzzleList(currentUserCategoryName);
+  else if (name === "puzzles") {
+    buildUserPuzzleList(currentUserCategoryName);
+    // Back from solve returns the list to where it was (the reset zeroed it).
+    if (leavingScreen === "solve" && savedPuzzleListScroll > 0) {
+      const y = savedPuzzleListScroll;
+      requestAnimationFrame(() => {
+        window.scrollTo(0, y);
+        document.documentElement.scrollTop = y;
+        document.body.scrollTop = y;
+      });
+    }
+  }
   // Rotation depends on data-screen === "solve"; clear it when leaving solve
   // so the app doesn't stay rotated on category/home screens.
   updateRotationClass();
@@ -961,6 +1016,16 @@ function setUserScreen(name) {
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
     });
+    // Late straggler pass (2026-09-01): once the entry transition has settled,
+    // re-zero and re-fit — a fit measured against a transient viewport, or an
+    // offset that somehow slipped both resets, gets corrected instead of stuck.
+    setTimeout(() => {
+      if (currentUserScreen !== "solve") return;
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      try { resizeBoardToFit(); } catch {}
+    }, 350);
   }
 }
 
@@ -2318,30 +2383,41 @@ function hideWinModal() {
   modal?.querySelector(".win-preview-wrap")?.classList.remove("show-photo");
 }
 
-// --- Givens explainer (recurring until "Don't show again") ------------------
-// Opens EVERY time a puzzle carrying hint cells opens. Only the "Don't show
-// again" button writes the suppression flag; backdrop and "Got it" dismiss
-// without it, so the card repopulates on the next hint puzzle — Dre's playtest
-// loop (2026-08-31). Prod users get the permanent kill switch on the last
-// slide. (The retired picross.givensSeen key from the one-shot era is inert.)
+// --- Givens explainer (recurring until "Don't show again" is ARMED) ---------
+// Opens EVERY time a puzzle carrying hint cells opens, unless the "Don't show
+// again" toggle is armed. The toggle (batch C7, Dre) only ARMS/DISARMS — the
+// card stays open and the check (or backdrop) closes it; the flag writes at
+// toggle time so any close path commits the armed state. Settings → "Hint-cell
+// guide" replays the card on demand — the recovery path for an armed device
+// (Dre hit exactly this: armed it expecting a toggle, locked himself out of
+// re-reviewing). (The retired picross.givensSeen key from the one-shot era is
+// inert.)
 function maybeShowGivensExplainer() {
   if (editorMode || givenCells.size === 0) return;
   try {
     if (localStorage.getItem("picross.givensHidden")) return;
   } catch {}
+  showGivensExplainer();
+}
+
+function showGivensExplainer() {
   const modal = document.getElementById("givensModal");
-  if (modal) {
-    modal.classList.remove("hidden");
-    startGivensAmbigDemo(modal);
-    // iOS Safari often never STARTS CSS animations living in a subtree whose
-    // display just flipped (Dre, batch C5: slide 1's demo "isn't animated
-    // until I go to slide 2, then back"). Clear -> reflow -> restore forces
-    // the entrance wave + hint breathe to begin on FIRST open too.
-    const demoCells = modal.querySelectorAll(".givens-demo .demo-cell");
-    demoCells.forEach((c) => { c.style.animation = "none"; });
-    void modal.offsetWidth;
-    demoCells.forEach((c) => { c.style.animation = ""; });
-  }
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  // Reflect the current flag on the toggle — a settings replay can open the
+  // card with suppression already armed.
+  try {
+    modal.querySelector("#givensNever")?.classList.toggle("selected", !!localStorage.getItem("picross.givensHidden"));
+  } catch {}
+  startGivensAmbigDemo(modal);
+  // iOS Safari often never STARTS CSS animations living in a subtree whose
+  // display just flipped (Dre, batch C5: slide 1's demo "isn't animated
+  // until I go to slide 2, then back"). Clear -> reflow -> restore forces
+  // the entrance wave + hint breathe to begin on FIRST open too.
+  const demoCells = modal.querySelectorAll(".givens-demo .demo-cell");
+  demoCells.forEach((c) => { c.style.animation = "none"; });
+  void modal.offsetWidth;
+  demoCells.forEach((c) => { c.style.animation = ""; });
 }
 
 function hideGivensModal() {
@@ -2488,13 +2564,15 @@ let givensSlideTimer = null;
       hideGivensModal(); // the check dismisses WITHOUT suppressing — it repopulates next open
     });
     givensNever?.addEventListener("click", () => {
-      if (givensNever.classList.contains("selected")) return; // spectacle already playing
-      try { localStorage.setItem("picross.givensHidden", "1"); } catch {}
-      givensNever.classList.add("selected");
-      // Let the selected spectacle read before dismissing (shorter under
-      // reduce-motion, where there's no animation to wait for).
-      const wait = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 250 : 750;
-      setTimeout(hideGivensModal, wait);
+      // TOGGLE (batch C7, Dre): arm/disarm only — the card no longer dismisses
+      // itself; the check (or backdrop) closes it. The flag writes immediately
+      // either way, so any close path commits the armed state. Re-arming
+      // replays the spectacle (removing the class restarts the one-shots).
+      const armed = givensNever.classList.toggle("selected");
+      try {
+        if (armed) localStorage.setItem("picross.givensHidden", "1");
+        else localStorage.removeItem("picross.givensHidden");
+      } catch {}
     });
     givensModal.querySelector(".modal-backdrop")?.addEventListener("click", hideGivensModal);
   }

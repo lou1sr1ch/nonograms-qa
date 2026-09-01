@@ -31,7 +31,7 @@
   <meta name="apple-mobile-web-app-title" content="Nonograms" />
   <meta name="theme-color" content="#faf3e6" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="style.css?v=1788244739" />
+  <link rel="stylesheet" href="style.css?v=1788246722" />
 </head>
 <body>
   <!-- Round 3 (2026-08-27): background layers — see style.css. #topVeil fades the
@@ -249,9 +249,11 @@
     </div>
   </div>
   <!-- Givens explainer — RECURRING: opens every time a puzzle carrying hint
-       cells opens, until the player taps "Don't show again" (the ONLY writer of
-       localStorage picross.givensHidden). Backdrop / Got it dismiss without
-       setting it, so it repopulates next open — Dre's playtest loop. Lives
+       cells opens, unless the "Don't show again" TOGGLE is armed (batch C7:
+       tapping it only arms/disarms — spectacle and all — and the check or
+       backdrop closes the card; the flag writes at toggle time. Settings →
+       "Hint-cell guide" replays the card on demand, the recovery path for an
+       armed device). Lives
        INSIDE .layout like every overlay (rotated profiles: body children render
        sideways — the round-5 lesson). Two slides: what hint cells are (the demo
        row shows their golden ring), then why — the 2×2 demo cycling both
@@ -364,8 +366,8 @@
       </div>
     </div>
   </div>
-  <script src="image-manifest.js?v=1788244739"></script>
-  <script src="seed-data.js?v=1788244739"></script>
-  <script src="script.js?v=1788244739"></script>
+  <script src="image-manifest.js?v=1788246722"></script>
+  <script src="seed-data.js?v=1788246722"></script>
+  <script src="script.js?v=1788246722"></script>
 </body>
 </html>

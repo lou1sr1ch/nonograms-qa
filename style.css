@@ -245,6 +245,16 @@ html, body {
 html { background: var(--color-bg-grad-from); }
 body { background: transparent; }
 
+/* Solve-screen scroll lock (2026-09-01 — the "dog glitch," finally reproduced
+   as plains/Geomorphology). html/body stay overflow-y:auto (itch iframe) and
+   the list screens scroll the BODY — but WebKit does NOT reliably re-clamp
+   scrollTop when the list's display:none shrinks the document on the way into
+   solve: the stale offset persists visually with no scroll range — top
+   controls clipped above the viewport, dead space below, "can't scroll." JS
+   toggles .solve-lock on <html> alongside data-screen; with no scroll range
+   on the ROOT scroller, no offset can live there at all. */
+html.solve-lock, html.solve-lock body { overflow: hidden; }
+
 /* === Safe-area insets (edge-to-edge, 2026-08-16) ===
    index.html sets viewport-fit=cover, so the viewport now covers the entire physical
    screen — including behind the status bar and home indicator. The background lives on
@@ -2028,6 +2038,21 @@ body.rotate-app .modal-content {
 .setting-toggle:checked { background: var(--color-leaf); }
 .setting-toggle:checked::after { transform: translateX(16px); background: var(--color-foam); }
 .setting-row.disabled { opacity: 0.5; }
+/* Action-button rows in settings (2026-09-01: the "Hint-cell guide — Replay"
+   row) — same visual weight as the toggle, but a pill button. */
+.setting-action-btn {
+  flex: 0 0 auto;
+  background: var(--color-espresso);
+  color: var(--color-foam);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
 
 #settingsBtn,
 #fontDevBtn {
