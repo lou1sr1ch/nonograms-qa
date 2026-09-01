@@ -958,6 +958,26 @@ function initUserNav() {
 // lazy-clamp bug — this preserves the convenience without the bug.)
 let savedPuzzleListScroll = 0;
 
+// Zero EVERY scroller on the solve path (batch C8). overflow:hidden elements
+// are still PROGRAMMATICALLY scrollable — a stray scrollTop on .layout/main/
+// .puzzle-and-ref (or one surviving on html/body despite the lock) shifts the
+// whole solve view exactly like the C7 dog glitch, and on iOS the hit-testing
+// desyncs from the shifted visuals: small targets (the explainer's gold
+// arrow) go dead while the full-screen backdrop still catches taps. The CSS
+// side of the fix is overflow:clip on all five containers (no scroll container
+// = no offset, ever); this is the belt-and-braces for engines without clip.
+function zeroSolveScroll() {
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  const layout = document.querySelector(".layout");
+  if (layout && layout.scrollTop) layout.scrollTop = 0;
+  const main = document.querySelector(".layout main");
+  if (main && main.scrollTop) main.scrollTop = 0;
+  const pnr = document.querySelector(".puzzle-and-ref");
+  if (pnr && pnr.scrollTop) pnr.scrollTop = 0;
+}
+
 function setUserScreen(name) {
   if (currentUserScreen !== null && currentUserScreen !== name) sfx.swoosh();
   const leavingScreen = currentUserScreen;
@@ -970,10 +990,9 @@ function setUserScreen(name) {
   // therefore carried that offset into a view that can no longer scroll — the top
   // control row sat clipped off-screen with no way to reach it. Must happen while
   // the page is still scrollable, hence before dataset.screen is reassigned.
-  // Reported 2026-08-21.
-  window.scrollTo(0, 0);
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
+  // Reported 2026-08-21. (C8: zeroSolveScroll also covers .layout/main/
+  // .puzzle-and-ref — programmatic-only scrollers the window resets can't see.)
+  zeroSolveScroll();
   currentUserScreen = name;
   document.body.dataset.screen = name;
   // The real lock for that same bug class, finally reproduced 2026-09-01
@@ -1012,22 +1031,33 @@ function setUserScreen(name) {
       // unrecoverable — the app looks shifted up (logo behind the status bar) or
       // down (bottom controls clipped) with no way to correct it. Resetting before
       // the screen switch can't catch a scroll that happens after it.
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
+      zeroSolveScroll();
     });
     // Late straggler pass (2026-09-01): once the entry transition has settled,
     // re-zero and re-fit — a fit measured against a transient viewport, or an
     // offset that somehow slipped both resets, gets corrected instead of stuck.
     setTimeout(() => {
       if (currentUserScreen !== "solve") return;
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
+      zeroSolveScroll();
       try { resizeBoardToFit(); } catch {}
     }, 350);
   }
 }
+
+// Scroll watchdog (batch C8): whatever vector produces an offset while in
+// solve — a fling's momentum tail landing after the entry resets, a lazy
+// clamp, a programmatic shift — it is re-zeroed within a frame, for as long as
+// we stay in solve. Deliberate inner scrollers (modal content: .givens-slides,
+// the settings list, win-card facts) are untouched — zeroSolveScroll only
+// touches the five whole-screen shifters, and every write is conditional on
+// the offset being non-zero, so benign scrolls are a no-op (no event loop).
+// scroll events don't bubble, hence the capture phase to see element scrolls
+// as well as the document's. Guarded on currentUserScreen so the puzzles-list
+// restore (Back from solve) is never fought.
+document.addEventListener("scroll", () => {
+  if (currentUserScreen !== "solve") return;
+  zeroSolveScroll();
+}, { capture: true, passive: true });
 
 function buildUserCategoryList() {
   const ul = document.getElementById("userCategoryList");

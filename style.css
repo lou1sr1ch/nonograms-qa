@@ -252,8 +252,17 @@ body { background: transparent; }
    solve: the stale offset persists visually with no scroll range — top
    controls clipped above the viewport, dead space below, "can't scroll." JS
    toggles .solve-lock on <html> alongside data-screen; with no scroll range
-   on the ROOT scroller, no offset can live there at all. */
-html.solve-lock, html.solve-lock body { overflow: hidden; }
+   on the ROOT scroller, no offset can live there at all.
+   C8 addendum (2026-09-01): dampened, not dead. overflow:hidden elements stay
+   PROGRAMMATICALLY scrollable, so a stray offset could still land (list-fling
+   momentum tail, lazy clamp) and shift the whole solve view — and on iOS the
+   hit-testing desyncs from the shifted visuals (small targets like the
+   explainer's gold arrow die; the full-screen backdrop still catches taps).
+   overflow:clip removes the scroll container ENTIRELY — no scrollTop can
+   exist, programmatic or otherwise (iOS 16+; hidden stays as the fallback
+   line). script.js additionally zeroes every solve-path scroller on entry and
+   runs a capture-phase scroll watchdog for the whole solve session. */
+html.solve-lock, html.solve-lock body { overflow: hidden; overflow: clip; }
 
 /* === Safe-area insets (edge-to-edge, 2026-08-16) ===
    index.html sets viewport-fit=cover, so the viewport now covers the entire physical
@@ -2330,12 +2339,14 @@ button:disabled:hover {
 
 html:has(body.user-mode[data-screen="solve"]) {
   overflow: hidden;
+  overflow: clip;  /* C8: never a scroll container — see the solve-lock addendum above */
   height: 100dvh;
   height: 100vh; /* fallback */
 }
 
 body.user-mode[data-screen="solve"] {
   overflow: hidden;
+  overflow: clip;  /* C8 */
   height: 100dvh;
   height: 100vh; /* fallback */
   min-height: 0;
@@ -2373,6 +2384,7 @@ body.user-mode[data-screen="solve"] .layout {
   min-height: 0;
   height: auto;
   overflow: hidden;
+  overflow: clip;  /* C8: hidden stays programmatically scrollable; clip can't hold an offset */
   position: relative;   /* anchor for #winModal (which must rotate with the app) */
 }
 body.user-mode[data-screen="solve"] .layout main {
@@ -2382,6 +2394,7 @@ body.user-mode[data-screen="solve"] .layout main {
   gap: 6px;
   padding: 6px 10px 10px;
   overflow: hidden;
+  overflow: clip;  /* C8 */
   justify-content: flex-start;
 }
 
@@ -2547,6 +2560,7 @@ body.user-mode[data-screen="solve"] .puzzle-and-ref {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  overflow: clip;  /* C8 */
   gap: 0;
 }
 
@@ -2668,6 +2682,7 @@ body.rotate-app.user-mode[data-screen="solve"] .layout {
   z-index: 100;
   min-height: 0;
   overflow: hidden;
+  overflow: clip;  /* C8: out-specifies the base solve .layout rule's clip — keep them paired */
   /* Safe areas under rotation (2026-08-16). This element is position:fixed, so it's laid
      out against the viewport and body's safe-area padding does NOT contain it — it needs
      its own. And because it's rotated 90deg clockwise, the insets must be REMAPPED:
