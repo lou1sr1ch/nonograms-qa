@@ -12849,12 +12849,12 @@ const SEED_DATA = {
           "#5b3422"
         ]
       ],
-      "fact": "Van Gogh painted The Starry Night from memory in June 1889, while a patient at the Saint-Paul-de-Mausole asylum. The village below is imagined; the sky reflects his east-facing window view.",
+      "fact": "Gustav Klimt used real gold leaf in The Kiss (1907-1908) after seeing Byzantine mosaics in Ravenna. The Austrian government bought it within a year for 25,000 crowns \u2014 a record at the time.",
       "source": {
-        "url": "https://pixabay.com/illustrations/starry-night-vincent-van-gough-1093721/",
-        "attribution": ""
+        "url": "https://en.wikipedia.org/wiki/The_Kiss_(Klimt)",
+        "attribution": "Public domain"
       },
-      "factSource": "https://en.wikipedia.org/wiki/The_Starry_Night",
+      "factSource": "https://en.wikipedia.org/wiki/The_Kiss_(Klimt)",
       "image": "0033.jpeg"
     },
     "0034": {
@@ -29814,5 +29814,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 2026090201
+  "seedVersion": 2026090202
 };
