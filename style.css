@@ -906,6 +906,42 @@ body.dev-mode.user-mode[data-screen="solve"] #devWinBtn {
 }
 #devWinBtn { display: none; }
 
+/* DEV-ONLY (batch C9, 2026-09-01): the shift-telemetry badge. A fixed strip just
+   above the home indicator showing the build stamp + every scroll offset the
+   dog-glitch could live on + visualViewport + #solveBack's live rect.top (which
+   catches compositor-level shifts the DOM can't see) + the last taps while the
+   givens modal is open. The point: Dre's next screenshot of the bug contains the
+   instrument readout AT the bug moment — measure, don't model (habit 2/18).
+   z-index 99999 puts it ABOVE the modals (2000) so the readout appears in
+   screenshots of the popup state. pointer-events:none so it can never eat a tap.
+   Strip at ship with the rest of the dev bundle. */
+#devShiftBadge {
+  display: none;
+  position: fixed;
+  left: 4px;
+  right: 4px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 2px);
+  z-index: 99999;
+  pointer-events: none;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 9px;
+  line-height: 1.35;
+  color: var(--color-espresso);
+  background: rgba(250, 243, 230, 0.88);
+  border: 1px solid rgba(62, 47, 36, 0.35);
+  border-radius: 4px;
+  padding: 3px 6px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+body.dev-mode.user-mode[data-screen="solve"] #devShiftBadge { display: block; }
+#devShiftBadge.bad {
+  color: #fff;
+  background: rgba(176, 42, 42, 0.92);
+  border-color: #7a1d1d;
+  font-weight: bold;
+}
+
 .back-btn {
   align-self: flex-start;
   font-family: var(--font-body);
@@ -2347,6 +2383,16 @@ html:has(body.user-mode[data-screen="solve"]) {
 body.user-mode[data-screen="solve"] {
   overflow: hidden;
   overflow: clip;  /* C8 */
+  /* C9: pin the whole body out of the scroll flow. The dog-glitch family
+     survived overflow:clip + the watchdog, which means the offset lives at a
+     layer CSS can't always see (compositor/ghost offset — renderer shifted,
+     DOM scrollTop reading 0). position:fixed anchors the body to the VIEWPORT,
+     so no document-level offset — real or ghost — can move the solve view or
+     desync its hit-testing. Same trick the rotate-app rule already uses on
+     .layout. List screens unaffected (this rule is solve-scoped). */
+  position: fixed;
+  inset: 0;
+  width: 100%;
   height: 100dvh;
   height: 100vh; /* fallback */
   min-height: 0;

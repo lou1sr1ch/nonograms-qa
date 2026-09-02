@@ -1059,6 +1059,77 @@ document.addEventListener("scroll", () => {
   zeroSolveScroll();
 }, { capture: true, passive: true });
 
+// === DEV-ONLY shift telemetry (batch C9, 2026-09-01) ===
+// The dog-glitch family survived overflow:clip + the watchdog, which means the
+// surviving offset either lives at a layer JS can't see (a compositor/ghost
+// offset — the renderer shifted while every DOM scrollTop reads 0 and no scroll
+// events fire) or the phone is running a stale PWA build. So: measure, don't
+// model. The badge shows, live, on the solve screen in dev mode: the build
+// stamp (proves WHICH build the phone is running — settles the stale-build
+// question in any screenshot), every scroll offset the shift could live on
+// (window/html/body/.layout/main/.puzzle-and-ref), the visualViewport pan/zoom,
+// and #solveBack's live getBoundingClientRect().top — that one moves WITH the
+// rendered header, so a compositor-level shift the DOM can't see still shows up
+// here. .bad (red) = an anomaly is present right now. While the givens modal is
+// open, a second line shows the last few taps as "x,y>target" — the "arrow
+// closed the popup" report needs to know whether the tap landed on #givensNext
+// (logic bug) or on .modal-backdrop (hit-test desync). closest() walks up, so a
+// tap on the arrow's SVG path still reports the button. Strip at ship with the
+// rest of the dev bundle (grep dev-mode / dev-only).
+(function initDevShiftBadge() {
+  const badge = document.createElement("div");
+  badge.id = "devShiftBadge";
+  badge.setAttribute("aria-hidden", "true");
+  document.body.appendChild(badge);
+  const buildMeta = document.querySelector('meta[name="build"]');
+  const build = buildMeta ? buildMeta.content : "?";
+  const taps = [];
+  const TAP_KEYS = "#givensNext, #givensDone, #givensBack, #givensNever, .modal-backdrop, .modal-content, button";
+  document.addEventListener("pointerdown", (e) => {
+    const hit = e.target;
+    const key = hit && hit.closest ? hit.closest(TAP_KEYS) : null;
+    let label;
+    if (key) label = key.id ? "#" + key.id : "." + String(key.className).split(" ")[0];
+    else if (hit && hit.id) label = "#" + hit.id;
+    else label = hit && hit.tagName ? hit.tagName.toLowerCase() : "?";
+    taps.push(Math.round(e.clientX) + "," + Math.round(e.clientY) + ">" + label);
+    if (taps.length > 4) taps.shift();
+  }, { capture: true, passive: true });
+  setInterval(() => {
+    if (!document.body.classList.contains("dev-mode") ||
+        document.body.dataset.screen !== "solve") return;
+    const layout = document.querySelector(".layout");
+    const main = document.querySelector(".layout main");
+    const pnr = document.querySelector(".puzzle-and-ref");
+    const back = document.getElementById("solveBack");
+    const vv = window.visualViewport;
+    const v = {
+      y: Math.round(window.scrollY || 0),
+      h: Math.round(document.documentElement.scrollTop || 0),
+      b: Math.round(document.body.scrollTop || 0),
+      L: layout ? Math.round(layout.scrollTop) : 0,
+      m: main ? Math.round(main.scrollTop) : 0,
+      p: pnr ? Math.round(pnr.scrollTop) : 0,
+      vvo: vv ? Math.round(vv.offsetTop) : 0,
+      vvs: vv ? vv.scale : 1,
+      sb: back ? Math.round(back.getBoundingClientRect().top) : 0,
+    };
+    const bad = v.y !== 0 || v.h !== 0 || v.b !== 0 || v.L !== 0 || v.m !== 0 ||
+                v.p !== 0 || v.vvo !== 0 || Math.abs(v.vvs - 1) > 0.01 || v.sb < -2;
+    let text = "b" + build +
+      " y" + v.y + " h" + v.h + " b" + v.b +
+      " L" + v.L + " m" + v.m + " p" + v.p +
+      " vv" + v.vvo + "/" + (Math.round(v.vvs * 100) / 100) +
+      " sb" + v.sb;
+    const givens = document.getElementById("givensModal");
+    if (givens && !givens.classList.contains("hidden") && taps.length) {
+      text += "\ntaps " + taps.join(" | ");
+    }
+    badge.textContent = text;
+    badge.classList.toggle("bad", bad);
+  }, 400);
+})();
+
 function buildUserCategoryList() {
   const ul = document.getElementById("userCategoryList");
   ul.innerHTML = "";
