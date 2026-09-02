@@ -2768,7 +2768,7 @@ const SEED_DATA = {
           "#f8f8f8"
         ]
       ],
-      "fact": "With its hardy and resilient nature, it should be no surprise that wild species of aloe vera are known to live for over 100 years.",
+      "fact": "With its hardy and resilient nature, it should be no surprise that wild species of Aloe vera are known to live for over 100 years.",
       "source": {
         "url": "https://lilyofthedesert.com/blog/interesting-facts-about-aloe-plants/",
         "attribution": "Photo by Stephanie Harvey"
@@ -3797,7 +3797,7 @@ const SEED_DATA = {
           "#2b5051"
         ]
       ],
-      "fact": "The monsterra deliciosa plant is consistently the most searched houseplant in over 15 states (US), and would likely be the most popular houseplant if it weren't for the Aloe Vera.",
+      "fact": "The Monstera deliciosa plant is consistently the most searched houseplant in over 15 states (US), and would likely be the most popular houseplant if it weren't for the Aloe vera.",
       "source": {
         "url": "https://flowerpowerdaily.com/most-popular-u-s-houseplants-state-by-state/",
         "attribution": "Photo by Maur\u00edcio Guardiano"
@@ -7800,7 +7800,7 @@ const SEED_DATA = {
           "#3c4e30"
         ]
       ],
-      "fact": "Contrary to popular belief, the \"beans\" are actually seeds found inside a large, pineapple-sized fruit pod that grows directly from the tree's trunk and branches.",
+      "fact": "Contrary to popular belief, the \"cocoa beans\" are actually seeds found inside a large, pineapple-sized fruit pod that grows directly from the tree's trunk and branches.",
       "source": {
         "url": "https://toakchocolate.com/blogs/news/15-things-you-never-knew-about-chocolate",
         "attribution": "Photo by Monika Guzikowska"
@@ -10370,7 +10370,7 @@ const SEED_DATA = {
           "#473b3b"
         ]
       ],
-      "fact": "Pigs are among the most intelligent animals \u2014 outperforming dogs and 3-year-old children on some cognitive tests. They can play video games, recognize themselves in mirrors, and learn from watching others.",
+      "fact": "Pigs are among the most intelligent animals, outperforming dogs and 3-year-old children on some cognitive tests. They can play video games, recognize themselves in mirrors, and learn from watching others.",
       "source": {
         "url": "https://unsplash.com/photos/pink-pig-on-green-grass-field-during-daytime-KbgJbt2kIbk",
         "attribution": ""
@@ -10900,7 +10900,7 @@ const SEED_DATA = {
         "url": "https://unsplash.com/photos/brown-chicken-on-green-grass-field-during-daytime-yEW23jxVsNI",
         "attribution": "Photo by James Wainscoat"
       },
-      "fact": "There are over 33 billion chickens on Earth \u2014 more than any other bird species and about four chickens for every human. Their closest living relative, per DNA analysis, is the Tyrannosaurus rex.",
+      "fact": "There are over 33 billion chickens on Earth, more than any other bird species and about four chickens for every human. Birds are the closest living relatives of Tyrannosaurus rex; in fossil-protein analysis, T. rex collagen matched the chicken's most closely.",
       "factSource": "https://en.wikipedia.org/wiki/Chicken",
       "image": "0029.jpg"
     },
@@ -11422,7 +11422,7 @@ const SEED_DATA = {
           "#b77c47"
         ]
       ],
-      "fact": "A giraffe's neck has just 7 vertebrae \u2014 same as a human \u2014 but each can be over 25 cm long. Their heart weighs about 11 kg and pumps blood at nearly double human pressure to reach the brain.",
+      "fact": "A giraffe's neck has just 7 vertebrae, the same as a human's, but each can be over 25 cm long. Their heart weighs about 11 kg and pumps blood at nearly double human pressure to reach the brain.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Giraffe",
         "attribution": ""
@@ -11948,7 +11948,7 @@ const SEED_DATA = {
           "#635f3c"
         ]
       ],
-      "fact": "Horses have the largest eyes of any land mammal, positioned on the sides of the head for nearly 350\u00b0 panoramic vision \u2014 with just two blind spots, directly in front and directly behind.",
+      "fact": "Horses have among the largest eyes of any land mammal, positioned on the sides of the head for nearly 350\u00b0 panoramic vision, with just two blind spots, directly in front and directly behind.",
       "source": {
         "url": "https://www.pexels.com/photo/a-black-horse-on-a-grassland-13340069/",
         "attribution": ""
@@ -12324,12 +12324,13 @@ const SEED_DATA = {
           "#381b00"
         ]
       ],
-      "fact": "In 1993, a Korean Jindo (dog breed pictured) named Baekgu traveled approximately 180 miles over seven months to return to his original elderly owner after being sold to a new home, becoming a cultural icon in South Korea",
+      "fact": "The Dog is one of Goya's 14 Black Paintings (1819-1823), painted directly onto the plaster walls of his house. He never meant them to be seen publicly; they were moved to canvas 50 years later.",
       "source": {
-        "url": "https://www.pexels.com/photo/head-of-eskimo-dog-5583597/",
-        "attribution": ""
+        "url": "https://en.wikipedia.org/wiki/The_Dog_(Goya)",
+        "attribution": "Public domain"
       },
-      "image": "0032.jpg"
+      "image": "0032.jpg",
+      "factSource": "https://en.wikipedia.org/wiki/The_Dog_(Goya)"
     },
     "0033": {
       "name": "the kiss",
@@ -12849,7 +12850,7 @@ const SEED_DATA = {
           "#5b3422"
         ]
       ],
-      "fact": "Gustav Klimt used real gold leaf in The Kiss (1907-1908) after seeing Byzantine mosaics in Ravenna. The Austrian government bought it within a year for 25,000 crowns \u2014 a record at the time.",
+      "fact": "Gustav Klimt used real gold leaf in The Kiss (1907-1908) after seeing Byzantine mosaics in Ravenna. The Austrian government bought it within a year for 25,000 crowns, a record at the time.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/The_Kiss_(Klimt)",
         "attribution": "Public domain"
@@ -13105,7 +13106,7 @@ const SEED_DATA = {
           "#211907"
         ]
       ],
-      "fact": "Painted c. 1665 by Johannes Vermeer, Girl with a Pearl Earring is a tronie \u2014 a Dutch study of a face, not a portrait of a real person. The pearl may actually be a polished tin bulb.",
+      "fact": "Painted c. 1665 by Johannes Vermeer, Girl with a Pearl Earring is a tronie, a Dutch study of a face, not a portrait of a real person. The pearl may actually be a polished tin bulb.",
       "source": {
         "url": "https://wallpaperscraft.com/download/johannes_vermeer_girl_with_a_pearl_earring_oil_canvas_art_117721/4095x4794",
         "attribution": ""
@@ -13801,7 +13802,7 @@ const SEED_DATA = {
           "#1d1a19"
         ]
       ],
-      "fact": "Grant Wood painted American Gothic in 1930 using his sister Nan and his dentist as models. The house behind them is real \u2014 a small gothic-window cottage in Eldon, Iowa still standing today.",
+      "fact": "Grant Wood painted American Gothic in 1930 using his sister Nan and his dentist as models. The house behind them is real - a small gothic-window cottage in Eldon, Iowa still standing today.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/American_Gothic",
         "attribution": ""
@@ -14513,7 +14514,7 @@ const SEED_DATA = {
           "#684530"
         ]
       ],
-      "fact": "Antarctica is technically the world's largest desert. Deserts are defined by low precipitation (under 25 cm/year), not heat \u2014 Antarctica averages just 5 cm annually, mostly as snow.",
+      "fact": "Antarctica is technically the world's largest desert. Deserts are defined by low precipitation (under 25 cm/year), not heat - Antarctica averages just 5 cm annually, mostly as snow.",
       "source": {
         "url": "https://www.pexels.com/photo/sand-desert-sand-dunes-dune-50628/",
         "attribution": ""
@@ -15301,7 +15302,7 @@ const SEED_DATA = {
           "#00302b"
         ]
       ],
-      "fact": "The Arabian Peninsula is the world's largest peninsula (3.24 million km\u00b2), containing seven countries. Its coastline stretches about 6,400 km along three different seas \u2014 the Red, Arabian, and Persian Gulf.",
+      "fact": "The Arabian Peninsula is the world's largest peninsula (3.24 million km\u00b2), containing seven countries. Its coastline stretches about 6,400 km along three different seas - the Red, Arabian, and Persian Gulf.",
       "source": {
         "url": "https://unsplash.com/photos/aerial-view-of-green-and-gray-island-Zt0br07_S34",
         "attribution": ""
@@ -16233,7 +16234,7 @@ const SEED_DATA = {
           "#545351"
         ]
       ],
-      "fact": "The Ganges-Brahmaputra Delta covers 105,000 square kilometers across Bangladesh and India \u2014 the world's largest river delta and, with 130+ million residents, one of the most densely populated regions on Earth.",
+      "fact": "The Ganges-Brahmaputra Delta covers 105,000 square kilometers across Bangladesh and India, the world's largest river delta and, with 130+ million residents, one of the most densely populated regions on Earth.",
       "source": {
         "url": "https://www.pexels.com/photo/painting-of-river-with-sandbanks-8130636/",
         "attribution": ""
@@ -16909,7 +16910,7 @@ const SEED_DATA = {
           "#034584"
         ]
       ],
-      "fact": "Greenland is the world's largest island (2.16 million km\u00b2) \u2014 three times the size of Texas. Despite its name, 80% of Greenland is covered in ice; Iceland, its neighbor, is genuinely greener.",
+      "fact": "Greenland is the world's largest island (2.16 million km\u00b2), three times the size of Texas. Despite its name, 80% of Greenland is covered in ice; Iceland, its neighbor, is ironically greener.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Greenland",
         "attribution": ""
@@ -17591,7 +17592,7 @@ const SEED_DATA = {
           "#517422"
         ]
       ],
-      "fact": "The Great Rift Valley stretches about 6,000 km from Mozambique to Lebanon and is visible from space. It's forming as the African plate slowly splits \u2014 a geological process taking millions of years.",
+      "fact": "The Great Rift Valley stretches about 6,000 km from Mozambique to Lebanon and is visible from space. It's forming as the African plate slowly splits - a geological process taking millions of years.",
       "source": {
         "url": "https://www.pexels.com/photo/a-river-flowing-through-a-grassy-valley-28198479/",
         "attribution": ""
@@ -17947,7 +17948,7 @@ const SEED_DATA = {
           "#162224"
         ]
       ],
-      "fact": "Lake Baikal in Siberia contains about 23% of the world's fresh surface water \u2014 more than all the North American Great Lakes combined. It's also the world's deepest and oldest lake at 25 million years.",
+      "fact": "Lake Baikal in Siberia contains about 23% of the world's fresh surface water, more than all the North American Great Lakes combined. It's also the world's deepest and oldest lake at 25 million years.",
       "source": {
         "url": "https://www.pexels.com/photo/tranquil-mountain-lake-with-scenic-view-34462412/",
         "attribution": ""
@@ -18317,7 +18318,7 @@ const SEED_DATA = {
           "#012b01"
         ]
       ],
-      "fact": "The Amazon River discharges more water than the next seven largest rivers combined \u2014 about 209,000 cubic meters per second. Its freshwater plume extends nearly 400 km out into the Atlantic Ocean.",
+      "fact": "The Amazon River discharges more water than the next seven largest rivers combined - about 209,000 cubic meters per second. Its freshwater plume extends nearly 400 km out into the Atlantic Ocean.",
       "source": {
         "url": "https://www.pexels.com/photo/deep-forest-around-river-18117979/",
         "attribution": ""
@@ -18679,7 +18680,7 @@ const SEED_DATA = {
           "#d4d5d4"
         ]
       ],
-      "fact": "A grand piano has 220-240 strings under a combined tension of about 20 tons \u2014 enough force to lift 30 pickup trucks. The cast iron frame was invented specifically to withstand this pressure.",
+      "fact": "A grand piano has 220-240 strings under a combined tension of about 20 tons, enough force to lift 30 pickup trucks. The cast iron frame was invented specifically to withstand this pressure.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Piano",
         "attribution": ""
@@ -19355,7 +19356,7 @@ const SEED_DATA = {
           "#5e421b"
         ]
       ],
-      "fact": "Silver trumpets dating to 1500 BCE were found in Tutankhamun's tomb. When played on BBC radio in 1939 after 3,000 years of silence, one of them shattered \u2014 replicas were used for later recordings.",
+      "fact": "Silver trumpets dating to 1500 BCE were found in Tutankhamun's tomb. When played on BBC radio in 1939 after 3,000 years of silence, one of them shattered - replicas were used for later recordings.",
       "source": {
         "url": "https://unsplash.com/photos/brass-colored-trumpet-fTPSm7KD_d0",
         "attribution": ""
@@ -20223,7 +20224,7 @@ const SEED_DATA = {
           ""
         ]
       ],
-      "fact": "The \u00f7 symbol, called an obelus, was first used for division by Swiss mathematician Johann Rahn in 1659. Its shape represents a fraction \u2014 a line with dots standing in for numerator and denominator.",
+      "fact": "The \u00f7 symbol, called an obelus, was first used for division by Swiss mathematician Johann Rahn in 1659. Its shape represents a fraction - a line with dots standing in for numerator and denominator.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Division_sign",
         "attribution": ""
@@ -22071,7 +22072,7 @@ const SEED_DATA = {
           ""
         ]
       ],
-      "fact": "Phi (\u03c6 \u2248 1.618) is the golden ratio, defined so that (a+b)/a = a/b. It appears in sunflower-seed spirals, nautilus shells, and famously in art and architecture \u2014 from the Parthenon to Salvador Dal\u00ed's paintings.",
+      "fact": "Phi (\u03c6 \u2248 1.618) is the golden ratio, defined so that (a+b)/a = a/b. It appears in sunflower-seed spirals, nautilus shells, and famously in art and architecture - from the Parthenon to Salvador Dal\u00ed's paintings.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Golden_ratio",
         "attribution": ""
@@ -22607,7 +22608,7 @@ const SEED_DATA = {
           "#faf3e6"
         ]
       ],
-      "fact": "Archimedes computed \u03c0 to two decimals in 250 BCE using inscribed polygons. Today, computers have calculated over 100 trillion digits \u2014 but just 39 digits are enough to compute the observable universe's circumference to atomic width.",
+      "fact": "Archimedes computed \u03c0 to two decimals in 250 BCE using inscribed polygons. Today, computers have calculated over 100 trillion digits, but just 39 digits are enough to compute the observable universe's circumference to atomic width.",
       "source": {
         "url": "https://www.pineconefestival.org/fun-facts  |  Photo by Vera Emilie",
         "attribution": ""
@@ -22863,7 +22864,7 @@ const SEED_DATA = {
           "#fffffe"
         ]
       ],
-      "fact": "Leonhard Euler popularized the capital Greek \u03a3 (sigma) for summation in 1755. In statistics, its lowercase form \u03c3 represents standard deviation \u2014 one of the most fundamental measures of data variability.",
+      "fact": "Leonhard Euler popularized the capital Greek \u03a3 (sigma) for summation in 1755. In statistics, its lowercase form \u03c3 represents standard deviation, one of the most fundamental measures of data variability.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Sigma",
         "attribution": ""
@@ -24441,7 +24442,7 @@ const SEED_DATA = {
           "#917452"
         ]
       ],
-      "fact": "William Herschel discovered infrared radiation in 1800 by accident \u2014 measuring temperatures of different colors of sunlight, he noticed the highest reading was in the invisible region just past red.",
+      "fact": "William Herschel discovered infrared radiation in 1800 by accident - measuring temperatures of different colors of sunlight, he noticed the highest reading was in the invisible region just past red.",
       "source": {
         "url": "https://www.pexels.com/photo/toaster-with-bread-7936648/",
         "attribution": ""
@@ -25117,7 +25118,7 @@ const SEED_DATA = {
           "#d1b6bd"
         ]
       ],
-      "fact": "Galileo discovered the pendulum's isochronism in 1602 by watching a cathedral lamp swing while timing it with his pulse. His observation led to the first accurate mechanical clocks over 50 years later.",
+      "fact": "Galileo discovered the pendulum's isochronism (each swing takes the same time, wide or narrow) in 1602 by watching a cathedral lamp swing while timing it with his pulse. His observation led to the first accurate mechanical clocks over 50 years later.",
       "source": {
         "url": "https://unsplash.com/photos/a-wooden-stand-with-three-metal-balls-on-it-d7SxBxEAOfU",
         "attribution": ""
@@ -25473,7 +25474,7 @@ const SEED_DATA = {
           "#011307"
         ]
       ],
-      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km \u2014 the longest can penetrate seawater and are used for submarine communication.",
+      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km - the longest can penetrate seawater and are used for submarine communication.",
       "source": {
         "url": "https://www.pexels.com/photo/old-fashioned-radio-19924600/",
         "attribution": ""
@@ -26149,7 +26150,7 @@ const SEED_DATA = {
           "#040933"
         ]
       ],
-      "fact": "Johann Ritter discovered ultraviolet in 1801, just one year after infrared. He found that invisible light beyond violet darkened silver chloride faster than visible light \u2014 a discovery that later enabled photography.",
+      "fact": "Johann Ritter discovered ultraviolet in 1801, just one year after infrared. He found that invisible light beyond violet darkened silver chloride faster than visible light, a discovery that later enabled photography.",
       "source": {
         "url": "https://unsplash.com/photos/a-blue-light-hanging-from-the-ceiling-of-a-room--4Ai-CNqaCM",
         "attribution": ""
@@ -26675,7 +26676,7 @@ const SEED_DATA = {
           "#413833"
         ]
       ],
-      "fact": "Visible light occupies just a sliver of the electromagnetic spectrum \u2014 wavelengths from about 380 to 750 nanometers. Human eyes evolved to see this range because it's what the Sun emits most and what Earth's atmosphere lets through unattenuated.",
+      "fact": "Visible light occupies just a sliver of the electromagnetic spectrum - wavelengths from about 380 to 750 nanometers. Human eyes evolved to see this range because it's what the Sun emits most and what Earth's atmosphere lets through unattenuated.",
       "factSource": "https://en.wikipedia.org/wiki/Visible_spectrum",
       "source": {
         "url": "https://www.pexels.com/photo/optical-glass-triangular-prism-3845161/",
@@ -27037,7 +27038,7 @@ const SEED_DATA = {
           "#261c1a"
         ]
       ],
-      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km \u2014 the longest can penetrate seawater and are used for submarine communication.",
+      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km - the longest can penetrate seawater and are used for submarine communication.",
       "source": {
         "url": "https://www.pexels.com/photo/old-fashioned-radio-19924600/",
         "attribution": ""
@@ -27392,12 +27393,12 @@ const SEED_DATA = {
           "#261c1a"
         ]
       ],
-      "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km \u2014 the longest can penetrate seawater and are used for submarine communication.",
+      "fact": "X-rays were discovered by accident in 1895 by Wilhelm R\u00f6ntgen, who named them 'X' for the unknown. Their wavelengths are short enough to pass straight through soft tissue, but not through bone.",
       "source": {
-        "url": "https://www.pexels.com/photo/old-fashioned-radio-19924600/",
+        "url": "https://unsplash.com/photos/x-ray-result-_GpJpHnyCSw",
         "attribution": ""
       },
-      "factSource": "https://en.wikipedia.org/wiki/Radio_wave",
+      "factSource": "https://en.wikipedia.org/wiki/X-ray",
       "image": "0065.jpg"
     },
     "0066": {
@@ -28359,7 +28360,7 @@ const SEED_DATA = {
           "#dadbdd"
         ]
       ],
-      "fact": "The average adult has about 5 liters of blood, which travels roughly 19,000 km through blood vessels each day \u2014 nearly halfway around the equator.",
+      "fact": "The average adult has about 5 liters of blood, which travels roughly 19,000 km through blood vessels each day, nearly halfway around the equator.",
       "source": {
         "url": "https://www.pexels.com/photo/person-in-pink-gloves-holding-a-test-tube-6629361/",
         "attribution": ""
@@ -29291,7 +29292,7 @@ const SEED_DATA = {
           "#caccbe"
         ]
       ],
-      "fact": "A single drop of water contains roughly 1.67 sextillion (1.67 x 10^21) water molecules \u2014 more than the estimated number of stars in the observable universe.",
+      "fact": "A single drop of water contains roughly 1.67 sextillion (1.67 x 10^21) water molecules, more than the estimated number of stars in the observable universe.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Water_(molecule)",
         "attribution": ""
@@ -29677,7 +29678,7 @@ const SEED_DATA = {
           "#b0b6aa"
         ]
       ],
-      "fact": "Graduated cylinders read accurately to about \u00b11%. To measure correctly, view the meniscus at eye level and note the bottom of its curve \u2014 the surface tension pulls the liquid up the glass walls.",
+      "fact": "Graduated cylinders read accurately to about \u00b11%. To measure correctly, view the meniscus (the curve of the liquid's surface) at eye level and note the bottom of its curve, since surface tension pulls the liquid up the glass walls.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/Graduated_cylinder",
         "attribution": ""
@@ -29708,8 +29709,7 @@ const SEED_DATA = {
           "0028",
           "0029",
           "0030",
-          "0031",
-          "0032"
+          "0031"
         ],
         "Geomorphology": [
           "0038",
@@ -29729,7 +29729,8 @@ const SEED_DATA = {
           "0033",
           "0034",
           "0035",
-          "0036"
+          "0036",
+          "0032"
         ],
         "Mathematics": [
           "0052",
@@ -29814,5 +29815,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 2026090202
+  "seedVersion": 2026090203
 };
