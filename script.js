@@ -696,7 +696,12 @@ document.querySelector("#settingsModal .modal-backdrop").addEventListener("click
     if (list) observer.observe(list, { childList: true });
   }
 
+  // C10: in user mode the document never scrolls — the lists scroll inside
+  // .layout main. Listen to BOTH so the dissolve fires in either world
+  // (admin/editor still scroll the body).
   window.addEventListener("scroll", onScroll, { passive: true });
+  const listScroller = document.querySelector(".layout main");
+  if (listScroller) listScroller.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);
   collectTargets();
   applyDissolve();
@@ -955,7 +960,9 @@ function initUserNav() {
 // Where the puzzles list was scrolled when a puzzle opened — restored on Back
 // so the player returns to the same spot. (2026-09-01: the solve-lock fix
 // below zeroes the offset the list used to KEEP accidentally via the
-// lazy-clamp bug — this preserves the convenience without the bug.)
+// lazy-clamp bug — this preserves the convenience without the bug. C10: the
+// list scrolls inside .layout main now — the document never scrolls in user
+// mode — so the remembered position is main.scrollTop, not window.scrollY.)
 let savedPuzzleListScroll = 0;
 
 // Zero EVERY scroller on the solve path (batch C8). overflow:hidden elements
@@ -982,7 +989,8 @@ function setUserScreen(name) {
   if (currentUserScreen !== null && currentUserScreen !== name) sfx.swoosh();
   const leavingScreen = currentUserScreen;
   if (name === "solve" && leavingScreen !== "solve") {
-    savedPuzzleListScroll = window.scrollY || document.documentElement.scrollTop || 0;
+    const mainEl = document.querySelector(".layout main");
+    savedPuzzleListScroll = mainEl ? mainEl.scrollTop : 0;
   }
   // Reset scroll BEFORE the screen class changes. html/body scroll on the list
   // screens (overflow-y: auto), but the solve view locks scrolling
@@ -1008,12 +1016,12 @@ function setUserScreen(name) {
   else if (name === "puzzles") {
     buildUserPuzzleList(currentUserCategoryName);
     // Back from solve returns the list to where it was (the reset zeroed it).
+    // C10: the offset lives on main now — the document can't scroll at all.
     if (leavingScreen === "solve" && savedPuzzleListScroll > 0) {
       const y = savedPuzzleListScroll;
       requestAnimationFrame(() => {
-        window.scrollTo(0, y);
-        document.documentElement.scrollTop = y;
-        document.body.scrollTop = y;
+        const mainEl = document.querySelector(".layout main");
+        if (mainEl) mainEl.scrollTop = y;
       });
     }
   }

@@ -2370,8 +2370,50 @@ button:disabled:hover {
 }
 
 /* === Mobile-first solve/win view: viewport-locked, no scroll ===
-   Only applies on user-mode solve screen. Editor + user home/category/puzzles
-   screens keep their default scrolling behavior. */
+   C10 (2026-09-02): "viewport-locked" now means the whole USER MODE, not just
+   solve. The dog-glitch family's final form was a STALE NATIVE scroll offset —
+   the UI-process scroll view WKWebView wraps around the page, invisible to
+   every DOM readout (the C9 badge proved all-zeros in the broken state, on a
+   provably fresh build) — and it mis-translated TAP coordinates instead of
+   shifting visuals (up arrow acted as action, Back opened settings, taps
+   landed one button-height low). Every DOM-layer kill (C7 lock, C8 clip +
+   watchdog, C9 body pin) just pushed the offset deeper. So the document no
+   longer scrolls AT ALL in user mode: html + body are viewport-exact and
+   clipped on every user screen, and the lists scroll INSIDE .layout main —
+   an element scroller, which iOS hit-tests correctly through the scrolling
+   tree. With the document's content size pinned to the viewport, the native
+   scroll view's contentOffset can never leave 0, and there is nothing left
+   to desync. Editor/admin modes keep document scrolling (desktop tools), as
+   does the base html,body overflow-y:auto rule for the itch iframe. */
+html:has(body.user-mode) {
+  overflow: hidden;
+  overflow: clip;
+}
+body.user-mode {
+  overflow: hidden;
+  overflow: clip;
+  /* vh first (universal), dvh second so it wins where supported (iOS 15.4+):
+     dvh tracks the Safari tab's toolbar, so a tab-rendered list can't amputate
+     its tail behind the bar. In the PWA both are identical. (The older rules
+     below use the reversed dvh-then-vh order — effectively always vh — left
+     as-is; the PWA is the only target where they compute.) */
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+}
+body.user-mode .layout {
+  /* Base rule's min-height: calc(100vh - 110px) and the ≤720px media's auto
+     could force .layout taller than the now-exact body — the clip above would
+     amputate the list's tail instead of letting it scroll. */
+  min-height: 0;
+}
+/* The list screens' scroller. Disjoint from the solve main rule below (equal
+   specificity, mutually exclusive selectors) — solve main stays clipped. */
+body.user-mode:not([data-screen="solve"]) .layout main {
+  min-height: 0;       /* a flex item can only scroll if it may shrink */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
 html:has(body.user-mode[data-screen="solve"]) {
   overflow: hidden;
@@ -2383,19 +2425,12 @@ html:has(body.user-mode[data-screen="solve"]) {
 body.user-mode[data-screen="solve"] {
   overflow: hidden;
   overflow: clip;  /* C8 */
-  /* C9: pin the whole body out of the scroll flow. The dog-glitch family
-     survived overflow:clip + the watchdog, which means the offset lives at a
-     layer CSS can't always see (compositor/ghost offset — renderer shifted,
-     DOM scrollTop reading 0). position:fixed anchors the body to the VIEWPORT,
-     so no document-level offset — real or ghost — can move the solve view or
-     desync its hit-testing. Same trick the rotate-app rule already uses on
-     .layout. List screens unaffected (this rule is solve-scoped). */
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100dvh;
-  height: 100vh; /* fallback */
-  min-height: 0;
+  /* C10: the C9 position:fixed body pin was removed. The whole user-mode
+     document is now viewport-exact + clipped (the C10 block above), so no
+     scroll range exists for any offset — real, ghost, or native — to live
+     in on ANY screen, and the static↔fixed flip on every solve entry (itself
+     a compositor race risk) is gone with it. Height/min-height now come from
+     the shared body.user-mode rule. */
   /* Was `padding: 0`. With viewport-fit=cover, 100dvh is now the FULL screen height
      rather than the already-inset height, so without this the solve view would gain the
      status-bar + home-indicator pixels and every profile's board-fit maths would shift.
