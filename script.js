@@ -1017,6 +1017,13 @@ function setUserScreen(name) {
   // controls clipped, dead space below, no way to scroll. With overflow:hidden
   // on the ROOT scroller there is no scroll range for an offset to live in.
   document.documentElement.classList.toggle("solve-lock", name === "solve");
+  if (name === "solve") {
+    // C12: wipe ripples stranded mid-flight by the last puzzle's exit. iOS
+    // pauses animations in display:none subtrees (animationend never fires,
+    // so the circles never self-remove), and they ghost back in when the
+    // next solve screen un-hides the dpad.
+    document.querySelectorAll(".dpad-ripples").forEach(g => g.replaceChildren());
+  }
   if (name !== "solve") hideGivensModal(); // never leave the explainer floating over list screens
   if (name === "category") buildUserCategoryList();
   else if (name === "puzzles") {
@@ -2195,23 +2202,32 @@ if (dpadEl) {
     if (!btn) return;
     const dir = btn.dataset.dir;
     const svg = dpadEl.querySelector("svg");
-    // Map the tap into viewBox units through the svg's screen CTM. The old
-    // clientX-vs-bounding-rect math assumed an UNROTATED svg — under
-    // rotate-app (landscape profiles) getBoundingClientRect returns the
-    // axis-aligned bbox of a 90°-rotated element and the ripple spawned at
-    // the rotated-wrong spot. The CTM inverse is exact under every transform
-    // (rotation, press scale, letterboxing). Read BEFORE adding dpad-press so
-    // the math uses the resting transform.
-    const ctm = svg.getScreenCTM();
+    // Map the tap into viewBox units with plain rect arithmetic — no CTM.
+    // v1 used clientX-vs-bounding-rect linear math: wrong under rotate-app
+    // (the rect is the axis-aligned bbox of a 90°-rotated element). v2 used
+    // getScreenCTM + DOMPoint.matrixTransform: on-device (2026-09-02) the
+    // ripples VANISHED on landscape — iOS WebKit's CTM can't be trusted
+    // under ancestor CSS transforms, and that's more exotic API surface
+    // than this needs. Rect + the known orientation is exact in the only
+    // two states this app ever has, and can't fail silently. Read BEFORE
+    // adding dpad-press so the math uses the resting geometry.
+    const rect = svg.getBoundingClientRect();
     if (_dpadSvg) _dpadSvg.classList.add("dpad-press");
     sfx.tap();
     const group = svg.querySelector(`.dpad-ripples.${dir}`);
     if (!group) return;
-    let x = 50, y = 50;  // CTM unavailable (detached svg) → ripple at center
-    if (ctm) {
-      const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
-      x = pt.x;
-      y = pt.y;
+    let x = 50, y = 50;  // degenerate rect (hidden dpad) → ripple at center
+    if (rect.width > 0 && rect.height > 0) {
+      // viewBox is 0 0 100 100 (index.html).
+      if (document.body.classList.contains("rotate-app")) {
+        // App rotated 90° CW: the svg's local +x axis points DOWN the screen,
+        // local +y points LEFT (the rotate-app rule: (x,y) -> (-y,x)).
+        x = ((e.clientY - rect.top) / rect.height) * 100;
+        y = ((rect.right - e.clientX) / rect.width) * 100;
+      } else {
+        x = ((e.clientX - rect.left) / rect.width) * 100;
+        y = ((e.clientY - rect.top) / rect.height) * 100;
+      }
     }
     const circle = document.createElementNS(RIPPLE_SVG_NS, "circle");
     circle.setAttribute("cx", x);
