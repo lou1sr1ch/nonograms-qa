@@ -872,7 +872,13 @@ let currentStroke = [];
 
 function openSettingsModal() {
   buildSettingsModal();
-  document.getElementById("settingsModal").classList.remove("hidden");
+  const modal = document.getElementById("settingsModal");
+  modal.classList.remove("hidden");
+  // Always open at the top. The card is its own scroller (.modal-content,
+  // overflow-y:auto) and nothing else reads its scroll state, so reopening
+  // where you left off just hid the top rows for no benefit.
+  const card = modal.querySelector(".modal-content");
+  if (card) card.scrollTop = 0;
 }
 
 function closeSettingsModal() {
@@ -2187,16 +2193,26 @@ if (dpadEl) {
   dpadEl.addEventListener("pointerdown", e => {
     const btn = e.target.closest(".dpad-btn");
     if (!btn) return;
-    if (_dpadSvg) _dpadSvg.classList.add("dpad-press");
-    sfx.tap();
     const dir = btn.dataset.dir;
     const svg = dpadEl.querySelector("svg");
+    // Map the tap into viewBox units through the svg's screen CTM. The old
+    // clientX-vs-bounding-rect math assumed an UNROTATED svg — under
+    // rotate-app (landscape profiles) getBoundingClientRect returns the
+    // axis-aligned bbox of a 90°-rotated element and the ripple spawned at
+    // the rotated-wrong spot. The CTM inverse is exact under every transform
+    // (rotation, press scale, letterboxing). Read BEFORE adding dpad-press so
+    // the math uses the resting transform.
+    const ctm = svg.getScreenCTM();
+    if (_dpadSvg) _dpadSvg.classList.add("dpad-press");
+    sfx.tap();
     const group = svg.querySelector(`.dpad-ripples.${dir}`);
     if (!group) return;
-    const rect = svg.getBoundingClientRect();
-    // Map client coords to the 100x100 viewBox.
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top)  / rect.height) * 100;
+    let x = 50, y = 50;  // CTM unavailable (detached svg) → ripple at center
+    if (ctm) {
+      const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
+      x = pt.x;
+      y = pt.y;
+    }
     const circle = document.createElementNS(RIPPLE_SVG_NS, "circle");
     circle.setAttribute("cx", x);
     circle.setAttribute("cy", y);
