@@ -16919,8 +16919,8 @@ const SEED_DATA = {
       "image": "0042.jpg",
       "givens": [
         [
-          0,
-          2
+          2,
+          5
         ]
       ]
     },
@@ -22081,12 +22081,16 @@ const SEED_DATA = {
       "image": "0054.png",
       "givens": [
         [
-          10,
-          3
+          3,
+          4
         ],
         [
-          4,
-          3
+          3,
+          5
+        ],
+        [
+          11,
+          4
         ]
       ]
     },
@@ -38368,5 +38372,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 2026090302
+  "seedVersion": 2026090303
 };
