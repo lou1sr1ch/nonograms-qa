@@ -10373,7 +10373,7 @@ const SEED_DATA = {
       "fact": "Pigs are among the most intelligent animals, outperforming dogs and 3-year-old children on some cognitive tests. They can play video games, recognize themselves in mirrors, and learn from watching others.",
       "source": {
         "url": "https://unsplash.com/photos/pink-pig-on-green-grass-field-during-daytime-KbgJbt2kIbk",
-        "attribution": ""
+        "attribution": "Photo by Bob van Aubel"
       },
       "factSource": "https://en.wikipedia.org/wiki/Pig",
       "image": "0028.jpg"
@@ -11951,7 +11951,7 @@ const SEED_DATA = {
       "fact": "Horses have among the largest eyes of any land mammal, positioned on the sides of the head for nearly 350\u00b0 panoramic vision, with just two blind spots, directly in front and directly behind.",
       "source": {
         "url": "https://www.pexels.com/photo/a-black-horse-on-a-grassland-13340069/",
-        "attribution": ""
+        "attribution": "Photo by Jana Malenov\u00e1"
       },
       "factSource": "https://en.wikipedia.org/wiki/Horse",
       "image": "0031.jpg"
@@ -13109,7 +13109,7 @@ const SEED_DATA = {
       "fact": "Painted c. 1665 by Johannes Vermeer, Girl with a Pearl Earring is a tronie, a Dutch study of a face, not a portrait of a real person. The pearl may actually be a polished tin bulb.",
       "source": {
         "url": "https://wallpaperscraft.com/download/johannes_vermeer_girl_with_a_pearl_earring_oil_canvas_art_117721/4095x4794",
-        "attribution": ""
+        "attribution": "Public domain"
       },
       "factSource": "https://en.wikipedia.org/wiki/Girl_with_a_Pearl_Earring",
       "image": "0034.jpg"
@@ -13805,7 +13805,7 @@ const SEED_DATA = {
       "fact": "Grant Wood painted American Gothic in 1930 using his sister Nan and his dentist as models. The house behind them is real - a small gothic-window cottage in Eldon, Iowa still standing today.",
       "source": {
         "url": "https://en.wikipedia.org/wiki/American_Gothic",
-        "attribution": ""
+        "attribution": "Public domain"
       },
       "factSource": "https://en.wikipedia.org/wiki/American_Gothic",
       "image": "0035.jpg"
@@ -14161,7 +14161,7 @@ const SEED_DATA = {
       "fact": "Van Gogh painted The Starry Night from memory in June 1889, while a patient at the Saint-Paul-de-Mausole asylum. The village below is imagined; the sky reflects his east-facing window view.",
       "source": {
         "url": "https://pixabay.com/illustrations/starry-night-vincent-van-gough-1093721/",
-        "attribution": ""
+        "attribution": "Public domain"
       },
       "factSource": "https://en.wikipedia.org/wiki/The_Starry_Night",
       "image": "0036.jpg"
@@ -14517,7 +14517,7 @@ const SEED_DATA = {
       "fact": "Antarctica is technically the world's largest desert. Deserts are defined by low precipitation (under 25 cm/year), not heat - Antarctica averages just 5 cm annually, mostly as snow.",
       "source": {
         "url": "https://www.pexels.com/photo/sand-desert-sand-dunes-dune-50628/",
-        "attribution": ""
+        "attribution": "Photo by Uncoated"
       },
       "factSource": "https://en.wikipedia.org/wiki/Desert",
       "image": "0037.jpg"
@@ -15305,7 +15305,7 @@ const SEED_DATA = {
       "fact": "The Arabian Peninsula is the world's largest peninsula (3.24 million km\u00b2), containing seven countries. Its coastline stretches about 6,400 km along three different seas - the Red, Arabian, and Persian Gulf.",
       "source": {
         "url": "https://unsplash.com/photos/aerial-view-of-green-and-gray-island-Zt0br07_S34",
-        "attribution": ""
+        "attribution": "Photo by Red Zeppelin"
       },
       "factSource": "https://en.wikipedia.org/wiki/Arabian_Peninsula",
       "image": "0039.jpg"
@@ -17595,7 +17595,7 @@ const SEED_DATA = {
       "fact": "The Great Rift Valley stretches about 6,000 km from Mozambique to Lebanon and is visible from space. It's forming as the African plate slowly splits - a geological process taking millions of years.",
       "source": {
         "url": "https://www.pexels.com/photo/a-river-flowing-through-a-grassy-valley-28198479/",
-        "attribution": ""
+        "attribution": "Photo by Matteo Badini"
       },
       "factSource": "https://en.wikipedia.org/wiki/Great_Rift_Valley",
       "image": "0043.jpg"
@@ -17951,7 +17951,7 @@ const SEED_DATA = {
       "fact": "Lake Baikal in Siberia contains about 23% of the world's fresh surface water, more than all the North American Great Lakes combined. It's also the world's deepest and oldest lake at 25 million years.",
       "source": {
         "url": "https://www.pexels.com/photo/tranquil-mountain-lake-with-scenic-view-34462412/",
-        "attribution": ""
+        "attribution": "Photo by Niki Clark"
       },
       "factSource": "https://en.wikipedia.org/wiki/Lake_Baikal",
       "image": "0044.jpg",
@@ -18321,7 +18321,7 @@ const SEED_DATA = {
       "fact": "The Amazon River discharges more water than the next seven largest rivers combined - about 209,000 cubic meters per second. Its freshwater plume extends nearly 400 km out into the Atlantic Ocean.",
       "source": {
         "url": "https://www.pexels.com/photo/deep-forest-around-river-18117979/",
-        "attribution": ""
+        "attribution": "Photo by ZaetaFlow Sec"
       },
       "factSource": "https://en.wikipedia.org/wiki/Amazon_River",
       "image": "0045.jpg",
@@ -19359,7 +19359,7 @@ const SEED_DATA = {
       "fact": "Silver trumpets dating to 1500 BCE were found in Tutankhamun's tomb. When played on BBC radio in 1939 after 3,000 years of silence, one of them shattered - replicas were used for later recordings.",
       "source": {
         "url": "https://unsplash.com/photos/brass-colored-trumpet-fTPSm7KD_d0",
-        "attribution": ""
+        "attribution": "Photo by Hal Gatewood"
       },
       "factSource": "https://en.wikipedia.org/wiki/Trumpet",
       "image": "0047.jpg"
@@ -19971,7 +19971,7 @@ const SEED_DATA = {
       "fact": "Leo Fender invented the electric bass in 1951 to solve two touring-band problems: the double bass was hard to transport, and could barely be heard next to amplified electric guitars.",
       "source": {
         "url": "https://unsplash.com/photos/white-and-black-electric-bass-guitar-on-white-surface-laHwVPkMTzY",
-        "attribution": ""
+        "attribution": "Photo by Kari Shea"
       },
       "factSource": "https://en.wikipedia.org/wiki/Bass_guitar",
       "image": "0049.jpg"
@@ -22610,7 +22610,7 @@ const SEED_DATA = {
       ],
       "fact": "Archimedes computed \u03c0 to two decimals in 250 BCE using inscribed polygons. Today, computers have calculated over 100 trillion digits, but just 39 digits are enough to compute the observable universe's circumference to atomic width.",
       "source": {
-        "url": "https://www.pineconefestival.org/fun-facts  |  Photo by Vera Emilie",
+        "url": "https://en.wikipedia.org/wiki/Pi",
         "attribution": ""
       },
       "factSource": "https://en.wikipedia.org/wiki/Pi",
@@ -23919,7 +23919,7 @@ const SEED_DATA = {
       "fact": "Gamma rays, discovered by Paul Villard in 1900, are the most energetic form of electromagnetic radiation. A single gamma-ray photon can carry millions of times the energy of a visible-light photon.",
       "source": {
         "url": "https://svs.gsfc.nasa.gov/11545/",
-        "attribution": ""
+        "attribution": "Public domain"
       },
       "factSource": "https://en.wikipedia.org/wiki/Gamma_ray",
       "image": "0058.png"
@@ -24445,7 +24445,7 @@ const SEED_DATA = {
       "fact": "William Herschel discovered infrared radiation in 1800 by accident - measuring temperatures of different colors of sunlight, he noticed the highest reading was in the invisible region just past red.",
       "source": {
         "url": "https://www.pexels.com/photo/toaster-with-bread-7936648/",
-        "attribution": ""
+        "attribution": "Photo by Nicola Barts"
       },
       "factSource": "https://en.wikipedia.org/wiki/Infrared",
       "image": "0059.jpg"
@@ -25121,7 +25121,7 @@ const SEED_DATA = {
       "fact": "Galileo discovered the pendulum's isochronism (each swing takes the same time, wide or narrow) in 1602 by watching a cathedral lamp swing while timing it with his pulse. His observation led to the first accurate mechanical clocks over 50 years later.",
       "source": {
         "url": "https://unsplash.com/photos/a-wooden-stand-with-three-metal-balls-on-it-d7SxBxEAOfU",
-        "attribution": ""
+        "attribution": "Photo by Sunder Muthukumaran"
       },
       "factSource": "https://en.wikipedia.org/wiki/Pendulum",
       "image": "0060.jpg"
@@ -25477,7 +25477,7 @@ const SEED_DATA = {
       "fact": "Radio waves, discovered by Heinrich Hertz in 1887, travel at the speed of light. Their wavelengths range from millimeters to over 100 km - the longest can penetrate seawater and are used for submarine communication.",
       "source": {
         "url": "https://www.pexels.com/photo/old-fashioned-radio-19924600/",
-        "attribution": ""
+        "attribution": "Photo by Mehmet Turgut Kirkgoz"
       },
       "factSource": "https://en.wikipedia.org/wiki/Radio_wave",
       "image": "0061.jpg"
@@ -27396,7 +27396,7 @@ const SEED_DATA = {
       "fact": "X-rays were discovered by accident in 1895 by Wilhelm R\u00f6ntgen, who named them 'X' for the unknown. Their wavelengths are short enough to pass straight through soft tissue, but not through bone.",
       "source": {
         "url": "https://unsplash.com/photos/x-ray-result-_GpJpHnyCSw",
-        "attribution": ""
+        "attribution": "Photo by Cara Shelton"
       },
       "factSource": "https://en.wikipedia.org/wiki/X-ray",
       "image": "0065.jpg"
@@ -28107,7 +28107,7 @@ const SEED_DATA = {
       "fact": "At 828 meters (2,717 ft), the Burj Khalifa is the world's tallest building. Its Y-shaped footprint is inspired by the Hymenocallis flower and helps it resist Dubai's desert winds.",
       "source": {
         "url": "https://unsplash.com/photos/white-concrete-building-near-palm-tree-under-blue-sky-during-daytime-4PDWwUD6g_4",
-        "attribution": ""
+        "attribution": "Photo by Nick Fewings"
       },
       "factSource": "https://en.wikipedia.org/wiki/Burj_Khalifa",
       "image": "0067.jpg"
@@ -28363,7 +28363,7 @@ const SEED_DATA = {
       "fact": "The average adult has about 5 liters of blood, which travels roughly 19,000 km through blood vessels each day, nearly halfway around the equator.",
       "source": {
         "url": "https://www.pexels.com/photo/person-in-pink-gloves-holding-a-test-tube-6629361/",
-        "attribution": ""
+        "attribution": "Photo by Kaboompics .com"
       },
       "factSource": "https://en.wikipedia.org/wiki/Blood",
       "image": "0068.jpg"
@@ -29039,7 +29039,7 @@ const SEED_DATA = {
       "fact": "Dmitri Mendeleev published the first periodic table in 1869, predicting properties of three then-undiscovered elements (gallium, scandium, germanium). All three were found within 15 years.",
       "source": {
         "url": "https://sciencenotes.org/periodic-table-for-kids-118-elements/",
-        "attribution": ""
+        "attribution": "Periodic table by Todd Helmenstine, Science Notes"
       },
       "factSource": "https://en.wikipedia.org/wiki/Periodic_table",
       "image": "0069.png"
@@ -38368,5 +38368,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 2026090301
+  "seedVersion": 2026090302
 };
