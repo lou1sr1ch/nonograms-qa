@@ -3548,3 +3548,117 @@ body.reduce-motion .dpad-ripple { animation: none; opacity: 0; }
     padding: 4px 10px;
   }
 }
+
+/* === Tutorial + one-shot notes (batch E, 2026-09-03) ===
+   The coach card pins above the solve controls for the whole tutorial; the
+   offer and notes reuse the standard .modal shell. Gold icon buttons reuse
+   .givens-icon/.gi-beam but stroke with .tut-fill (url(#tutGold), a top-level
+   paint server) — .gi-fill points into the givens modal, which is display:none
+   exactly when the coach needs it. */
+
+/* Coach card */
+.tut-coach {
+  position: fixed;
+  left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 800; /* above app chrome (200), below modals (2000) */
+  width: min(92vw, 380px);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-espresso);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(45, 31, 23, 0.18);
+  padding: 12px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tut-coach.hidden { display: none; }
+.tut-coach-main { display: flex; align-items: center; gap: 10px; }
+#tutCoachText {
+  margin: 0;
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--color-fg);
+}
+.tut-coach-icon { flex: none; width: 48px; height: 24px; }
+.tut-coach-icon.hidden { display: none; }
+.tut-coach-icon svg { display: block; width: 48px; height: 24px; overflow: visible; }
+.tut-swipe-track {
+  fill: none;
+  stroke: var(--color-steam);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tut-swipe-dot {
+  fill: var(--color-mocha);
+  animation: tut-swipe 1.8s ease-in-out infinite;
+}
+@keyframes tut-swipe {
+  0%   { transform: translateX(0);    opacity: 0; }
+  12%  { transform: translateX(0);    opacity: 1; }
+  78%  { transform: translateX(36px); opacity: 1; }
+  100% { transform: translateX(36px); opacity: 0; }
+}
+body.reduce-motion .tut-swipe-dot { animation: none; transform: translateX(18px); opacity: 1; }
+#tutCoachBtn { flex: none; visibility: hidden; } /* slot holds its geometry between modes */
+#tutCoachBtn.show { visibility: visible; }
+#tutCoachSkip {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-steam);
+  cursor: pointer;
+}
+#tutCoachSkip.hidden { display: none; }
+.tut-coach-in { animation: tut-coach-in 0.35s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
+@keyframes tut-coach-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+body.reduce-motion .tut-coach-in { animation: none; }
+
+/* Gold stroke for the coach/note icon buttons (their own paint server). */
+.tut-fill {
+  fill: none;
+  stroke: url(#tutGold);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* First-open offer card */
+.tut-offer-card p,
+.tut-note-card p {
+  margin: 0 0 14px;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--color-fg);
+}
+.tut-offer-actions { display: flex; justify-content: center; }
+.tut-primary-btn {
+  background: var(--color-espresso);
+  color: var(--color-foam);
+  border: none;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+/* One-shot note card */
+.tut-note-actions { display: flex; justify-content: flex-end; }
+#tutNoteOk:disabled { opacity: 0.35; cursor: default; } /* the ~1.5s no-dismiss window */
+
+/* Settings: "disable action button" as a suboption of the dpad row (his
+   ruling — indented, "pretty self explanatory", so no description). */
+.setting-row.subsetting { padding-left: 28px; }
+.setting-row.subsetting .setting-name { font-weight: 400; }

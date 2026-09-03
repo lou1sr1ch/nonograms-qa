@@ -237,15 +237,19 @@ const SHIPPING_FOLDERS = [
 ];
 
 // Default library structure on first load.
-// Originals (Heart/Diamond/Arrow) → Standby/Tutorial folder.
+// The tutorial trio (Heart/Diamond/Arrow) is NOT a category (batch E, his E1
+// ruling: "one unique window thats a chronological collection of puzzles"): it
+// lives in library.tutorial in play order — arrow, heart, diamond = ids
+// 0003/0001/0002 (id order is NOT play order) — and runs as one window.
 // Test puzzles → Archive root. Shipping seeded with the canonical category folders, all empty.
 const LIBRARY_DEFAULT = {
   shipping: {
     folders: Object.fromEntries(SHIPPING_FOLDERS.map(name => [name, []])),
     puzzles: [],
   },
-  standby:  { folders: { "Tutorial": ["0001", "0002", "0003"] }, puzzles: [] },
+  standby:  { folders: {}, puzzles: [] },
   archive:  { folders: {}, puzzles: ["0004", "0005", "0006", "0007"] },
+  tutorial: ["0003", "0001", "0002"],
 };
 
 const SUBSECTIONS = [
@@ -559,7 +563,7 @@ const modeBtn = document.getElementById("modeBtn");
 // cursor cell instead — Fill commits a fill, Cross commits a cross. Fill/Cross
 // stop being "mode selectors" and become "action buttons".
 modeBtn.addEventListener("click", (e) => {
-  if (settings.dpad && settings.disableActionBtn) {
+  if (dpadEffective() && settings.disableActionBtn) {
     const half = e.target.closest(".mode-half");
     if (!half) return;   // ignore taps in the gap between halves in this mode
     const mode = half.classList.contains("mode-half-fill") ? "fill" : "cross";
@@ -911,6 +915,12 @@ function buildSettingsModal() {
     wrap.appendChild(nameEl);
     wrap.appendChild(descEl);
     li.appendChild(wrap);
+    // Batch E (his ruling): "disable action button" is a suboption of the dpad
+    // row — indented, and "pretty self explanatory", so no description.
+    if (key === "disableActionBtn") {
+      li.classList.add("subsetting");
+      descEl.remove();
+    }
 
     const toggle = document.createElement("input");
     toggle.type = "checkbox";
@@ -953,6 +963,32 @@ function buildSettingsModal() {
   });
   replayLi.appendChild(replayBtn);
   list.appendChild(replayLi);
+
+  // Replay row for the tutorial (batch E): the re-entry path now that the
+  // first-open offer is once-ever. Starts the window from the arrow.
+  const tutLi = document.createElement("li");
+  tutLi.className = "setting-row";
+  const tutWrap = document.createElement("div");
+  tutWrap.className = "setting-label-wrap";
+  const tutName = document.createElement("span");
+  tutName.className = "setting-name";
+  tutName.textContent = "How to play";
+  const tutDesc = document.createElement("span");
+  tutDesc.className = "setting-desc";
+  tutDesc.textContent = "Replay the three-puzzle tutorial.";
+  tutWrap.appendChild(tutName);
+  tutWrap.appendChild(tutDesc);
+  tutLi.appendChild(tutWrap);
+  const tutBtn = document.createElement("button");
+  tutBtn.type = "button";
+  tutBtn.className = "setting-action-btn";
+  tutBtn.textContent = "Replay";
+  tutBtn.addEventListener("click", () => {
+    closeSettingsModal();
+    if (userMode) tutorialStart();
+  });
+  tutLi.appendChild(tutBtn);
+  list.appendChild(tutLi);
 }
 
 // === User-mode navigation (Home → Categories → Puzzles → Solve) ===
@@ -1024,7 +1060,10 @@ function setUserScreen(name) {
     // next solve screen un-hides the dpad.
     document.querySelectorAll(".dpad-ripples").forEach(g => g.replaceChildren());
   }
-  if (name !== "solve") hideGivensModal(); // never leave the explainer floating over list screens
+  if (name !== "solve") {
+    hideGivensModal(); // never leave the explainer floating over list screens
+    if (tutorial) tutorialExit(null); // batch E: backing out of the tutorial ends it quietly
+  }
   if (name === "category") buildUserCategoryList();
   else if (name === "puzzles") {
     buildUserPuzzleList(currentUserCategoryName);
@@ -1213,6 +1252,7 @@ function buildUserPuzzleList(catName) {
     li.addEventListener("click", () => {
       loadPuzzle(id);
       setUserScreen("solve");
+      maybeShowOneShotNotes(puzzle); // batch E: landscape / dpad intro, once ever
     });
     ul.appendChild(li);
   }
@@ -1231,13 +1271,15 @@ function applySettings() {
   document.getElementById("undoBtn").classList.toggle("hidden", !inSolve);   // undo is always on (2026-08-26)
   // Dpad visibility. Tap-to-select is implicit whenever the dpad is on — no
   // separate toggle, since painting-by-tap with a dpad up would be redundant.
-  document.body.classList.toggle("dpad-on", inSolve && settings.dpad);
+  // dpadEffective(): the tutorial forces the dpad off without touching the
+  // saved setting (batch E).
+  document.body.classList.toggle("dpad-on", inSolve && dpadEffective());
   // "Disable action button": removes dpad's center square and repurposes Fill/Cross
   // to execute the action directly on the cursor cell. Only takes effect when dpad is on.
-  document.body.classList.toggle("disable-action-btn-on", inSolve && settings.dpad && settings.disableActionBtn);
+  document.body.classList.toggle("disable-action-btn-on", inSolve && dpadEffective() && settings.disableActionBtn);
   // Cursor bootstraps to (0,0) as soon as dpad is on, so the user sees the target
   // cell before pressing anything.
-  if (inSolve && settings.dpad && activePuzzle && !selectedCell) {
+  if (inSolve && dpadEffective() && activePuzzle && !selectedCell) {
     selectedCell = { r: 0, c: 0 };
   }
   // Cursor may need a re-render (e.g. board changed dimensions since last apply)
@@ -1363,7 +1405,7 @@ const LAYOUT_PROFILES = [
 // and the DEV-ONLY puzzle-list badge share one source of truth — if these ever diverge,
 // the badge silently lies about which profile a puzzle will open in.
 function profileForDims(w, h) {
-  const dpadOn = !!settings.dpad;
+  const dpadOn = dpadEffective();
   const isWide = w > h;
   const isSquare = w === h;
   if (isWide) return dpadOn ? "profile-wide-dpad" : "profile-wide-nodpad";
@@ -2083,7 +2125,7 @@ function handleSolvePointerDown(e, cell) {
   const c = +cell.dataset.col;
   // Dpad-on implies tap-to-select on touch. Mouse users still paint via left/right
   // click (desktop has no dpad affordance, so this would strand them without a commit path).
-  if (settings.dpad && e.pointerType !== "mouse") {
+  if (dpadEffective() && e.pointerType !== "mouse") {
     e.preventDefault();
     selectedCell = { r, c };
     renderCursor();
@@ -2108,6 +2150,7 @@ function handleSolvePointerDown(e, cell) {
 }
 
 function toggleMode() {
+  if (tutorialModeLock()) return; // scripted tutorial beats pin the mode (batch E)
   currentMode = currentMode === "fill" ? "cross" : "fill";
   updateModeButton();
 }
@@ -2245,7 +2288,7 @@ function updateModeButton() {
   // When `disableActionBtn` is on with dpad, Fill/Cross are action buttons
   // (not mode selectors) — pin the class to mode-fill so Fill stays styled
   // dark and Cross stays styled light, regardless of currentMode.
-  if (settings.dpad && settings.disableActionBtn) {
+  if (dpadEffective() && settings.disableActionBtn) {
     modeBtn.classList.add("mode-fill");
     modeBtn.classList.remove("mode-cross");
     return;
@@ -2257,6 +2300,8 @@ function updateModeButton() {
 function paintCell(cell, r, c) {
   const key = `${r},${c}`;
   if (givenCells.has(key)) return; // hint cells are locked — no paint, no undo entry
+  if (tutLocks.has(key)) return;   // tutorial beat-locks: earlier steps stay put (batch E)
+  if (tutorial && !tutorialGate(r, c, brushTarget)) return; // the lesson refuses this move
   if (visited.has(key)) return;
   visited.add(key);
   const prev = board[r][c];
@@ -2273,7 +2318,7 @@ function paintCell(cell, r, c) {
   if (settings.mistakes && brushTarget === STATE_FILLED && activePuzzle && !activePuzzle.truth[r][c]) {
     recordMistake();
   }
-  if (settings.autoCross) autoCrossAfterPaint(r, c);
+  if (settings.autoCross && !tutorial) autoCrossAfterPaint(r, c); // auto-cross forced off in the tutorial (his D1 spec)
 }
 
 function autoCrossAfterPaint(r, c) {
@@ -2329,6 +2374,7 @@ function endBrush() {
     currentStroke = [];
     updateUndoButtonState();
   }
+  if (tutorial) tutorialCheck(); // advance scripted beats at stroke end (batch E)
   if (!won && checkWin()) startWinSequence();
 }
 
@@ -2367,7 +2413,9 @@ function startWinSequence() {
 
   if (settings.reduceMotion) {
     revealColors();
-    showWinModal();
+    // Batch E: during the tutorial the win card is replaced by the coach's
+    // interstitial ("Well done. Let's try another puzzle.") or closing card.
+    if (tutorial) showTutInterstitial(); else showWinModal();
     return;
   }
   sfx.win();
@@ -2390,7 +2438,7 @@ function startWinSequence() {
     }
     revealColors();
     spawnSparkles();
-    setTimeout(showWinModal, 700);
+    setTimeout(() => { if (tutorial) showTutInterstitial(); else showWinModal(); }, 700);
   }, maxDelay + 540);
 }
 
@@ -2849,6 +2897,7 @@ function loadPuzzle(id) {
   // Seed format: "givens": [[x, y], ...] (0-based col, row); every one is a
   // filled truth cell by construction (asserted in the edit scripts).
   givenCells = new Set();
+  tutLocks.clear(); // tutorial beat-locks belong to the previous board (batch E)
   for (const [gx, gy] of activePuzzle.givens || []) {
     if (gy < h && gx < w && activePuzzle.truth[gy][gx]) {
       board[gy][gx] = STATE_FILLED;
@@ -2898,6 +2947,14 @@ function clearBoard() {
   updateUndoButtonState();
   hideFactCard();
   hideWinModal();
+  // Batch E: during the tutorial a reset also rewinds the lesson to its first
+  // beat. The beat locks simply dissolve — they never entered givenCells, so
+  // the replant loop above already restored only real givens.
+  if (tutorial) {
+    tutLocks.clear();
+    tutorial.beat = 0;
+    tutorialShowBeat();
+  }
 }
 
 function updateHintCompletion() {
@@ -2933,6 +2990,10 @@ function loadLibrary() {
       if (!parsed[k].folders) parsed[k].folders = {};
       if (!parsed[k].puzzles) parsed[k].puzzles = [];
     }
+    // library.tutorial predates this key on older devices — heal the play order.
+    if (!Array.isArray(parsed.tutorial) || parsed.tutorial.length === 0) {
+      parsed.tutorial = [...LIBRARY_DEFAULT.tutorial];
+    }
     return parsed;
   } catch {
     return structuredClone(LIBRARY_DEFAULT);
@@ -2961,6 +3022,10 @@ function syncLibraryWithPuzzles() {
       });
     }
   }
+  // The tutorial trio is classified by library.tutorial (batch E) — without
+  // this the sweep below would dump all three into Standby as "unclassified".
+  if (!Array.isArray(library.tutorial)) library.tutorial = [...LIBRARY_DEFAULT.tutorial];
+  for (const id of library.tutorial) if (id in PUZZLES) present.add(id);
   // Any puzzle not currently classified gets dropped into Standby root.
   for (const id of Object.keys(PUZZLES)) {
     if (!present.has(id)) library.standby.puzzles.push(id);
@@ -5005,12 +5070,278 @@ window.addEventListener("orientationchange", () => setTimeout(() => {
   resizeBoardToFit();
 }, 100));
 
+// === Tutorial (batch E, 2026-09-03) ===
+// One chronological window — arrow → heart → diamond — never a category (his
+// E1 ruling: "one unique window thats a chronological collection of puzzles
+// rather than individual puzzles in a category"). Play order comes from
+// library.tutorial (the seed is source of truth); ids 0003/0001/0002 =
+// arrow/heart/diamond — id order is NOT play order.
+//
+// His ladder (E4/E5): the arrow holds your hand — scripted beats, only the
+// right moves are possible, prior moves lock behind you, cross mode is forced
+// on the cross beats; the heart explains one new concept ([2,2] = two runs),
+// refuses wrong fills, but lets you choose your cells; the diamond is
+// guardrails off — "you can now make any move". Dpad + auto-cross are forced
+// OFF for the duration via effective-value READS (dpadEffective / the paintCell
+// guard) — the saved settings are never touched, so nothing needs restoring.
+// Skip is the quiet grey link under the coach; replay lives in Settings →
+// "How to play"; the first-open offer is once-ever (picross.tutorialOffered).
+let tutorial = null;     // { idx, beat } while running; null otherwise
+const tutLocks = new Set(); // completed-beat cells ("prior moves locked", D1)
+
+const TUTORIAL_FALLBACK_ORDER = ["0003", "0001", "0002"];
+
+function tutorialOrder() {
+  const o = (typeof library !== "undefined" && library && library.tutorial) || null;
+  return (o && o.length === 3) ? o : TUTORIAL_FALLBACK_ORDER;
+}
+
+// Every dpad read in the app goes through here so the tutorial can force it
+// off (his D1 spec) without mutating settings.dpad.
+function dpadEffective() {
+  return !!settings.dpad && !tutorial;
+}
+
+// Arrow geometry (0-based): shaft = rows 4,5 full width; tip cells sit in
+// rows 1,2,3,6,7,8 cols 6-8; shaft columns 0-5,9 hint [2].
+const ARROW_SHAFT_COLS = [0, 1, 2, 3, 4, 5, 9];
+const ARROW_NONSHAFT_ROWS = [0, 1, 2, 3, 6, 7, 8, 9];
+const ARROW_TIP_ROWS = [1, 2, 3, 6, 7, 8];
+
+// Per-puzzle beat scripts. allow(r, c, target) gates paintCell; done(board)
+// advances at stroke end. Each puzzle's LAST beat completes via the win
+// itself, so its done never fires.
+const TUTORIAL_BEATS = {
+  "0003": [ // arrow — "hold your hand"
+    { mode: "fill", icon: "swipe",
+      text: "The numbers on the edges are clues. This row says 10, and the board is 10 wide, so every cell gets filled. Drag across the row.",
+      allow: (r, c, t) => t === STATE_FILLED && r === 4,
+      done: b => b[4].every(v => v === STATE_FILLED) },
+    { mode: "fill", icon: "swipe",
+      text: "One more full row, just below it.",
+      allow: (r, c, t) => t === STATE_FILLED && r === 5,
+      done: b => b[5].every(v => v === STATE_FILLED) },
+    { mode: "cross", icon: "swipe",
+      text: "A 0 means none at all. Cross out the empty rows, top and bottom. Cross mode is on for you.",
+      allow: (r, c, t) => t === STATE_CROSSED && (r === 0 || r === 9),
+      done: b => b[0].every(v => v === STATE_CROSSED) && b[9].every(v => v === STATE_CROSSED) },
+    { mode: "cross",
+      text: "These columns say 2, and both of their cells are already filled. Cross out everything left in them.",
+      allow: (r, c, t) => t === STATE_CROSSED && ARROW_SHAFT_COLS.includes(c),
+      done: b => ARROW_SHAFT_COLS.every(c => ARROW_NONSHAFT_ROWS.every(r => b[r][c] === STATE_CROSSED)) },
+    { mode: "fill",
+      text: "Now the arrow's tip. Fill the cells that are left, one row at a time.",
+      allow: (r, c, t) => t === STATE_FILLED && ARROW_TIP_ROWS.includes(r),
+      done: () => false },
+  ],
+  "0001": [ // heart — "just explain the new concept", wrong fills refused
+    { text: "Start with the biggest clues, like the 8s. This one won't let you fill a wrong cell, so try things.",
+      done: () => tutorialAnyLineDone() },
+    { text: "See the row that says 2 2? That's two separate runs with a gap between them: the heart's two lobes.",
+      done: () => false },
+  ],
+  "0002": [ // diamond — "solve it on ur own"
+    { text: "This last one is all yours. Guardrails off: you can now make any move. Solve it your way.",
+      done: () => false },
+  ],
+};
+
+function tutorialCurrentId() { return tutorialOrder()[tutorial.idx]; }
+
+// The paintCell gate (batch E5): erases are always free; before the diamond,
+// incorrect moves are impossible (fills must land on truth, crosses off it);
+// the arrow additionally restricts you to the current beat's scope.
+function tutorialGate(r, c, target) {
+  if (target === STATE_EMPTY) return true;
+  const id = tutorialCurrentId();
+  if (id !== "0002") {
+    if (target === STATE_FILLED && !activePuzzle.truth[r][c]) return false;
+    if (target === STATE_CROSSED && activePuzzle.truth[r][c]) return false;
+  }
+  const beat = (TUTORIAL_BEATS[id] || [])[tutorial.beat];
+  return beat ? beat.allow(r, c, target) : true;
+}
+
+// Scripted beats pin the fill/cross mode; free-play beats leave it alone.
+function tutorialModeLock() {
+  if (!tutorial) return null;
+  const beat = (TUTORIAL_BEATS[tutorialCurrentId()] || [])[tutorial.beat];
+  return (beat && beat.mode) || null;
+}
+
+// True once any row or column is completely, correctly filled — the heart's
+// "start with the biggest clues" beat advances on your first finished line.
+function tutorialAnyLineDone() {
+  for (let r = 0; r < activeH; r++) {
+    if (!board[r].some(v => v === STATE_FILLED)) continue;
+    if (arraysEqual(runsInLine(board[r].map(v => v === STATE_FILLED)), hints.rows[r])) return true;
+  }
+  for (let c = 0; c < activeW; c++) {
+    const col = [];
+    for (let r = 0; r < activeH; r++) col.push(board[r][c] === STATE_FILLED);
+    if (col.some(Boolean) && arraysEqual(runsInLine(col), hints.cols[c])) return true;
+  }
+  return false;
+}
+
+const TUT_INTERSTITIALS = [
+  "Well done. Let's try another puzzle.", // his verbatim wording
+  "Well done. One more, and this one is all yours.",
+];
+const TUT_CLOSING = "That's the whole recipe. Take a look around and pick a puzzle you like.";
+
+function tutorialStart() {
+  tutorial = { idx: 0, beat: 0 };
+  loadPuzzle(tutorialOrder()[0]);
+  setUserScreen("solve");
+  tutorialShowBeat();
+  applySettings(); // dpad/auto-cross read effectively-off while tutorial is set
+}
+
+function tutorialShowBeat() {
+  const beat = (TUTORIAL_BEATS[tutorialCurrentId()] || [])[tutorial.beat];
+  if (!beat) return;
+  const coach = document.getElementById("tutCoach");
+  coach.classList.remove("hidden", "tut-interstitial");
+  document.getElementById("tutCoachText").textContent = beat.text;
+  document.getElementById("tutCoachIcon").classList.toggle("hidden", !beat.icon);
+  document.getElementById("tutCoachBtn").classList.remove("show");
+  document.getElementById("tutCoachSkip").classList.remove("hidden");
+  if (beat.mode) { currentMode = beat.mode; updateModeButton(); }
+  coach.classList.remove("tut-coach-in");
+  void coach.offsetWidth; // restart the entrance animation on each new beat
+  coach.classList.add("tut-coach-in");
+}
+
+// Stroke end (from endBrush): advance the scripted beats. The arrow's
+// completed beats lock behind you — "prior moves locked" (his D1 gating).
+function tutorialCheck() {
+  if (!tutorial || won) return;
+  const beats = TUTORIAL_BEATS[tutorialCurrentId()] || [];
+  const beat = beats[tutorial.beat];
+  if (!beat || !beat.done(board)) return;
+  if (tutorial.beat >= beats.length - 1) return;
+  if (tutorialCurrentId() === "0003") tutorialLockBoardCells();
+  tutorial.beat++;
+  tutorialShowBeat();
+}
+
+// The just-finished beat's cells join tutLocks (paintCell refuses them) and
+// the undo history is dropped, so earlier steps can't be reopened mid-lesson.
+// Kept OUT of givenCells so locked cells don't render the golden hint ring
+// and don't get replanted by clearBoard.
+function tutorialLockBoardCells() {
+  for (let r = 0; r < activeH; r++) {
+    for (let c = 0; c < activeW; c++) {
+      if (board[r][c] !== STATE_EMPTY) tutLocks.add(`${r},${c}`);
+    }
+  }
+  undoStack.length = 0;
+  updateUndoButtonState();
+}
+
+// The win intercept (both showWinModal sites in startWinSequence): the coach
+// morphs into the interstitial, or the closing card after the diamond.
+function showTutInterstitial() {
+  const coach = document.getElementById("tutCoach");
+  const last = tutorial.idx >= 2;
+  document.getElementById("tutCoachText").textContent = last ? TUT_CLOSING : TUT_INTERSTITIALS[tutorial.idx];
+  document.getElementById("tutCoachIcon").classList.add("hidden");
+  document.getElementById("tutCoachBtn").classList.add("show");
+  document.getElementById("tutCoachSkip").classList.toggle("hidden", last);
+  coach.classList.remove("hidden");
+  coach.classList.add("tut-interstitial");
+  coach.classList.remove("tut-coach-in");
+  void coach.offsetWidth;
+  coach.classList.add("tut-coach-in");
+}
+
+// Leaves the tutorial. screen=null only tidies state (we're already inside a
+// setUserScreen); otherwise navigates there. Restores the player's real
+// dpad/auto-cross behavior via applySettings.
+function tutorialExit(screen) {
+  tutorial = null;
+  tutLocks.clear();
+  document.getElementById("tutCoach").classList.add("hidden");
+  applySettings();
+  if (screen) setUserScreen(screen);
+}
+
+// The gold arrow on the interstitial cards: next puzzle, or done → categories.
+document.getElementById("tutCoachBtn").addEventListener("click", () => {
+  if (!tutorial) return;
+  if (tutorial.idx >= 2) { tutorialExit("category"); return; }
+  tutorial.idx++;
+  tutorial.beat = 0;
+  loadPuzzle(tutorialOrder()[tutorial.idx]);
+  tutorialShowBeat();
+});
+document.getElementById("tutCoachSkip").addEventListener("click", () => tutorialExit("home"));
+
+// === First-open offer + one-shot notes (batch E) ===
+const TUT_OFFER_KEY = "picross.tutorialOffered";
+function maybeOfferTutorial() {
+  if (tutorial) return;
+  try { if (localStorage.getItem(TUT_OFFER_KEY)) return; } catch {}
+  document.getElementById("tutOffer").classList.remove("hidden");
+}
+function dismissTutOffer(start) {
+  try { localStorage.setItem(TUT_OFFER_KEY, "1"); } catch {}
+  document.getElementById("tutOffer").classList.add("hidden");
+  if (start) tutorialStart();
+}
+document.getElementById("tutOfferStart").addEventListener("click", () => dismissTutOffer(true));
+document.getElementById("tutOfferClose").addEventListener("click", () => dismissTutOffer(false));
+document.querySelector("#tutOffer .modal-backdrop").addEventListener("click", () => dismissTutOffer(false));
+
+// One-shot notes — landscape orientation + the dpad intro (his E6): once ever
+// each, NO replay, with a ~1.5s no-dismiss window so an accidental tap can't
+// close the card before it's read ("unclickoutability"). If both qualify on
+// one open the landscape note goes first; the dpad note rolls to the next
+// qualifying open. A givens explainer already on screen also rolls it forward.
+const ONESHOT_FLAGS = { landscape: "picross.landscapeNoteSeen", dpad: "picross.dpadNoteSeen" };
+const ONESHOT_COPY = {
+  landscape: "Some puzzles are landscape. You can see the orientation in the puzzle list.",
+  dpad: "The dpad moves a cursor around the board, and its center button fills or crosses that cell. It can be helpful for larger puzzle boards since the cells are smaller. Turn it on in Settings to try it.",
+};
+function maybeShowOneShotNotes(puzzle) {
+  if (tutorial || !puzzle) return;
+  let which = null;
+  try {
+    if (puzzle.width > puzzle.height && !localStorage.getItem(ONESHOT_FLAGS.landscape)) which = "landscape";
+    else if ((puzzle.width > 10 || puzzle.height > 10) && !localStorage.getItem(ONESHOT_FLAGS.dpad)) which = "dpad";
+  } catch {}
+  if (!which) return;
+  // Let the solve screen settle first; if another card owns the moment, the
+  // note stays unseen and rolls to the next qualifying open.
+  setTimeout(() => {
+    if (tutorial) return;
+    if (!document.getElementById("givensModal").classList.contains("hidden")) return;
+    document.getElementById("tutNoteText").textContent = ONESHOT_COPY[which];
+    const modal = document.getElementById("tutNote");
+    modal.dataset.which = which;
+    const ok = document.getElementById("tutNoteOk");
+    ok.disabled = true;
+    modal.classList.remove("hidden");
+    setTimeout(() => { ok.disabled = false; }, 1500);
+  }, 450);
+}
+function dismissOneShotNote() {
+  const modal = document.getElementById("tutNote");
+  if (document.getElementById("tutNoteOk").disabled) return; // the no-dismiss window
+  try { localStorage.setItem(ONESHOT_FLAGS[modal.dataset.which], "1"); } catch {}
+  modal.classList.add("hidden");
+}
+document.getElementById("tutNoteOk").addEventListener("click", dismissOneShotNote);
+document.querySelector("#tutNote .modal-backdrop").addEventListener("click", dismissOneShotNote);
+
 // Dispatch sits at the very bottom so every `let`/`const` binding
 // (including editor state) is past TDZ before init runs.
 if (userMode) {
   document.body.classList.add("user-mode");
   initUserNav();
   setUserScreen("home");
+  setTimeout(maybeOfferTutorial, 700); // batch E: first-open offer, once ever
 } else if (editorMode) {
   initEditor();
 } else {

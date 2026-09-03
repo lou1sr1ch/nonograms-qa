@@ -38321,12 +38321,7 @@ const SEED_DATA = {
         ],
         "History": [],
         "Community": [],
-        "Original Art": [],
-        "Tutorial": [
-          "0001",
-          "0002",
-          "0003"
-        ]
+        "Original Art": []
       },
       "puzzles": []
     },
@@ -38358,7 +38353,12 @@ const SEED_DATA = {
         "0009",
         "0041"
       ]
-    }
+    },
+    "tutorial": [
+      "0003",
+      "0001",
+      "0002"
+    ]
   },
   "completed": [
     "0001",
@@ -38372,5 +38372,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 2026090303
+  "seedVersion": 2026090304
 };
