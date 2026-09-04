@@ -5139,11 +5139,15 @@ const ARROW_NONSHAFT_ROWS = [0, 1, 2, 3, 6, 7, 8, 9];
 // element, visibility-hidden so nothing flashes; once per puzzle, before its
 // first fit, so the board never resizes mid-lesson. The gold-arrow button
 // holds its slot whether shown or not, so text length is the only variable.
+// Closable beats (his pass-4: the heart's free-play cards dismiss via an X)
+// earn no reserve — the player clears the card themselves, so the board
+// stays full-size behind it.
 let tutCoachExtra = 0;
+let tutCloseTimer = 0;
 function tutCoachReserve(id) {
   const coach = document.getElementById("tutCoach");
   const text = document.getElementById("tutCoachText");
-  const beats = (TUTORIAL_BEATS[id] || []).filter(b => !b.hideCoach && b.text);
+  const beats = (TUTORIAL_BEATS[id] || []).filter(b => !b.hideCoach && b.text && !b.close);
   let max = 0;
   if (beats.length) {
     const prevText = text.textContent, prevHidden = coach.classList.contains("hidden");
@@ -5231,7 +5235,11 @@ const tutTopButtonSpot = () => ["solveBack", "solveReset", "undoBtn", "solveSett
 // beats and the gate's blind beat.allow() call threw, freezing all painting
 // on puzzles 2 and 3 (the bug Dre hit on the device pass).
 const TUTORIAL_BEATS = {
-  "0003": [ // arrow — "hold your hand"
+  // arrow — "hold your hand". His pass-4 rule: puzzle 1 NEVER switches
+  // fill/cross for the player — every switch is text-prompted and performed
+  // by them (mode pins only hold a mode they already chose; no setMode from
+  // the tip on). One spotlight subject per beat: rows OR a column, not both.
+  "0003": [
     { kind: "showcase",
       text: "Welcome to your first puzzle. Here are the different pieces of solving a nonogram.",
       spot: () => [],
@@ -5277,29 +5285,32 @@ const TUTORIAL_BEATS = {
       spot: () => ARROW_SHAFT_COLS.flatMap(c => tutColSpot(c)),
       allow: (r, c, t) => t === STATE_CROSSED && ARROW_SHAFT_COLS.includes(c),
       done: b => ARROW_SHAFT_COLS.every(c => ARROW_NONSHAFT_ROWS.every(r => b[r][c] === STATE_CROSSED)) },
-    { kind: "action", setMode: "fill",
-      text: "Now the arrow's tip. The rows that say 3 have exactly 3 cells left: fill them.",
-      spot: () => [...tutRowSpot(3), ...tutRowSpot(6)],
-      allow: (r) => r === 3 || r === 6,
+    { kind: "action",
+      text: "Now the arrow's tip. Switch back to Fill and fill the rows that say 3.",
+      spot: () => [...tutRowSpot(3), ...tutRowSpot(6), tutModeBtnSpot()],
+      allow: (r, c, t) => t === STATE_FILLED && (r === 3 || r === 6),
       done: b => [3, 6].every(r => [6, 7, 8].every(c => b[r][c] === STATE_FILLED)) },
     { kind: "action",
-      text: "The 9th column has its 4 now. Switch back to Cross and cross the extra cells in the 2 rows.",
-      spot: () => [...tutRowSpot(2), ...tutRowSpot(7), ...tutColSpot(8), tutModeBtnSpot()],
-      allow: (r, c, t) => t === STATE_CROSSED && c === 8 && (r === 2 || r === 7),
-      done: b => b[2][8] === STATE_CROSSED && b[7][8] === STATE_CROSSED },
-    { kind: "action", setMode: "fill",
-      text: "The rows that say 2 have exactly 2 cells left: fill them.",
-      spot: () => [...tutRowSpot(2), ...tutRowSpot(7)],
-      allow: (r) => r === 2 || r === 7,
+      text: "The 9th column has its 4 now. Switch back to Cross and cross the remaining cells in that column.",
+      spot: () => [...tutColSpot(8), tutModeBtnSpot()],
+      allow: (r, c, t) => t === STATE_CROSSED && c === 8,
+      done: b => [1, 2, 7, 8].every(r => b[r][8] === STATE_CROSSED) },
+    { kind: "action",
+      text: "Switch back to Fill and fill the 2 cells left in the rows that say 2.",
+      spot: () => [...tutRowSpot(2), ...tutRowSpot(7), tutModeBtnSpot()],
+      allow: (r, c, t) => t === STATE_FILLED && (r === 2 || r === 7),
       done: b => [2, 7].every(r => [6, 7].every(c => b[r][c] === STATE_FILLED)) },
-    { kind: "action", setMode: "fill",
-      text: "Last ones: the rows that say 1. Cross the two extra cells, then fill the single cell.",
+    { kind: "action",
+      text: "Last ones: the rows that say 1. Cross the extra cell, then fill the single cell.",
       spot: () => [...tutRowSpot(1), ...tutRowSpot(8), tutModeBtnSpot()],
       allow: (r) => r === 1 || r === 8,
       done: () => false }, // the puzzle completes on this beat — the win intercepts
   ],
-  "0001": [ // heart — a little less hand-holdy: free board, wrong moves refused
-    { kind: "action",
+  "0001": [ // heart — a little less hand-holdy: free board, wrong moves refused.
+    // Its free-play cards are closable (his pass-4): an X fades in ~1s after
+    // the card shows and dismisses it, so the big opener overlays the board
+    // briefly instead of shrinking it (no coach reserve for closable beats).
+    { kind: "action", close: true,
       text: "Puzzle two. You're more on your own now: start with the biggest clues, cross out what you know is false, and remember wrong moves won't land in this one.",
       spot: () => null,
       allow: () => true,
@@ -5308,7 +5319,7 @@ const TUTORIAL_BEATS = {
       text: "See the row that says 2 2? That's two separate runs with a gap between them: the heart's two lobes.",
       spot: () => tutRowSpot(1),
       allow: () => false },
-    { kind: "action",
+    { kind: "action", close: true,
       text: "Finish the heart your way.",
       spot: () => null,
       allow: () => true,
@@ -5590,6 +5601,14 @@ function tutorialShowBeat() {
   coach.classList.toggle("hidden", !!beat.hideCoach); // the diamond plays coachless
   document.getElementById("tutCoachText").textContent = beat.text;
   document.getElementById("tutCoachBtn").classList.toggle("show", beat.kind === "showcase");
+  const closeBtn = document.getElementById("tutCoachClose");
+  clearTimeout(tutCloseTimer);
+  closeBtn.classList.remove("show");
+  if (beat.close && !beat.hideCoach) {
+    // His pass-4: the dismiss X fades in ~1s after the card shows, so the
+    // card is read before it can be cleared.
+    tutCloseTimer = setTimeout(() => closeBtn.classList.add("show"), 1000);
+  }
   const pin = beat.mode || beat.setMode;
   if (pin) { currentMode = pin; updateModeButton(); }
   tutSpotApply();
@@ -5635,6 +5654,8 @@ function showTutInterstitial() {
   const last = tutorial.idx >= 2;
   tutDimHide();
   document.getElementById("tutRowSwipe").classList.add("hidden");
+  clearTimeout(tutCloseTimer); // interstitial cards are arrow-advanced, never closable
+  document.getElementById("tutCoachClose").classList.remove("show");
   document.getElementById("tutCoachText").textContent = last ? TUT_CLOSING : TUT_INTERSTITIALS[tutorial.idx];
   document.getElementById("tutCoachBtn").classList.add("show");
   if (last) document.getElementById("tutSkip").classList.add("hidden");
@@ -5654,6 +5675,8 @@ function tutorialExit(screen) {
   tutLocks.clear();
   tutCoachExtra = 0;
   clearTimeout(tutSkipTimer);
+  clearTimeout(tutCloseTimer);
+  document.getElementById("tutCoachClose").classList.remove("show");
   document.body.classList.remove("tut-active");
   document.getElementById("tutCoach").classList.add("hidden");
   tutDimHide();
@@ -5679,6 +5702,13 @@ document.getElementById("tutCoachBtn").addEventListener("click", () => {
   }
   tutorial.beat++;
   tutorialShowBeat();
+});
+
+// The dismiss X on closable beats (his pass-4 — the heart's free-play cards):
+// hides the card until the next beat shows. Showcase/interstitial cards keep
+// their gold arrow and are never closable.
+document.getElementById("tutCoachClose").addEventListener("click", () => {
+  document.getElementById("tutCoach").classList.add("hidden");
 });
 
 // === First-open offer + one-shot notes (batch E) ===

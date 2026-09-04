@@ -3584,6 +3584,28 @@ body.reduce-motion .dpad-ripple { animation: none; opacity: 0; }
 }
 #tutCoachBtn { flex: none; visibility: hidden; } /* slot holds its geometry between modes */
 #tutCoachBtn.show { visibility: visible; }
+/* Dismiss X on closable beats (his pass-4 — the heart's free-play cards):
+   invisible until JS fades it in ~1s after the card shows, so the card is
+   read first. Absolutely positioned over the arrow's held slot, so it never
+   changes the card's layout or text wrap. */
+#tutCoachClose {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  padding: 2px 6px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-espresso);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  cursor: pointer;
+}
+#tutCoachClose.show { opacity: 1; pointer-events: auto; }
+body.reduce-motion #tutCoachClose { transition: none; }
 .tut-coach-in { animation: tut-coach-in 0.35s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
 @keyframes tut-coach-in {
   from { opacity: 0; transform: translateX(-50%) translateY(12px); }
