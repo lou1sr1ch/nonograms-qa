@@ -1750,7 +1750,14 @@ function resizeBoardToFit() {
   // sits over the tallest column-hint stack exactly as it does on profile 4.
   const topReserve = document.body.classList.contains("profile-wide-nodpad")
                   || document.body.classList.contains("profile-wide-dpad") ? 20 : 0;
-  const availH = container.clientHeight - 4 - topReserve;
+  // Tutorial v2: the hold-to-skip bar owns the bottom strip while the lesson
+  // runs, so reserve its height up front — the board shrinks a hair and the
+  // bottom bar can never slide under it on any profile. 2 top buttons tall
+  // (his sizing) + the bar's bottom offset and a small gap.
+  const tutReserve = document.body.classList.contains("tut-active")
+    ? Math.round((parseFloat(getComputedStyle(document.body).getPropertyValue("--solve-btn-h")) || 35) * 2 + 36)
+    : 0;
+  const availH = container.clientHeight - 4 - topReserve - tutReserve;
   if (availW < 100 || availH < 100) return;
 
   // Home-indicator inset — body already carries it as padding-bottom. Needed by the
@@ -2157,6 +2164,7 @@ function toggleMode() {
   if (tutorialModeLock()) return; // scripted tutorial beats pin the mode (batch E)
   currentMode = currentMode === "fill" ? "cross" : "fill";
   updateModeButton();
+  if (tutorial) tutorialCheck(); // the cross-toggle beat advances on the flip itself (v2)
 }
 
 // One-shot swell on a freshly painted cell. Class-based so reduce-motion's blanket
@@ -5074,22 +5082,30 @@ window.addEventListener("orientationchange", () => setTimeout(() => {
   resizeBoardToFit();
 }, 100));
 
-// === Tutorial (batch E, 2026-09-03) ===
+// === Tutorial (batch E, 2026-09-03; v2 device-pass rebuild 2026-09-04) ===
 // One chronological window — arrow → heart → diamond — never a category (his
 // E1 ruling: "one unique window thats a chronological collection of puzzles
 // rather than individual puzzles in a category"). Play order comes from
 // library.tutorial (the seed is source of truth); ids 0003/0001/0002 =
 // arrow/heart/diamond — id order is NOT play order.
 //
-// His ladder (E4/E5): the arrow holds your hand — scripted beats, only the
-// right moves are possible, prior moves lock behind you, cross mode is forced
-// on the cross beats; the heart explains one new concept ([2,2] = two runs),
-// refuses wrong fills, but lets you choose your cells; the diamond is
-// guardrails off — "you can now make any move". Dpad + auto-cross are forced
-// OFF for the duration via effective-value READS (dpadEffective / the paintCell
-// guard) — the saved settings are never touched, so nothing needs restoring.
-// Skip is the quiet grey link under the coach; replay lives in Settings →
-// "How to play"; the first-open offer is once-ever (picross.tutorialOffered).
+// V2 (his device-pass dictation): the whole screen is "dampened" behind an
+// svg overlay (#tutDim — one even-odd path dims everything EXCEPT the
+// spotlight holes) so the screen visibly "is not going to respond to just any
+// action". Showcase beats (welcome, the 4 top buttons, the board, the
+// crossing-matters card) spotlight their subject, block ALL input via a
+// transparent catch-all rect, and advance from the coach's gold arrow; action
+// beats pass input only through their holes and advance from done(board) at
+// stroke end (the cross-toggle beat instead checks currentMode, re-checked on
+// every toggleMode). The arrow's tip is walked row-group by row-group (3s,
+// then 2s, then 1s) WITH crossing allowed; the heart is a little less
+// hand-holdy (free board, wrong moves refused); the diamond hides the coach
+// after its opener. Skip moved OUT of the coach into #tutSkip — a board-width
+// bar at the bottom, 2 top-buttons tall, that must be HELD ~2s (the meter
+// drains if released early). Dpad + auto-cross stay forced OFF via
+// effective-value READS (dpadEffective / the paintCell guard); the saved
+// settings are never touched. Replay lives in Settings → "How to play"; the
+// first-open offer is once-ever (picross.tutorialOffered).
 let tutorial = null;     // { idx, beat } while running; null otherwise
 const tutLocks = new Set(); // completed-beat cells ("prior moves locked", D1)
 
@@ -5110,42 +5126,123 @@ function dpadEffective() {
 // rows 1,2,3,6,7,8 cols 6-8; shaft columns 0-5,9 hint [2].
 const ARROW_SHAFT_COLS = [0, 1, 2, 3, 4, 5, 9];
 const ARROW_NONSHAFT_ROWS = [0, 1, 2, 3, 6, 7, 8, 9];
-const ARROW_TIP_ROWS = [1, 2, 3, 6, 7, 8];
 
-// Per-puzzle beat scripts. allow(r, c, target) gates paintCell; done(board)
-// advances at stroke end. Each puzzle's LAST beat completes via the win
-// itself, so its done never fires.
+// Spotlight measurement: live DOM rects (viewport coords = fixed coords). A
+// row/col spotlight pairs the hint cell with the board band so the clue and
+// its line light up as one unit.
+function tutRectOf(el) {
+  const b = el.getBoundingClientRect();
+  return { x: b.left, y: b.top, w: b.width, h: b.height };
+}
+function tutUnion(a, b) {
+  const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+  return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
+}
+function tutCellEl(r, c) { return boardEl.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`); }
+function tutRowBand(r) { return tutUnion(tutRectOf(tutCellEl(r, 0)), tutRectOf(tutCellEl(r, activeW - 1))); }
+function tutColBand(c) { return tutUnion(tutRectOf(tutCellEl(0, c)), tutRectOf(tutCellEl(activeH - 1, c))); }
+function tutRowSpot(r) { return [tutRectOf(rowHintsEl.children[r]), tutRowBand(r)]; }
+function tutColSpot(c) { return [tutRectOf(colHintsEl.children[c]), tutColBand(c)]; }
+function tutModeBtnSpot() { return tutRectOf(document.getElementById("modeBtn")); }
+const tutTopButtonSpot = () => ["solveBack", "solveReset", "undoBtn", "solveSettings"].map(id => tutRectOf(document.getElementById(id)));
+
+// Per-puzzle beat scripts (v2). kind "showcase" = a read-only card: input is
+// fully blocked and the coach's gold arrow advances. kind "action" = only the
+// spotlighted holes respond; done(board) advances at stroke end. spot()
+// returns the hole rects — [] dims everything, null skips the dim entirely
+// (the heart's free play). mode pins fill/cross (toggle refused); setMode
+// only pre-selects it, leaving the toggle free for beats that need both.
+// EVERY beat carries an explicit allow() — v1 left it off the heart/diamond
+// beats and the gate's blind beat.allow() call threw, freezing all painting
+// on puzzles 2 and 3 (the bug Dre hit on the device pass).
 const TUTORIAL_BEATS = {
   "0003": [ // arrow — "hold your hand"
-    { mode: "fill", icon: "swipe",
-      text: "The numbers on the edges are clues. This row says 10, and the board is 10 wide, so every cell gets filled. Drag across the row.",
+    { kind: "showcase",
+      text: "Welcome to your first puzzle. Here are the different pieces of solving a nonogram.",
+      spot: () => [],
+      allow: () => false },
+    { kind: "showcase",
+      text: "These 4 buttons at the top are back, reset, undo, and settings, respectively.",
+      spot: tutTopButtonSpot,
+      allow: () => false },
+    { kind: "showcase",
+      text: "This is the puzzle board, where you solve the puzzle using the numerical hints on the side. Puzzles come in different shapes and sizes.",
+      spot: () => [tutRectOf(boardEl)],
+      allow: () => false },
+    { kind: "showcase",
+      text: "This row has the number 10, which means 10 cells in this row are to be filled, back to back.",
+      spot: () => tutRowSpot(4),
+      allow: () => false },
+    { kind: "action", icon: "swipe", mode: "fill", rowSwipe: 4,
+      text: "Swipe along this row to fill it in.",
+      spot: () => tutRowSpot(4),
       allow: (r, c, t) => t === STATE_FILLED && r === 4,
       done: b => b[4].every(v => v === STATE_FILLED) },
-    { mode: "fill", icon: "swipe",
+    { kind: "action", icon: "swipe", mode: "fill", rowSwipe: 5,
       text: "One more full row, just below it.",
+      spot: () => tutRowSpot(5),
       allow: (r, c, t) => t === STATE_FILLED && r === 5,
       done: b => b[5].every(v => v === STATE_FILLED) },
-    { mode: "cross", icon: "swipe",
-      text: "A 0 means none at all. Cross out the empty rows, top and bottom. Cross mode is on for you.",
+    { kind: "action",
+      text: "This is the Fill/Cross button. Fill marks the cells you know are true; Cross marks the ones you know are false. Tap it to switch to Cross.",
+      spot: () => [tutModeBtnSpot()],
+      allow: () => false,
+      done: () => currentMode === "cross" },
+    { kind: "action", icon: "swipe", mode: "cross",
+      text: "A 0 means no filled cells at all. Cross out both 0 rows, top and bottom.",
+      spot: () => [...tutRowSpot(0), ...tutRowSpot(9)],
       allow: (r, c, t) => t === STATE_CROSSED && (r === 0 || r === 9),
       done: b => b[0].every(v => v === STATE_CROSSED) && b[9].every(v => v === STATE_CROSSED) },
-    { mode: "cross",
+    { kind: "showcase",
+      text: "It's important to cross out cells when you know they are false, so you can't accidentally fill in incorrect cells.",
+      spot: () => [],
+      allow: () => false },
+    { kind: "action", icon: "swipe", mode: "cross",
       text: "These columns say 2, and both of their cells are already filled. Cross out everything left in them.",
+      spot: () => ARROW_SHAFT_COLS.flatMap(c => tutColSpot(c)),
       allow: (r, c, t) => t === STATE_CROSSED && ARROW_SHAFT_COLS.includes(c),
       done: b => ARROW_SHAFT_COLS.every(c => ARROW_NONSHAFT_ROWS.every(r => b[r][c] === STATE_CROSSED)) },
-    { mode: "fill",
-      text: "Now the arrow's tip. Fill the cells that are left, one row at a time.",
-      allow: (r, c, t) => t === STATE_FILLED && ARROW_TIP_ROWS.includes(r),
-      done: () => false },
+    { kind: "action", setMode: "fill",
+      text: "Now the arrow's tip. The rows that say 3 have exactly 3 cells left: fill them.",
+      spot: () => [...tutRowSpot(3), ...tutRowSpot(6)],
+      allow: (r) => r === 3 || r === 6,
+      done: b => [3, 6].every(r => [6, 7, 8].every(c => b[r][c] === STATE_FILLED)) },
+    { kind: "action", setMode: "fill",
+      text: "The rows that say 2 have one extra cell in the way. Cross it out, then fill the 2.",
+      spot: () => [...tutRowSpot(2), ...tutRowSpot(7), tutModeBtnSpot()],
+      allow: (r) => r === 2 || r === 7,
+      done: b => [2, 7].every(r => [6, 7].every(c => b[r][c] === STATE_FILLED) && b[r][8] === STATE_CROSSED) },
+    { kind: "action", setMode: "fill",
+      text: "Last ones: the rows that say 1. Cross the two extra cells, then fill the single cell.",
+      spot: () => [...tutRowSpot(1), ...tutRowSpot(8), tutModeBtnSpot()],
+      allow: (r) => r === 1 || r === 8,
+      done: () => false }, // the puzzle completes on this beat — the win intercepts
   ],
-  "0001": [ // heart — "just explain the new concept", wrong fills refused
-    { text: "Start with the biggest clues, like the 8s. This one won't let you fill a wrong cell, so try things.",
+  "0001": [ // heart — a little less hand-holdy: free board, wrong moves refused
+    { kind: "action",
+      text: "Puzzle two. You're more on your own now: start with the biggest clues, cross out what you know is false, and remember wrong moves won't land in this one.",
+      spot: () => null,
+      allow: () => true,
       done: () => tutorialAnyLineDone() },
-    { text: "See the row that says 2 2? That's two separate runs with a gap between them: the heart's two lobes.",
+    { kind: "showcase",
+      text: "See the row that says 2 2? That's two separate runs with a gap between them: the heart's two lobes.",
+      spot: () => tutRowSpot(1),
+      allow: () => false },
+    { kind: "action",
+      text: "Finish the heart your way.",
+      spot: () => null,
+      allow: () => true,
       done: () => false },
   ],
-  "0002": [ // diamond — "solve it on ur own"
-    { text: "This last one is all yours. Guardrails off: you can now make any move. Solve it your way.",
+  "0002": [ // diamond — "solve it on ur own": one card, then the coach hides
+    { kind: "showcase",
+      text: "This last one is all yours. Guardrails off: you can make any move, right or wrong. Solve it your way.",
+      spot: () => [],
+      allow: () => false },
+    { kind: "action", hideCoach: true,
+      text: "",
+      spot: () => null,
+      allow: () => true,
       done: () => false },
   ],
 };
@@ -5163,7 +5260,7 @@ function tutorialGate(r, c, target) {
     if (target === STATE_CROSSED && activePuzzle.truth[r][c]) return false;
   }
   const beat = (TUTORIAL_BEATS[id] || [])[tutorial.beat];
-  return beat ? beat.allow(r, c, target) : true;
+  return beat && beat.allow ? beat.allow(r, c, target) : true;
 }
 
 // Scripted beats pin the fill/cross mode; free-play beats leave it alone.
@@ -5194,10 +5291,118 @@ const TUT_INTERSTITIALS = [
 ];
 const TUT_CLOSING = "That's the whole recipe. Take a look around and pick a puzzle you like.";
 
+// --- Spotlight overlay + hold-to-skip bar (v2) ---
+
+// #tutDim is a fullscreen svg: one even-odd path paints the dim everywhere
+// EXCEPT the spotlight holes. The svg root is pointer-events:none so holes
+// pass input through to the app, while the dim itself catches taps
+// (visiblePainted) and swallows them. Showcase beats flip on #tutDimBlock — a
+// transparent rect with pointer-events:all — so even the holes stop
+// responding ("look, don't touch"). Z-750: below the coach (800) and the
+// skip bar (850), above the app.
+function tutDimShow(rects, blockAll) {
+  const dim = document.getElementById("tutDim");
+  if (!rects) { dim.classList.add("hidden"); return; }
+  const W = window.innerWidth, H = window.innerHeight;
+  let d = `M0 0H${W}V${H}H0Z`;
+  for (const r of rects) {
+    if (!r || !r.w || !r.h) continue; // hidden/chromeless elements skip cleanly
+    const x = Math.max(0, r.x - 4), y = Math.max(0, r.y - 4);
+    const x2 = Math.min(W, r.x + r.w + 4), y2 = Math.min(H, r.y + r.h + 4);
+    d += `M${x} ${y}H${x2}V${y2}H${x}Z`;
+  }
+  document.getElementById("tutDimPath").setAttribute("d", d);
+  document.getElementById("tutDimBlock").style.visibility = blockAll ? "visible" : "hidden";
+  dim.classList.remove("hidden");
+}
+function tutDimHide() { document.getElementById("tutDim").classList.add("hidden"); }
+
+// The on-row swipe visual ("the little swiping motion visual ON the row"): a
+// track + traveling dot laid over the spotlighted row. pointer-events:none —
+// it never intercepts the swipe it is demonstrating.
+function tutRowSwipeApply(beat) {
+  const el = document.getElementById("tutRowSwipe");
+  if (beat.rowSwipe == null) { el.classList.add("hidden"); return; }
+  const band = tutRowBand(beat.rowSwipe);
+  el.style.left = `${band.x + 4}px`;
+  el.style.top = `${band.y + band.h / 2 - 11}px`;
+  el.style.width = `${Math.max(40, band.w - 8)}px`;
+  el.style.setProperty("--tut-swipe-w", `${Math.max(20, band.w - 34)}px`);
+  el.classList.remove("hidden");
+}
+
+// Re-measure and re-apply the current beat's overlay a frame out, so a fresh
+// loadPuzzle layout has settled before the holes are cut. Also the live
+// resize/orientation re-cut while a beat is on screen.
+function tutSpotApply() {
+  if (!tutorial) return;
+  // The interstitial cards lift the dim; a resize mid-card must not revive it.
+  if (document.getElementById("tutCoach").classList.contains("tut-interstitial")) return;
+  const beat = (TUTORIAL_BEATS[tutorialCurrentId()] || [])[tutorial.beat];
+  if (!beat) return;
+  requestAnimationFrame(() => {
+    if (!tutorial) return;
+    const cur = (TUTORIAL_BEATS[tutorialCurrentId()] || [])[tutorial.beat];
+    if (cur !== beat) return; // a newer beat already owns the overlay
+    tutDimShow(beat.spot ? beat.spot() : null, beat.kind === "showcase");
+    tutRowSwipeApply(beat);
+    tutSkipSize();
+  });
+}
+window.addEventListener("resize", tutSpotApply);
+
+// The skip bar: board-width and 2 top-buttons tall, both measured live (his
+// sizing), bottom-centered. Press-and-hold ~2s fills the meter and skips;
+// letting go early drains it back. --tut-skip-lift keeps the coach + the
+// app's bottom bar clear of it (consumed in style.css).
+function tutSkipSize() {
+  const el = document.getElementById("tutSkip");
+  if (el.classList.contains("hidden")) return;
+  const bw = boardEl.getBoundingClientRect().width;
+  const btnH = document.getElementById("solveReset").getBoundingClientRect().height || 35;
+  const h = Math.max(44, Math.round(btnH * 2));
+  el.style.width = `${Math.round(bw)}px`;
+  el.style.height = `${h}px`;
+  document.documentElement.style.setProperty("--tut-skip-lift", `${h + 26}px`);
+}
+function tutSkipShow() {
+  document.getElementById("tutSkip").classList.remove("hidden");
+  tutSkipSize();
+}
+function tutSkipHide() {
+  const el = document.getElementById("tutSkip");
+  el.classList.add("hidden");
+  const fill = el.querySelector(".tut-skip-fill");
+  fill.style.transitionDuration = "0s";
+  fill.style.width = "0%";
+  document.documentElement.style.removeProperty("--tut-skip-lift");
+}
+let tutSkipTimer = 0;
+const tutSkipEl = document.getElementById("tutSkip");
+const tutSkipFillEl = tutSkipEl.querySelector(".tut-skip-fill");
+tutSkipEl.addEventListener("pointerdown", e => {
+  if (!tutorial) return;
+  e.preventDefault();
+  tutSkipEl.setPointerCapture?.(e.pointerId); // a release anywhere still drains
+  tutSkipFillEl.style.transitionDuration = "2s";
+  tutSkipFillEl.style.width = "100%";
+  tutSkipTimer = setTimeout(() => tutorialExit("home"), 2000);
+});
+function tutSkipRelease() {
+  clearTimeout(tutSkipTimer);
+  tutSkipFillEl.style.transitionDuration = "0.3s";
+  tutSkipFillEl.style.width = "0%";
+}
+tutSkipEl.addEventListener("pointerup", tutSkipRelease);
+tutSkipEl.addEventListener("pointercancel", tutSkipRelease);
+tutSkipEl.addEventListener("contextmenu", e => e.preventDefault()); // no iOS long-press callout
+
 function tutorialStart() {
   tutorial = { idx: 0, beat: 0 };
+  document.body.classList.add("tut-active"); // before loadPuzzle: the fit reserves the skip strip
   loadPuzzle(tutorialOrder()[0]);
   setUserScreen("solve");
+  tutSkipShow();
   tutorialShowBeat();
   applySettings(); // dpad/auto-cross read effectively-off while tutorial is set
 }
@@ -5206,24 +5411,27 @@ function tutorialShowBeat() {
   const beat = (TUTORIAL_BEATS[tutorialCurrentId()] || [])[tutorial.beat];
   if (!beat) return;
   const coach = document.getElementById("tutCoach");
-  coach.classList.remove("hidden", "tut-interstitial");
+  coach.classList.remove("tut-interstitial");
+  coach.classList.toggle("hidden", !!beat.hideCoach); // the diamond plays coachless
   document.getElementById("tutCoachText").textContent = beat.text;
   document.getElementById("tutCoachIcon").classList.toggle("hidden", !beat.icon);
-  document.getElementById("tutCoachBtn").classList.remove("show");
-  document.getElementById("tutCoachSkip").classList.remove("hidden");
-  if (beat.mode) { currentMode = beat.mode; updateModeButton(); }
+  document.getElementById("tutCoachBtn").classList.toggle("show", beat.kind === "showcase");
+  const pin = beat.mode || beat.setMode;
+  if (pin) { currentMode = pin; updateModeButton(); }
+  tutSpotApply();
   coach.classList.remove("tut-coach-in");
   void coach.offsetWidth; // restart the entrance animation on each new beat
   coach.classList.add("tut-coach-in");
 }
 
-// Stroke end (from endBrush): advance the scripted beats. The arrow's
-// completed beats lock behind you — "prior moves locked" (his D1 gating).
+// Stroke end (from endBrush) and mode flips (from toggleMode): advance the
+// scripted beats. Showcase beats never advance here — their gold arrow does.
+// The arrow's completed beats lock behind you ("prior moves locked", D1).
 function tutorialCheck() {
   if (!tutorial || won) return;
   const beats = TUTORIAL_BEATS[tutorialCurrentId()] || [];
   const beat = beats[tutorial.beat];
-  if (!beat || !beat.done(board)) return;
+  if (!beat || beat.kind === "showcase" || !beat.done(board)) return;
   if (tutorial.beat >= beats.length - 1) return;
   if (tutorialCurrentId() === "0003") tutorialLockBoardCells();
   tutorial.beat++;
@@ -5245,14 +5453,19 @@ function tutorialLockBoardCells() {
 }
 
 // The win intercept (both showWinModal sites in startWinSequence): the coach
-// morphs into the interstitial, or the closing card after the diamond.
+// morphs into the interstitial, or the closing card after the diamond. The
+// dim lifts so the finished board shows clean; the skip bar stays for every
+// card but the closing one.
 function showTutInterstitial() {
   const coach = document.getElementById("tutCoach");
   const last = tutorial.idx >= 2;
+  tutDimHide();
+  document.getElementById("tutRowSwipe").classList.add("hidden");
   document.getElementById("tutCoachText").textContent = last ? TUT_CLOSING : TUT_INTERSTITIALS[tutorial.idx];
   document.getElementById("tutCoachIcon").classList.add("hidden");
   document.getElementById("tutCoachBtn").classList.add("show");
-  document.getElementById("tutCoachSkip").classList.toggle("hidden", last);
+  if (last) document.getElementById("tutSkip").classList.add("hidden");
+  else tutSkipShow();
   coach.classList.remove("hidden");
   coach.classList.add("tut-interstitial");
   coach.classList.remove("tut-coach-in");
@@ -5266,21 +5479,32 @@ function showTutInterstitial() {
 function tutorialExit(screen) {
   tutorial = null;
   tutLocks.clear();
+  clearTimeout(tutSkipTimer);
+  document.body.classList.remove("tut-active");
   document.getElementById("tutCoach").classList.add("hidden");
+  tutDimHide();
+  document.getElementById("tutRowSwipe").classList.add("hidden");
+  tutSkipHide();
   applySettings();
   if (screen) setUserScreen(screen);
+  scheduleResize(); // hand the reserved skip strip back to the board fit
 }
 
-// The gold arrow on the interstitial cards: next puzzle, or done → categories.
+// The gold arrow: advances a showcase beat, or from an interstitial moves to
+// the next puzzle (done → categories after the diamond).
 document.getElementById("tutCoachBtn").addEventListener("click", () => {
   if (!tutorial) return;
-  if (tutorial.idx >= 2) { tutorialExit("category"); return; }
-  tutorial.idx++;
-  tutorial.beat = 0;
-  loadPuzzle(tutorialOrder()[tutorial.idx]);
+  if (document.getElementById("tutCoach").classList.contains("tut-interstitial")) {
+    if (tutorial.idx >= 2) { tutorialExit("category"); return; }
+    tutorial.idx++;
+    tutorial.beat = 0;
+    loadPuzzle(tutorialOrder()[tutorial.idx]);
+    tutorialShowBeat();
+    return;
+  }
+  tutorial.beat++;
   tutorialShowBeat();
 });
-document.getElementById("tutCoachSkip").addEventListener("click", () => tutorialExit("home"));
 
 // === First-open offer + one-shot notes (batch E) ===
 const TUT_OFFER_KEY = "picross.tutorialOffered";

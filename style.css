@@ -3560,7 +3560,7 @@ body.reduce-motion .dpad-ripple { animation: none; opacity: 0; }
 .tut-coach {
   position: fixed;
   left: 50%;
-  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--tut-skip-lift, 96px) + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   z-index: 800; /* above app chrome (200), below modals (2000) */
   width: min(92vw, 380px);
@@ -3605,17 +3605,6 @@ body.reduce-motion .dpad-ripple { animation: none; opacity: 0; }
 body.reduce-motion .tut-swipe-dot { animation: none; transform: translateX(18px); opacity: 1; }
 #tutCoachBtn { flex: none; visibility: hidden; } /* slot holds its geometry between modes */
 #tutCoachBtn.show { visibility: visible; }
-#tutCoachSkip {
-  align-self: flex-end;
-  background: none;
-  border: none;
-  padding: 2px 4px;
-  font-family: inherit;
-  font-size: 13px;
-  color: var(--color-steam);
-  cursor: pointer;
-}
-#tutCoachSkip.hidden { display: none; }
 .tut-coach-in { animation: tut-coach-in 0.35s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
 @keyframes tut-coach-in {
   from { opacity: 0; transform: translateX(-50%) translateY(12px); }
@@ -3668,4 +3657,131 @@ body.reduce-motion .tut-coach-in { animation: none; }
 .setting-row.subsetting .setting-toggle {
   transform: scale(0.85);
   transform-origin: right center; /* stays right-aligned with the full-size toggles */
+}
+
+/* === Tutorial v2 (2026-09-04): dim overlay, on-row swipe, hold-to-skip ===
+   The whole screen "dampens" during the hand-holding so it visibly "is not
+   going to respond to just any action" (his device-pass dictation). */
+
+/* Fullscreen dim: the svg root ignores events; the even-odd path catches taps
+   on the DIMMED area only (visiblePainted) so the spotlight holes pass through
+   to the app; #tutDimBlock (transparent, pointer-events:all, toggled inline)
+   turns showcase beats fully read-only. Z-750 sits below the coach (800) and
+   the skip bar (850). */
+.tut-dim {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 750;
+  pointer-events: none;
+}
+.tut-dim.hidden { display: none; }
+#tutDimPath {
+  fill: rgba(45, 31, 23, 0.55);
+  pointer-events: visiblePainted;
+}
+
+/* On-row swipe hint: track + traveling dot, laid over the spotlighted row by
+   JS in fixed coords. pointer-events:none — it never intercepts the swipe it
+   is demonstrating. */
+.tut-row-swipe {
+  position: fixed;
+  z-index: 760;
+  height: 22px;
+  pointer-events: none;
+}
+.tut-row-swipe.hidden { display: none; }
+.tut-row-swipe-track {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--color-steam);
+  transform: translateY(-50%);
+}
+.tut-row-swipe-track::after { /* arrow head at the track's right end */
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-top: 2.5px solid var(--color-steam);
+  border-right: 2.5px solid var(--color-steam);
+  transform: translateY(-50%) rotate(45deg);
+}
+.tut-row-swipe-dot {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin-top: -4.5px;
+  border-radius: 50%;
+  background: var(--color-mocha);
+  animation: tut-row-swipe 1.8s ease-in-out infinite;
+}
+@keyframes tut-row-swipe {
+  0%   { transform: translateX(0); opacity: 0; }
+  12%  { transform: translateX(0); opacity: 1; }
+  78%  { transform: translateX(var(--tut-swipe-w, 180px)); opacity: 1; }
+  100% { transform: translateX(var(--tut-swipe-w, 180px)); opacity: 0; }
+}
+body.reduce-motion .tut-row-swipe-dot {
+  animation: none;
+  opacity: 1;
+  transform: translateX(calc(var(--tut-swipe-w, 180px) / 2));
+}
+
+/* Hold-to-skip bar: board-width and 2 top-buttons tall, both measured in JS
+   (his sizing). The gold meter fills over 2s while held (transition-duration
+   set inline at pointerdown) and drains in 0.3s on an early release. */
+.tut-skip {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  z-index: 850;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-espresso);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(45, 31, 23, 0.18);
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+.tut-skip.hidden { display: none; }
+.tut-skip-fill {
+  position: absolute;
+  inset: 0 auto 0 0; /* anchored left; width is the meter */
+  width: 0%;
+  background: linear-gradient(90deg, #c79870, #e5ac4e);
+  transition: width 0.3s linear;
+}
+.tut-skip-label {
+  position: relative;
+  z-index: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-fg);
+  pointer-events: none; /* the press belongs to the button, not the text */
+}
+
+/* While the skip bar owns the screen bottom, the portrait profiles' bottom
+   bar (Fill/Cross) parks just above it. This REPLACES the usual centering
+   margin rather than adding to it — --bar-center-margin alone can already be
+   half the leftover, and adding the skip strip on top would overflow short
+   screens. resizeBoardToFit separately reserves the strip from the board. */
+body.tut-active:is(.profile-square-nodpad, .profile-tall-nodpad) .solve-bottom-bar {
+  margin-bottom: var(--tut-skip-lift, 0px);
 }

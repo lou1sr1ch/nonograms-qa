@@ -30,12 +30,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Nonograms" />
   <meta name="theme-color" content="#faf3e6" />
-  <!-- Build stamp: deploy-qa.sh sed-replaces 1788500756 globally on this file, so this
+  <!-- Build stamp: deploy-qa.sh sed-replaces 1788510331 globally on this file, so this
        meta lands stamped for free. script.js reads it into the dev shift badge so a
        screenshot always proves WHICH build the phone is running (stale-PWA check). -->
-  <meta name="build" content="1788500756" />
+  <meta name="build" content="1788510331" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="style.css?v=1788500756" />
+  <link rel="stylesheet" href="style.css?v=1788510331" />
 </head>
 <body>
   <!-- Round 3 (2026-08-27): background layers — see style.css. #topVeil fades the
@@ -388,10 +388,31 @@
       </div>
     </div>
   </div>
-  <!-- The coach card: pinned above the solve controls for the whole tutorial.
-       Beat mode = swipe icon + text + quiet skip; interstitial mode swaps the
-       icon for the gold arrow (next puzzle / done). The button slot keeps its
-       geometry via visibility so the card never reflows between modes. -->
+  <!-- V2 (2026-09-04): the dim overlay + on-row swipe hint + hold-to-skip bar.
+       #tutDim paints the "dampened" screen: one even-odd path dims everything
+       EXCEPT the spotlight holes. The svg root is pointer-events:none so holes
+       pass input through; the dim catches it (visiblePainted); #tutDimBlock
+       (transparent, pointer-events:all) makes showcase beats fully read-only. -->
+  <svg id="tutDim" class="tut-dim hidden" aria-hidden="true">
+    <path id="tutDimPath" fill-rule="evenodd"/>
+    <rect id="tutDimBlock" width="100%" height="100%" fill="none" pointer-events="all" visibility="hidden"/>
+  </svg>
+  <div id="tutRowSwipe" class="tut-row-swipe hidden" aria-hidden="true">
+    <span class="tut-row-swipe-track"></span>
+    <span class="tut-row-swipe-dot"></span>
+  </div>
+  <!-- Skip moved OUT of the coach (his v2): a board-width bar at the bottom,
+       2 top-buttons tall, that must be held ~2s — the meter drains if the
+       press is released early. Width/height are measured live in JS. -->
+  <button id="tutSkip" class="tut-skip hidden" type="button">
+    <span class="tut-skip-fill" aria-hidden="true"></span>
+    <span class="tut-skip-label">Hold to skip tutorial</span>
+  </button>
+  <!-- The coach card: pinned above the skip bar for the whole tutorial.
+       Action beats = optional swipe icon + text; showcase beats + the
+       interstitial cards add the gold arrow (advance / next puzzle / done).
+       The button slot keeps its geometry via visibility so the card never
+       reflows between modes. -->
   <div id="tutCoach" class="tut-coach hidden" aria-live="polite">
     <div class="tut-coach-main">
       <span id="tutCoachIcon" class="tut-coach-icon hidden" aria-hidden="true">
@@ -402,7 +423,6 @@
         <svg viewBox="0 0 32 32" aria-hidden="true"><path class="tut-fill" d="M7 16 H24 M16 7 L24 16 L16 25"/><path class="gi-beam" pathLength="100" d="M7 16 H24 M16 7 L24 16 L16 25"/></svg>
       </button>
     </div>
-    <button id="tutCoachSkip" type="button">Skip tutorial</button>
   </div>
   <div id="contextMenu" class="hidden"></div>
   <div id="cropModal" class="modal hidden">
@@ -428,8 +448,8 @@
       </div>
     </div>
   </div>
-  <script src="image-manifest.js?v=1788500756"></script>
-  <script src="seed-data.js?v=1788500756"></script>
-  <script src="script.js?v=1788500756"></script>
+  <script src="image-manifest.js?v=1788510331"></script>
+  <script src="seed-data.js?v=1788510331"></script>
+  <script src="script.js?v=1788510331"></script>
 </body>
 </html>
