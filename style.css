@@ -3659,6 +3659,13 @@ body.reduce-motion .tut-coach-in { animation: none; }
 #tutNoteOk:disabled { opacity: 0.35; cursor: default; } /* the ~1.5s no-dismiss window */
 
 /* Settings: "disable action button" as a suboption of the dpad row (his
-   ruling — indented, "pretty self explanatory", so no description). */
+   rulings) — indented, no description ("pretty self explanatory"), and NO
+   divider between the two rows so they read as one unit. The label keeps the
+   full .setting-name styling (same font/size/color as "Dpad"); only the
+   toggle shrinks slightly. */
+.setting-row.has-subsetting { border-bottom: none; }
 .setting-row.subsetting { padding-left: 28px; }
-.setting-row.subsetting .setting-name { font-weight: 400; }
+.setting-row.subsetting .setting-toggle {
+  transform: scale(0.85);
+  transform-origin: right center; /* stays right-aligned with the full-size toggles */
+}

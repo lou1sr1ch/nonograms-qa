@@ -104,7 +104,7 @@ const SETTINGS_INFO = [
   ["autoCross",        "Auto-cross",                "Auto-cross remaining cells when a row or column is satisfied."],
   ["soundEffects",     "Sound effects",             "Gentle taps and pops while solving, and a soft chime on the win."],
   ["reduceMotion",     "Reduce motion",             "Disables animations and transitions."],
-  ["dpad",             "Dpad",                      "Show a directional pad on the right for cursor-based navigation. Tapping a cell moves the cursor; commit fills/crosses with the dpad's center button. Useful for large boards with tiny cells."],
+  ["dpad",             "Dpad",                      "Implement a directional pad for cursor movement. Useful for larger puzzles."],
   ["disableActionBtn", "Disable action button",     "Removes the dpad's center action button. Fill and Cross buttons execute the action directly on the cursor cell instead of toggling mode. Requires Dpad."],
   // DEV-ONLY row — rendered in admin mode, while the flag is on, or once it has
   // ever been enabled on this device (devUnlocked; see buildSettingsModal).
@@ -915,8 +915,12 @@ function buildSettingsModal() {
     wrap.appendChild(nameEl);
     wrap.appendChild(descEl);
     li.appendChild(wrap);
-    // Batch E (his ruling): "disable action button" is a suboption of the dpad
-    // row — indented, and "pretty self explanatory", so no description.
+    // Batch E (his rulings): "disable action button" is a suboption of the dpad
+    // row — indented, no description ("pretty self explanatory"), a slightly
+    // smaller toggle, and NO divider between the two rows so they read as one
+    // grouped unit. The name keeps the full .setting-name styling (same font,
+    // size, color as "Dpad" — his amendment).
+    if (key === "dpad") li.classList.add("has-subsetting"); // paired with the row below
     if (key === "disableActionBtn") {
       li.classList.add("subsetting");
       descEl.remove();
