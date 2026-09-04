@@ -3560,7 +3560,7 @@ body.reduce-motion .dpad-ripple { animation: none; opacity: 0; }
 .tut-coach {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--tut-skip-lift, 96px) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--tut-coach-lift, 96px) + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   z-index: 800; /* above app chrome (200), below modals (2000) */
   width: min(92vw, 380px);
@@ -3582,27 +3582,6 @@ body.reduce-motion .dpad-ripple { animation: none; opacity: 0; }
   line-height: 1.45;
   color: var(--color-fg);
 }
-.tut-coach-icon { flex: none; width: 48px; height: 24px; }
-.tut-coach-icon.hidden { display: none; }
-.tut-coach-icon svg { display: block; width: 48px; height: 24px; overflow: visible; }
-.tut-swipe-track {
-  fill: none;
-  stroke: var(--color-steam);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.tut-swipe-dot {
-  fill: var(--color-mocha);
-  animation: tut-swipe 1.8s ease-in-out infinite;
-}
-@keyframes tut-swipe {
-  0%   { transform: translateX(0);    opacity: 0; }
-  12%  { transform: translateX(0);    opacity: 1; }
-  78%  { transform: translateX(36px); opacity: 1; }
-  100% { transform: translateX(36px); opacity: 0; }
-}
-body.reduce-motion .tut-swipe-dot { animation: none; transform: translateX(18px); opacity: 1; }
 #tutCoachBtn { flex: none; visibility: hidden; } /* slot holds its geometry between modes */
 #tutCoachBtn.show { visibility: visible; }
 .tut-coach-in { animation: tut-coach-in 0.35s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
@@ -3663,11 +3642,16 @@ body.reduce-motion .tut-coach-in { animation: none; }
    The whole screen "dampens" during the hand-holding so it visibly "is not
    going to respond to just any action" (his device-pass dictation). */
 
-/* Fullscreen dim: the svg root ignores events; the even-odd path catches taps
-   on the DIMMED area only (visiblePainted) so the spotlight holes pass through
-   to the app; #tutDimBlock (transparent, pointer-events:all, toggled inline)
-   turns showcase beats fully read-only. Z-750 sits below the coach (800) and
-   the skip bar (850). */
+/* Fullscreen dim, two layers (v2-fix). PAINT: the svg — #tutDimPath's
+   even-odd path darkens everything but the holes; #tutDimPulse re-paints
+   just the hole shapes so the .pulsing animation can breathe a slow veil
+   over the spotlighted elements (his "slow blink" ask — roll back by
+   dropping the .pulsing rule). The svg never takes events: iOS WebKit paints
+   fill-rule:evenodd but does not honor it for hit-testing, so the path used
+   to swallow the taps its holes revealed. HIT: #tutDimHit — JS-placed
+   transparent divs covering exactly the dimmed region (html hit-tests
+   transparent boxes fine). Z: 750/751, below the coach (800) and the skip
+   bar (850). */
 .tut-dim {
   position: fixed;
   inset: 0;
@@ -3677,10 +3661,22 @@ body.reduce-motion .tut-coach-in { animation: none; }
   pointer-events: none;
 }
 .tut-dim.hidden { display: none; }
-#tutDimPath {
-  fill: rgba(45, 31, 23, 0.55);
-  pointer-events: visiblePainted;
+#tutDimPath { fill: rgba(45, 31, 23, 0.55); }
+#tutDimPulse { fill: rgba(45, 31, 23, 0.55); opacity: 0; }
+.tut-dim.pulsing #tutDimPulse { animation: tut-dim-pulse 2.6s ease-in-out infinite; }
+@keyframes tut-dim-pulse {
+  0%, 100% { opacity: 0; }
+  50%      { opacity: 0.45; }
 }
+body.reduce-motion .tut-dim.pulsing #tutDimPulse { animation: none; }
+.tut-dim-hit {
+  position: fixed;
+  inset: 0;
+  z-index: 751;
+  pointer-events: none; /* the CHILD rects opt back in */
+}
+.tut-dim-hit.hidden { display: none; }
+.tut-dim-hit > div { position: absolute; pointer-events: auto; }
 
 /* On-row swipe hint: track + traveling dot, laid over the spotlighted row by
    JS in fixed coords. pointer-events:none — it never intercepts the swipe it
@@ -3738,11 +3734,16 @@ body.reduce-motion .tut-row-swipe-dot {
 
 /* Hold-to-skip bar: board-width and 2 top-buttons tall, both measured in JS
    (his sizing). The gold meter fills over 2s while held (transition-duration
-   set inline at pointerdown) and drains in 0.3s on an early release. */
+   set inline at pointerdown) and drains in 0.3s on an early release.
+   Centered with margin auto, NOT a translate: the global button:active press
+   (translateY+scale) would clobber transform-based centering — and iOS
+   Safari's :active can stick after release, which parked the bar half
+   off-screen in Dre's pass-2 shot. Now the press bounces in place. */
 .tut-skip {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
   bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   z-index: 850;
   display: flex;

@@ -5128,8 +5128,12 @@ const ARROW_SHAFT_COLS = [0, 1, 2, 3, 4, 5, 9];
 const ARROW_NONSHAFT_ROWS = [0, 1, 2, 3, 6, 7, 8, 9];
 
 // Spotlight measurement: live DOM rects (viewport coords = fixed coords). A
-// row/col spotlight pairs the hint cell with the board band so the clue and
-// its line light up as one unit.
+// row/col spotlight pairs the hint with the board band so the clue and its
+// line light up as one unit. Holes are EXACT element bounds — no inflation
+// ("no crust": the dim stops at the outline, his pass-2 rule for every
+// spotlight). Hints light up as a circle centered on the clue digits
+// themselves ("have 10 be perfectly centered in the little circle"), so a
+// hint hole is {cx, cy, rad} instead of {x, y, w, h}.
 function tutRectOf(el) {
   const b = el.getBoundingClientRect();
   return { x: b.left, y: b.top, w: b.width, h: b.height };
@@ -5141,8 +5145,16 @@ function tutUnion(a, b) {
 function tutCellEl(r, c) { return boardEl.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`); }
 function tutRowBand(r) { return tutUnion(tutRectOf(tutCellEl(r, 0)), tutRectOf(tutCellEl(r, activeW - 1))); }
 function tutColBand(c) { return tutUnion(tutRectOf(tutCellEl(0, c)), tutRectOf(tutCellEl(activeH - 1, c))); }
-function tutRowSpot(r) { return [tutRectOf(rowHintsEl.children[r]), tutRowBand(r)]; }
-function tutColSpot(c) { return [tutRectOf(colHintsEl.children[c]), tutColBand(c)]; }
+// Circle around the clue digits: the hint cell's per-number spans give the
+// true text bounds (the cell itself is padded and right/bottom-aligned, so
+// its rect center is NOT the digit center). Falls back to the cell box.
+function tutHintCircle(el) {
+  const spans = [...el.children].map(s => tutRectOf(s)).filter(r => r.w > 0 && r.h > 0);
+  const box = spans.length ? spans.reduce(tutUnion) : tutRectOf(el);
+  return { cx: box.x + box.w / 2, cy: box.y + box.h / 2, rad: Math.hypot(box.w, box.h) / 2 + 5 };
+}
+function tutRowSpot(r) { return [tutHintCircle(rowHintsEl.children[r]), tutRowBand(r)]; }
+function tutColSpot(c) { return [tutHintCircle(colHintsEl.children[c]), tutColBand(c)]; }
 function tutModeBtnSpot() { return tutRectOf(document.getElementById("modeBtn")); }
 const tutTopButtonSpot = () => ["solveBack", "solveReset", "undoBtn", "solveSettings"].map(id => tutRectOf(document.getElementById(id)));
 
@@ -5173,12 +5185,12 @@ const TUTORIAL_BEATS = {
       text: "This row has the number 10, which means 10 cells in this row are to be filled, back to back.",
       spot: () => tutRowSpot(4),
       allow: () => false },
-    { kind: "action", icon: "swipe", mode: "fill", rowSwipe: 4,
+    { kind: "action", mode: "fill", rowSwipe: 4,
       text: "Swipe along this row to fill it in.",
       spot: () => tutRowSpot(4),
       allow: (r, c, t) => t === STATE_FILLED && r === 4,
       done: b => b[4].every(v => v === STATE_FILLED) },
-    { kind: "action", icon: "swipe", mode: "fill", rowSwipe: 5,
+    { kind: "action", mode: "fill", rowSwipe: 5,
       text: "One more full row, just below it.",
       spot: () => tutRowSpot(5),
       allow: (r, c, t) => t === STATE_FILLED && r === 5,
@@ -5188,7 +5200,7 @@ const TUTORIAL_BEATS = {
       spot: () => [tutModeBtnSpot()],
       allow: () => false,
       done: () => currentMode === "cross" },
-    { kind: "action", icon: "swipe", mode: "cross",
+    { kind: "action", mode: "cross",
       text: "A 0 means no filled cells at all. Cross out both 0 rows, top and bottom.",
       spot: () => [...tutRowSpot(0), ...tutRowSpot(9)],
       allow: (r, c, t) => t === STATE_CROSSED && (r === 0 || r === 9),
@@ -5197,7 +5209,7 @@ const TUTORIAL_BEATS = {
       text: "It's important to cross out cells when you know they are false, so you can't accidentally fill in incorrect cells.",
       spot: () => [],
       allow: () => false },
-    { kind: "action", icon: "swipe", mode: "cross",
+    { kind: "action", mode: "cross",
       text: "These columns say 2, and both of their cells are already filled. Cross out everything left in them.",
       spot: () => ARROW_SHAFT_COLS.flatMap(c => tutColSpot(c)),
       allow: (r, c, t) => t === STATE_CROSSED && ARROW_SHAFT_COLS.includes(c),
@@ -5293,29 +5305,97 @@ const TUT_CLOSING = "That's the whole recipe. Take a look around and pick a puzz
 
 // --- Spotlight overlay + hold-to-skip bar (v2) ---
 
-// #tutDim is a fullscreen svg: one even-odd path paints the dim everywhere
-// EXCEPT the spotlight holes. The svg root is pointer-events:none so holes
-// pass input through to the app, while the dim itself catches taps
-// (visiblePainted) and swallows them. Showcase beats flip on #tutDimBlock — a
-// transparent rect with pointer-events:all — so even the holes stop
-// responding ("look, don't touch"). Z-750: below the coach (800) and the
-// skip bar (850), above the app.
-function tutDimShow(rects, blockAll) {
+// The dim is TWO layers. PAINT: #tutDim, a fullscreen svg whose even-odd path
+// darkens everything except the holes (plus #tutDimPulse, a second path that
+// re-paints just the hole shapes so CSS can breathe a slow veil over the
+// spotlighted elements — his "slow blink" ask). pointer-events:none on the
+// whole svg: iOS WebKit paints fill-rule:evenodd correctly but does NOT honor
+// it for hit-testing, so the path swallowed the taps its holes revealed —
+// Dre's pass-2 dead-row bug. HIT: #tutDimHit, transparent html divs covering
+// exactly the dimmed region (viewport minus the holes as plain rects — html
+// hit-tests transparent boxes fine, no svg quirks). Showcase beats cover the
+// full viewport so even the holes are read-only. Z: 750/751, below the coach
+// (800) and the skip bar (850), above the app.
+function tutDimShow(holes, blockAll) {
   const dim = document.getElementById("tutDim");
-  if (!rects) { dim.classList.add("hidden"); return; }
+  const hit = document.getElementById("tutDimHit");
+  if (!holes) { tutDimHide(); return; }
   const W = window.innerWidth, H = window.innerHeight;
-  let d = `M0 0H${W}V${H}H0Z`;
+  const rects = [], circles = [];
+  for (const h of holes) {
+    if (!h) continue;
+    if (h.rad > 0) circles.push(h);
+    else if (h.w > 0 && h.h > 0) rects.push(h);
+  }
+  let d = `M0 0H${W}V${H}H0Z`, pd = "";
   for (const r of rects) {
-    if (!r || !r.w || !r.h) continue; // hidden/chromeless elements skip cleanly
-    const x = Math.max(0, r.x - 4), y = Math.max(0, r.y - 4);
-    const x2 = Math.min(W, r.x + r.w + 4), y2 = Math.min(H, r.y + r.h + 4);
-    d += `M${x} ${y}H${x2}V${y2}H${x}Z`;
+    const x = Math.max(0, r.x), y = Math.max(0, r.y);
+    const x2 = Math.min(W, r.x + r.w), y2 = Math.min(H, r.y + r.h);
+    if (x2 <= x || y2 <= y) continue;
+    const sub = `M${x} ${y}H${x2}V${y2}H${x}Z`;
+    d += sub; pd += sub;
+  }
+  for (const c of circles) {
+    const sub = `M${c.cx - c.rad} ${c.cy}a${c.rad} ${c.rad} 0 1 0 ${2 * c.rad} 0a${c.rad} ${c.rad} 0 1 0 ${-2 * c.rad} 0Z`;
+    d += sub; pd += sub;
   }
   document.getElementById("tutDimPath").setAttribute("d", d);
-  document.getElementById("tutDimBlock").style.visibility = blockAll ? "visible" : "hidden";
+  document.getElementById("tutDimPulse").setAttribute("d", pd);
+  dim.classList.toggle("pulsing", pd.length > 0);
+  hit.replaceChildren();
+  const cover = blockAll ? [{ x: 0, y: 0, w: W, h: H }] : tutSlabs(rects, circles, W, H);
+  for (const r of cover) {
+    const el = document.createElement("div");
+    el.style.left = `${r.x}px`; el.style.top = `${r.y}px`;
+    el.style.width = `${r.w}px`; el.style.height = `${r.h}px`;
+    hit.appendChild(el);
+  }
   dim.classList.remove("hidden");
+  hit.classList.remove("hidden");
 }
-function tutDimHide() { document.getElementById("tutDim").classList.add("hidden"); }
+function tutDimHide() {
+  document.getElementById("tutDim").classList.add("hidden");
+  const hit = document.getElementById("tutDimHit");
+  hit.classList.add("hidden");
+  hit.replaceChildren();
+}
+
+// Viewport-minus-holes as non-overlapping rects: sweep the holes' y-edges,
+// then cut each y-slab's x-runs around every hole crossing it. Circles enter
+// as 12 chords (thin rects) — a ~1px staircase at the rim, invisible to a
+// finger, and it keeps every hit surface a plain rect.
+function tutSlabs(rects, circles, W, H) {
+  const hs = [];
+  for (const r of rects) hs.push({ x: r.x, y: r.y, x2: r.x + r.w, y2: r.y + r.h });
+  for (const c of circles) {
+    const N = 12;
+    for (let i = 0; i < N; i++) {
+      const y0 = c.cy - c.rad + (2 * c.rad * i) / N;
+      const y1 = c.cy - c.rad + (2 * c.rad * (i + 1)) / N;
+      const hw = Math.sqrt(Math.max(0, c.rad * c.rad - ((y0 + y1) / 2 - c.cy) ** 2));
+      hs.push({ x: c.cx - hw, y: y0, x2: c.cx + hw, y2: y1 });
+    }
+  }
+  for (const h of hs) {
+    h.x = Math.max(0, h.x); h.y = Math.max(0, h.y);
+    h.x2 = Math.min(W, h.x2); h.y2 = Math.min(H, h.y2);
+  }
+  const live = hs.filter(h => h.x2 - h.x > 0.5 && h.y2 - h.y > 0.5);
+  const ys = [...new Set([0, H, ...live.flatMap(h => [h.y, h.y2])])].sort((a, b) => a - b);
+  const out = [];
+  for (let i = 0; i < ys.length - 1; i++) {
+    const y0 = ys[i], y1 = ys[i + 1];
+    if (y1 - y0 < 0.5) continue;
+    const spans = live.filter(h => h.y < y1 && h.y2 > y0).map(h => [h.x, h.x2]).sort((a, b) => a[0] - b[0]);
+    let x = 0;
+    for (const [hx, hx2] of spans) {
+      if (hx - x > 0.5) out.push({ x, y: y0, w: hx - x, h: y1 - y0 });
+      x = Math.max(x, hx2);
+    }
+    if (W - x > 0.5) out.push({ x, y: y0, w: W - x, h: y1 - y0 });
+  }
+  return out;
+}
 
 // The on-row swipe visual ("the little swiping motion visual ON the row"): a
 // track + traveling dot laid over the spotlighted row. pointer-events:none —
@@ -5344,8 +5424,13 @@ function tutSpotApply() {
     if (!tutorial) return;
     const cur = (TUTORIAL_BEATS[tutorialCurrentId()] || [])[tutorial.beat];
     if (cur !== beat) return; // a newer beat already owns the overlay
-    tutDimShow(beat.spot ? beat.spot() : null, beat.kind === "showcase");
-    tutRowSwipeApply(beat);
+    try {
+      tutDimShow(beat.spot ? beat.spot() : null, beat.kind === "showcase");
+      tutRowSwipeApply(beat);
+    } catch (err) {
+      tutDimHide(); // fail OPEN — a broken spotlight must never strand input
+      console.error("tutorial spotlight failed", err);
+    }
     tutSkipSize();
   });
 }
@@ -5363,7 +5448,16 @@ function tutSkipSize() {
   const h = Math.max(44, Math.round(btnH * 2));
   el.style.width = `${Math.round(bw)}px`;
   el.style.height = `${h}px`;
-  document.documentElement.style.setProperty("--tut-skip-lift", `${h + 26}px`);
+  const lift = h + 26;
+  document.documentElement.style.setProperty("--tut-skip-lift", `${lift}px`);
+  // On the portrait no-dpad profiles the Fill/Cross bar parks in the strip the
+  // coach used to occupy (--tut-skip-lift margin) — lift the coach above the
+  // BAR too, or beats spotlighting the toggle (6/11/12) soft-lock behind the
+  // card. Other profiles keep the toggle clear of the coach already.
+  const portrait = document.body.matches(".profile-square-nodpad, .profile-tall-nodpad");
+  const bar = portrait ? document.querySelector(".solve-bottom-bar") : null;
+  const barH = bar ? bar.getBoundingClientRect().height : 0;
+  document.documentElement.style.setProperty("--tut-coach-lift", `${Math.round(lift + (barH ? barH + 12 : 0))}px`);
 }
 function tutSkipShow() {
   document.getElementById("tutSkip").classList.remove("hidden");
@@ -5376,6 +5470,7 @@ function tutSkipHide() {
   fill.style.transitionDuration = "0s";
   fill.style.width = "0%";
   document.documentElement.style.removeProperty("--tut-skip-lift");
+  document.documentElement.style.removeProperty("--tut-coach-lift");
 }
 let tutSkipTimer = 0;
 const tutSkipEl = document.getElementById("tutSkip");
@@ -5414,7 +5509,6 @@ function tutorialShowBeat() {
   coach.classList.remove("tut-interstitial");
   coach.classList.toggle("hidden", !!beat.hideCoach); // the diamond plays coachless
   document.getElementById("tutCoachText").textContent = beat.text;
-  document.getElementById("tutCoachIcon").classList.toggle("hidden", !beat.icon);
   document.getElementById("tutCoachBtn").classList.toggle("show", beat.kind === "showcase");
   const pin = beat.mode || beat.setMode;
   if (pin) { currentMode = pin; updateModeButton(); }
@@ -5462,7 +5556,6 @@ function showTutInterstitial() {
   tutDimHide();
   document.getElementById("tutRowSwipe").classList.add("hidden");
   document.getElementById("tutCoachText").textContent = last ? TUT_CLOSING : TUT_INTERSTITIALS[tutorial.idx];
-  document.getElementById("tutCoachIcon").classList.add("hidden");
   document.getElementById("tutCoachBtn").classList.add("show");
   if (last) document.getElementById("tutSkip").classList.add("hidden");
   else tutSkipShow();
