@@ -5230,7 +5230,10 @@ const tutTopButtonSpot = () => ["solveBack", "solveReset", "undoBtn", "solveSett
 // spotlighted holes respond; done(board) advances at stroke end. spot()
 // returns the hole rects — [] dims everything, null skips the dim entirely
 // (the heart's free play). mode pins fill/cross (toggle refused); setMode
-// only pre-selects it, leaving the toggle free for beats that need both.
+// only pre-selects it — RETIRED his pass-4 (puzzle 1 never switches modes
+// for the player), the mechanism stays but no beat uses it. close: true (the
+// heart's free-play cards) fades in a dismiss X ~1s after the card shows and
+// earns no coach reserve.
 // EVERY beat carries an explicit allow() — v1 left it off the heart/diamond
 // beats and the gate's blind beat.allow() call threw, freezing all painting
 // on puzzles 2 and 3 (the bug Dre hit on the device pass).
