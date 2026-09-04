@@ -3663,10 +3663,13 @@ body.reduce-motion .tut-coach-in { animation: none; }
 .tut-dim.hidden { display: none; }
 #tutDimPath { fill: rgba(45, 31, 23, 0.55); }
 #tutDimPulse { fill: rgba(45, 31, 23, 0.55); opacity: 0; }
-.tut-dim.pulsing #tutDimPulse { animation: tut-dim-pulse 2.6s ease-in-out infinite; }
+.tut-dim.pulsing #tutDimPulse { animation: tut-dim-pulse 2.1s ease-in-out infinite; }
+/* Peak (least dim) = 0 — fully clear. Trough 0.225 = halfway between the old
+   trough (0.45) and clear, his pass-3 retune; cycle shortened 2.6s -> 2.1s
+   ("maybe half a second shorter") so the subtler swing still reads. */
 @keyframes tut-dim-pulse {
   0%, 100% { opacity: 0; }
-  50%      { opacity: 0.45; }
+  50%      { opacity: 0.225; }
 }
 body.reduce-motion .tut-dim.pulsing #tutDimPulse { animation: none; }
 .tut-dim-hit {

@@ -1753,9 +1753,11 @@ function resizeBoardToFit() {
   // Tutorial v2: the hold-to-skip bar owns the bottom strip while the lesson
   // runs, so reserve its height up front — the board shrinks a hair and the
   // bottom bar can never slide under it on any profile. 2 top buttons tall
-  // (his sizing) + the bar's bottom offset and a small gap.
+  // (his sizing) + the bar's bottom offset and a small gap. tutCoachExtra
+  // adds whatever the current puzzle's coach height exceeds the absorption
+  // threshold by (see tutCoachReserve) — the coach may not cover the board.
   const tutReserve = document.body.classList.contains("tut-active")
-    ? Math.round((parseFloat(getComputedStyle(document.body).getPropertyValue("--solve-btn-h")) || 35) * 2 + 36)
+    ? Math.round((parseFloat(getComputedStyle(document.body).getPropertyValue("--solve-btn-h")) || 35) * 2 + 36) + tutCoachExtra
     : 0;
   const availH = container.clientHeight - 4 - topReserve - tutReserve;
   if (availW < 100 || availH < 100) return;
@@ -5127,16 +5129,49 @@ function dpadEffective() {
 const ARROW_SHAFT_COLS = [0, 1, 2, 3, 4, 5, 9];
 const ARROW_NONSHAFT_ROWS = [0, 1, 2, 3, 6, 7, 8, 9];
 
+// The coach must never cover the board — his standing pass-3 rule ("the most
+// important part is obviously that they don't cover any additional content").
+// The board fit already absorbs a coach up to ~104px tall (every arrow beat
+// cleared the board on device), so reserve only the EXCESS of the puzzle's
+// tallest beat text over that: long-text puzzles (the heart's opener grew the
+// card over the bottom row and soft-locked it, his one no-screenshot report)
+// shrink a hair instead of swallowing a board row. Measured on the real coach
+// element, visibility-hidden so nothing flashes; once per puzzle, before its
+// first fit, so the board never resizes mid-lesson. The gold-arrow button
+// holds its slot whether shown or not, so text length is the only variable.
+let tutCoachExtra = 0;
+function tutCoachReserve(id) {
+  const coach = document.getElementById("tutCoach");
+  const text = document.getElementById("tutCoachText");
+  const beats = (TUTORIAL_BEATS[id] || []).filter(b => !b.hideCoach && b.text);
+  let max = 0;
+  if (beats.length) {
+    const prevText = text.textContent, prevHidden = coach.classList.contains("hidden");
+    coach.classList.remove("hidden");
+    coach.style.visibility = "hidden";
+    for (const b of beats) { text.textContent = b.text; max = Math.max(max, coach.offsetHeight); }
+    text.textContent = prevText;
+    coach.classList.toggle("hidden", prevHidden);
+    coach.style.visibility = "";
+  }
+  tutCoachExtra = Math.max(0, Math.ceil(max - 104));
+}
+
 // Spotlight measurement: live DOM rects (viewport coords = fixed coords). A
 // row/col spotlight pairs the hint with the board band so the clue and its
 // line light up as one unit. Holes are EXACT element bounds — no inflation
 // ("no crust": the dim stops at the outline, his pass-2 rule for every
 // spotlight). Hints light up as a circle centered on the clue digits
 // themselves ("have 10 be perfectly centered in the little circle"), so a
-// hint hole is {cx, cy, rad} instead of {x, y, w, h}.
+// hint hole is {cx, cy, rad} instead of {x, y, w, h}. Rounded elements
+// (buttons, the board) carry their corner radius in cr so the hole doesn't
+// leave undimmed slivers at the corners (his pass-3 "crust" report).
 function tutRectOf(el) {
   const b = el.getBoundingClientRect();
-  return { x: b.left, y: b.top, w: b.width, h: b.height };
+  const r = { x: b.left, y: b.top, w: b.width, h: b.height };
+  const cr = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
+  if (cr > 0.5) r.cr = Math.min(cr, r.w / 2, r.h / 2);
+  return r;
 }
 function tutUnion(a, b) {
   const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
@@ -5145,12 +5180,40 @@ function tutUnion(a, b) {
 function tutCellEl(r, c) { return boardEl.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`); }
 function tutRowBand(r) { return tutUnion(tutRectOf(tutCellEl(r, 0)), tutRectOf(tutCellEl(r, activeW - 1))); }
 function tutColBand(c) { return tutUnion(tutRectOf(tutCellEl(0, c)), tutRectOf(tutCellEl(activeH - 1, c))); }
-// Circle around the clue digits: the hint cell's per-number spans give the
-// true text bounds (the cell itself is padded and right/bottom-aligned, so
-// its rect center is NOT the digit center). Falls back to the cell box.
+// Circle around the clue digits, centered on the glyph INK, not the line box.
+// The hint font's digits sit below the line-box center (the round-6 lesson),
+// so a span-rect-centered bubble reads off-center — his pass-3 "the 10 isn't
+// perfectly centered in its bubble". Canvas TextMetrics give the real ink
+// bounds; the baseline comes from the em box centered in the span's line box.
+// The ink-tight radius (+2.5) also shrinks the bubble, ending the slight
+// overlap with the row band he flagged on the same screenshot. Falls back to
+// the span-rect union if metrics are unavailable.
+let _tutInkCtx = null;
+function tutHintInkRect(span) {
+  try {
+    if (!_tutInkCtx) _tutInkCtx = document.createElement("canvas").getContext("2d");
+    const cs = getComputedStyle(span);
+    _tutInkCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const m = _tutInkCtx.measureText(span.textContent);
+    const vals = [m.actualBoundingBoxLeft, m.actualBoundingBoxRight, m.actualBoundingBoxAscent, m.actualBoundingBoxDescent];
+    if (!vals.every(v => typeof v === "number" && isFinite(v))) return null;
+    const r = span.getBoundingClientRect();
+    const lineH = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.2;
+    const fba = isFinite(m.fontBoundingBoxAscent) ? m.fontBoundingBoxAscent : m.actualBoundingBoxAscent;
+    const fbd = isFinite(m.fontBoundingBoxDescent) ? m.fontBoundingBoxDescent : m.actualBoundingBoxDescent;
+    const baseline = r.top + (lineH - fba - fbd) / 2 + fba;
+    return { x: r.left - vals[0], y: baseline - vals[2], w: vals[0] + vals[1], h: vals[2] + vals[3] };
+  } catch { return null; }
+}
 function tutHintCircle(el) {
-  const spans = [...el.children].map(s => tutRectOf(s)).filter(r => r.w > 0 && r.h > 0);
-  const box = spans.length ? spans.reduce(tutUnion) : tutRectOf(el);
+  const spans = [...el.children].filter(s => s.getBoundingClientRect().width > 0);
+  if (spans.length) {
+    const inks = spans.map(tutHintInkRect);
+    const allInk = inks.every(Boolean);
+    const box = inks.map((k, i) => k || tutRectOf(spans[i])).reduce(tutUnion);
+    return { cx: box.x + box.w / 2, cy: box.y + box.h / 2, rad: Math.hypot(box.w, box.h) / 2 + (allInk ? 2.5 : 5) };
+  }
+  const box = tutRectOf(el);
   return { cx: box.x + box.w / 2, cy: box.y + box.h / 2, rad: Math.hypot(box.w, box.h) / 2 + 5 };
 }
 function tutRowSpot(r) { return [tutHintCircle(rowHintsEl.children[r]), tutRowBand(r)]; }
@@ -5219,11 +5282,16 @@ const TUTORIAL_BEATS = {
       spot: () => [...tutRowSpot(3), ...tutRowSpot(6)],
       allow: (r) => r === 3 || r === 6,
       done: b => [3, 6].every(r => [6, 7, 8].every(c => b[r][c] === STATE_FILLED)) },
+    { kind: "action",
+      text: "The 9th column has its 4 now. Switch back to Cross and cross the extra cells in the 2 rows.",
+      spot: () => [...tutRowSpot(2), ...tutRowSpot(7), ...tutColSpot(8), tutModeBtnSpot()],
+      allow: (r, c, t) => t === STATE_CROSSED && c === 8 && (r === 2 || r === 7),
+      done: b => b[2][8] === STATE_CROSSED && b[7][8] === STATE_CROSSED },
     { kind: "action", setMode: "fill",
-      text: "The rows that say 2 have one extra cell in the way. Cross it out, then fill the 2.",
-      spot: () => [...tutRowSpot(2), ...tutRowSpot(7), tutModeBtnSpot()],
+      text: "The rows that say 2 have exactly 2 cells left: fill them.",
+      spot: () => [...tutRowSpot(2), ...tutRowSpot(7)],
       allow: (r) => r === 2 || r === 7,
-      done: b => [2, 7].every(r => [6, 7].every(c => b[r][c] === STATE_FILLED) && b[r][8] === STATE_CROSSED) },
+      done: b => [2, 7].every(r => [6, 7].every(c => b[r][c] === STATE_FILLED)) },
     { kind: "action", setMode: "fill",
       text: "Last ones: the rows that say 1. Cross the two extra cells, then fill the single cell.",
       spot: () => [...tutRowSpot(1), ...tutRowSpot(8), tutModeBtnSpot()],
@@ -5316,6 +5384,16 @@ const TUT_CLOSING = "That's the whole recipe. Take a look around and pick a puzz
 // hit-tests transparent boxes fine, no svg quirks). Showcase beats cover the
 // full viewport so even the holes are read-only. Z: 750/751, below the coach
 // (800) and the skip bar (850), above the app.
+// Rect hole subpath, rounded when the element carries a corner radius (cr):
+// straight H/V runs joined by quarter arcs. Paint-side only — the hit layer
+// keeps the plain square, which is the safe direction of the difference: the
+// only rounded holes in the scripts are showcase holes (input fully blocked),
+// and if a rounded hole ever lands on an action beat, a hair of dim corner
+// that taps through beats a lit corner that is dead (the pass-2 lesson).
+function tutRectSub(x, y, x2, y2, cr) {
+  if (!(cr > 0.5)) return `M${x} ${y}H${x2}V${y2}H${x}Z`;
+  return `M${x + cr} ${y}H${x2 - cr}A${cr} ${cr} 0 0 1 ${x2} ${y + cr}V${y2 - cr}A${cr} ${cr} 0 0 1 ${x2 - cr} ${y2}H${x + cr}A${cr} ${cr} 0 0 1 ${x} ${y2 - cr}V${y + cr}A${cr} ${cr} 0 0 1 ${x + cr} ${y}Z`;
+}
 function tutDimShow(holes, blockAll) {
   const dim = document.getElementById("tutDim");
   const hit = document.getElementById("tutDimHit");
@@ -5332,7 +5410,8 @@ function tutDimShow(holes, blockAll) {
     const x = Math.max(0, r.x), y = Math.max(0, r.y);
     const x2 = Math.min(W, r.x + r.w), y2 = Math.min(H, r.y + r.h);
     if (x2 <= x || y2 <= y) continue;
-    const sub = `M${x} ${y}H${x2}V${y2}H${x}Z`;
+    const cr = Math.min(r.cr || 0, (x2 - x) / 2, (y2 - y) / 2);
+    const sub = tutRectSub(x, y, x2, y2, cr);
     d += sub; pd += sub;
   }
   for (const c of circles) {
@@ -5495,6 +5574,7 @@ tutSkipEl.addEventListener("contextmenu", e => e.preventDefault()); // no iOS lo
 function tutorialStart() {
   tutorial = { idx: 0, beat: 0 };
   document.body.classList.add("tut-active"); // before loadPuzzle: the fit reserves the skip strip
+  tutCoachReserve(tutorialOrder()[0]); // before the first fit: coach clearance reserve
   loadPuzzle(tutorialOrder()[0]);
   setUserScreen("solve");
   tutSkipShow();
@@ -5572,6 +5652,7 @@ function showTutInterstitial() {
 function tutorialExit(screen) {
   tutorial = null;
   tutLocks.clear();
+  tutCoachExtra = 0;
   clearTimeout(tutSkipTimer);
   document.body.classList.remove("tut-active");
   document.getElementById("tutCoach").classList.add("hidden");
@@ -5591,6 +5672,7 @@ document.getElementById("tutCoachBtn").addEventListener("click", () => {
     if (tutorial.idx >= 2) { tutorialExit("category"); return; }
     tutorial.idx++;
     tutorial.beat = 0;
+    tutCoachReserve(tutorialOrder()[tutorial.idx]); // reserve before the next puzzle's first fit
     loadPuzzle(tutorialOrder()[tutorial.idx]);
     tutorialShowBeat();
     return;
