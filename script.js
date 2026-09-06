@@ -5350,7 +5350,7 @@ const TUTORIAL_BEATS = {
   ],
   "0002": [ // diamond — "solve it on ur own": one card, then the coach hides
     { kind: "showcase",
-      text: "This last one is all yours. Guardrails off: you can make any move, right or wrong. Solve it your way.",
+      text: "Guardrails off: you can make any move, right or wrong. Solve it your way.",
       spot: () => [],
       allow: () => false },
     { kind: "action", hideCoach: true,
@@ -5388,7 +5388,7 @@ const TUT_INTERSTITIALS = [
   "Well done. Let's try another puzzle.", // his verbatim wording
   "Well done. One more, and this one is all yours.",
 ];
-const TUT_CLOSING = "That's the whole recipe. Take a look around and pick a puzzle you like.";
+const TUT_CLOSING = "Well done completing the tutorial. Take a look around and pick a puzzle you like.";
 
 // --- Spotlight overlay + hold-to-skip bar (v2) ---
 
