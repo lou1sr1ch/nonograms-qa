@@ -2273,6 +2273,9 @@ body.user-mode[data-screen="solve"]:is(.profile-wide-nodpad, .profile-wide-dpad)
   #solveStats #undoBtn:hover { background: var(--color-espresso); color: var(--color-foam); }
 }
 #solveStats #undoBtn:disabled { opacity: 0.45; cursor: default; }
+/* His pass-5: during the tutorial's 4-buttons card the undo icon sheds the
+   disabled dim so all four buttons read identical. */
+#solveStats #undoBtn.tut-undim:disabled { opacity: 1; }
 #solveStats #undoBtn.hidden { display: none; }
 
 /* Reduce motion: disable all transitions/animations site-wide */
@@ -3584,28 +3587,34 @@ body.reduce-motion .dpad-ripple { animation: none; opacity: 0; }
 }
 #tutCoachBtn { flex: none; visibility: hidden; } /* slot holds its geometry between modes */
 #tutCoachBtn.show { visibility: visible; }
-/* Dismiss X on closable beats (his pass-4 — the heart's free-play cards):
-   invisible until JS fades it in ~1s after the card shows, so the card is
-   read first. Absolutely positioned over the arrow's held slot, so it never
-   changes the card's layout or text wrap. */
-#tutCoachClose {
+/* Corner advance (his pass-5 heart intro): the gold button leaves its in-row
+   slot for the card's bottom-right, bigger, fading in after the beat's
+   btnFade delay so the card is read first. Absolute, so the card reserves
+   room below the text instead of beside it. */
+.tut-coach.tut-corner-btn { padding-bottom: 42px; }
+.tut-coach.tut-corner-btn #tutCoachBtn {
   position: absolute;
-  top: 4px;
-  right: 8px;
-  padding: 2px 6px;
-  border: none;
-  background: none;
-  font: inherit;
-  font-size: 20px;
-  line-height: 1;
-  color: var(--color-espresso);
+  right: 6px;
+  bottom: 4px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.4s ease;
-  cursor: pointer;
+  transition: opacity 0.55s ease;
 }
-#tutCoachClose.show { opacity: 1; pointer-events: auto; }
-body.reduce-motion #tutCoachClose { transition: none; }
+.tut-coach.tut-corner-btn #tutCoachBtn.tut-btn-in { opacity: 1; pointer-events: auto; }
+.tut-coach.tut-corner-btn #tutCoachBtn svg { width: 40px; height: 40px; }
+body.reduce-motion .tut-coach.tut-corner-btn #tutCoachBtn { transition: none; }
+/* Centered card (his pass-5 heart opener): middle of the screen over the
+   dimmed board, deliberately obstructing it so the card is read first. */
+.tut-coach.tut-center {
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+}
+.tut-coach.tut-center.tut-coach-in { animation-name: tut-coach-in-center; }
+@keyframes tut-coach-in-center {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
 .tut-coach-in { animation: tut-coach-in 0.35s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
 @keyframes tut-coach-in {
   from { opacity: 0; transform: translateX(-50%) translateY(12px); }

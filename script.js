@@ -2413,6 +2413,9 @@ function devWinPuzzle() {
 // here so the dev button and real wins share one path.
 function startWinSequence() {
   won = true;
+  // His pass-5: the tutorial spotlight lifts the MOMENT the puzzle is solved,
+  // not when the interstitial card lands after the ripple.
+  if (tutorial) tutDimHide();
   if (currentPuzzleId && !completedSet.has(currentPuzzleId)) {
     completedSet.add(currentPuzzleId);
     saveCompleted();
@@ -5129,25 +5132,28 @@ function dpadEffective() {
 const ARROW_SHAFT_COLS = [0, 1, 2, 3, 4, 5, 9];
 const ARROW_NONSHAFT_ROWS = [0, 1, 2, 3, 6, 7, 8, 9];
 
-// The coach must never cover the board — his standing pass-3 rule ("the most
-// important part is obviously that they don't cover any additional content").
-// The board fit already absorbs a coach up to ~104px tall (every arrow beat
-// cleared the board on device), so reserve only the EXCESS of the puzzle's
-// tallest beat text over that: long-text puzzles (the heart's opener grew the
-// card over the bottom row and soft-locked it, his one no-screenshot report)
-// shrink a hair instead of swallowing a board row. Measured on the real coach
-// element, visibility-hidden so nothing flashes; once per puzzle, before its
-// first fit, so the board never resizes mid-lesson. The gold-arrow button
-// holds its slot whether shown or not, so text length is the only variable.
-// Closable beats (his pass-4: the heart's free-play cards dismiss via an X)
-// earn no reserve — the player clears the card themselves, so the board
-// stays full-size behind it.
+// The coach must never cover INTERACTIVE content — his standing pass-3 rule
+// ("the most important part is obviously that they don't cover any additional
+// content"). The board fit already absorbs a coach up to ~104px tall (every
+// arrow beat cleared the board on device), so reserve only the EXCESS of the
+// puzzle's tallest PLAY-TIME card over that. Only action beats count: cards
+// that stay up while you play. Showcase cards sit over a dimmed, input-blocked
+// board (the approved pattern), and the heart's opener is centered on purpose
+// (his pass-5 — it obstructs the dimmed board so the board can't draw the eye
+// first). Measured on the real coach element, visibility-hidden so nothing
+// flashes; once per puzzle, before its first fit, so the board never resizes
+// mid-lesson. The gold-arrow button holds its slot whether shown or not, so
+// text length is the only variable.
 let tutCoachExtra = 0;
-let tutCloseTimer = 0;
+let tutBtnTimer = 0;
+const TUT_BTN_PATHS = {
+  arrow: "M7 16 H24 M16 7 L24 16 L16 25",
+  check: "M9 17 L14 22 L24 10",
+};
 function tutCoachReserve(id) {
   const coach = document.getElementById("tutCoach");
   const text = document.getElementById("tutCoachText");
-  const beats = (TUTORIAL_BEATS[id] || []).filter(b => !b.hideCoach && b.text && !b.close);
+  const beats = (TUTORIAL_BEATS[id] || []).filter(b => b.kind === "action" && !b.hideCoach && b.text);
   let max = 0;
   if (beats.length) {
     const prevText = text.textContent, prevHidden = coach.classList.contains("hidden");
@@ -5215,7 +5221,12 @@ function tutHintCircle(el) {
     const inks = spans.map(tutHintInkRect);
     const allInk = inks.every(Boolean);
     const box = inks.map((k, i) => k || tutRectOf(spans[i])).reduce(tutUnion);
-    return { cx: box.x + box.w / 2, cy: box.y + box.h / 2, rad: Math.hypot(box.w, box.h) / 2 + (allInk ? 2.5 : 5) };
+    const cx = box.x + box.w / 2, cy = box.y + box.h / 2;
+    // Multi-number hints (the heart's "2 2") get an OVAL hugging the ink —
+    // his pass-5: "an oval now, to encompass both numbers in a centered,
+    // spacially satisfying way". Single numbers keep the pass-3 ink circle.
+    if (spans.length > 1) return { cx, cy, rx: box.w / 2 + (allInk ? 5 : 7), ry: box.h / 2 + (allInk ? 4 : 6) };
+    return { cx, cy, rad: Math.hypot(box.w, box.h) / 2 + (allInk ? 2.5 : 5) };
   }
   const box = tutRectOf(el);
   return { cx: box.x + box.w / 2, cy: box.y + box.h / 2, rad: Math.hypot(box.w, box.h) / 2 + 5 };
@@ -5231,9 +5242,12 @@ const tutTopButtonSpot = () => ["solveBack", "solveReset", "undoBtn", "solveSett
 // returns the hole rects — [] dims everything, null skips the dim entirely
 // (the heart's free play). mode pins fill/cross (toggle refused); setMode
 // only pre-selects it — RETIRED his pass-4 (puzzle 1 never switches modes
-// for the player), the mechanism stays but no beat uses it. close: true (the
-// heart's free-play cards) fades in a dismiss X ~1s after the card shows and
-// earns no coach reserve.
+// for the player), the mechanism stays but no beat uses it. center: true
+// sits the card in the middle of the screen (the heart's opener — meant to
+// obstruct the dimmed board). btnFade ms gives a showcase beat the corner
+// advance: the gold button leaves its in-row slot for the card's bottom-right,
+// bigger, fading in after the delay so the card is read first; btnIcon swaps
+// its glyph ("arrow" default, "check" on the last intro card).
 // EVERY beat carries an explicit allow() — v1 left it off the heart/diamond
 // beats and the gate's blind beat.allow() call threw, freezing all painting
 // on puzzles 2 and 3 (the bug Dre hit on the device pass).
@@ -5247,7 +5261,7 @@ const TUTORIAL_BEATS = {
       text: "Welcome to your first puzzle. Here are the different pieces of solving a nonogram.",
       spot: () => [],
       allow: () => false },
-    { kind: "showcase",
+    { kind: "showcase", undimUndo: true,
       text: "These 4 buttons at the top are back, reset, undo, and settings, respectively.",
       spot: tutTopButtonSpot,
       allow: () => false },
@@ -5260,7 +5274,7 @@ const TUTORIAL_BEATS = {
       spot: () => tutRowSpot(4),
       allow: () => false },
     { kind: "action", mode: "fill", rowSwipe: 4,
-      text: "Swipe along this row to fill it in.",
+      text: "This puzzle board is 10x10, which means the entire row is meant to be filled. Swipe along this row to fill it in.",
       spot: () => tutRowSpot(4),
       allow: (r, c, t) => t === STATE_FILLED && r === 4,
       done: b => b[4].every(v => v === STATE_FILLED) },
@@ -5309,21 +5323,27 @@ const TUTORIAL_BEATS = {
       allow: (r) => r === 1 || r === 8,
       done: () => false }, // the puzzle completes on this beat — the win intercepts
   ],
-  "0001": [ // heart — a little less hand-holdy: free board, wrong moves refused.
-    // Its free-play cards are closable (his pass-4): an X fades in ~1s after
-    // the card shows and dismisses it, so the big opener overlays the board
-    // briefly instead of shrinking it (no coach reserve for closable beats).
-    { kind: "action", close: true,
-      text: "Puzzle two. You're more on your own now: start with the biggest clues, cross out what you know is false, and remember wrong moves won't land in this one.",
-      spot: () => null,
-      allow: () => true,
-      done: () => tutorialAnyLineDone() },
-    { kind: "showcase",
-      text: "See the row that says 2 2? That's two separate runs with a gap between them: the heart's two lobes.",
+  "0001": [ // heart — a little less hand-holdy. His pass-5: the teaching all
+    // happens UP FRONT ("i'd rather do it at the very beginning so as to not
+    // interrupt the user") as a dimmed card sequence — the big opener sits
+    // CENTERED and obstructs the dimmed board on purpose (so the board can't
+    // draw the eye before the card is read), the corner advance fades in a
+    // beat late (arrow, arrow, check — the check starts the solving and the
+    // screen undims) — then free play with NO card. Wrong moves refused.
+    { kind: "showcase", center: true, btnFade: 1400,
+      text: "Puzzle two. You're more on your own now: start with the biggest clues, cross out what you know is false, and one more thing.",
+      spot: () => [],
+      allow: () => false },
+    { kind: "showcase", btnFade: 1000,
+      text: "See the row that says 2 2? That's two separate runs with a gap of at least one crossed cell between them: the heart's two lobes.",
       spot: () => tutRowSpot(1),
       allow: () => false },
-    { kind: "action", close: true,
-      text: "Finish the heart your way.",
+    { kind: "showcase", btnIcon: "check", btnFade: 1000,
+      text: "Solve the heart your way. Wrong moves won't count in this one.",
+      spot: () => [],
+      allow: () => false },
+    { kind: "action", hideCoach: true,
+      text: "",
       spot: () => null,
       allow: () => true,
       done: () => false },
@@ -5364,21 +5384,6 @@ function tutorialModeLock() {
   return (beat && beat.mode) || null;
 }
 
-// True once any row or column is completely, correctly filled — the heart's
-// "start with the biggest clues" beat advances on your first finished line.
-function tutorialAnyLineDone() {
-  for (let r = 0; r < activeH; r++) {
-    if (!board[r].some(v => v === STATE_FILLED)) continue;
-    if (arraysEqual(runsInLine(board[r].map(v => v === STATE_FILLED)), hints.rows[r])) return true;
-  }
-  for (let c = 0; c < activeW; c++) {
-    const col = [];
-    for (let r = 0; r < activeH; r++) col.push(board[r][c] === STATE_FILLED);
-    if (col.some(Boolean) && arraysEqual(runsInLine(col), hints.cols[c])) return true;
-  }
-  return false;
-}
-
 const TUT_INTERSTITIALS = [
   "Well done. Let's try another puzzle.", // his verbatim wording
   "Well done. One more, and this one is all yours.",
@@ -5416,7 +5421,7 @@ function tutDimShow(holes, blockAll) {
   const rects = [], circles = [];
   for (const h of holes) {
     if (!h) continue;
-    if (h.rad > 0) circles.push(h);
+    if (h.rad > 0 || h.rx > 0) circles.push(h);
     else if (h.w > 0 && h.h > 0) rects.push(h);
   }
   let d = `M0 0H${W}V${H}H0Z`, pd = "";
@@ -5429,7 +5434,8 @@ function tutDimShow(holes, blockAll) {
     d += sub; pd += sub;
   }
   for (const c of circles) {
-    const sub = `M${c.cx - c.rad} ${c.cy}a${c.rad} ${c.rad} 0 1 0 ${2 * c.rad} 0a${c.rad} ${c.rad} 0 1 0 ${-2 * c.rad} 0Z`;
+    const rx = c.rad || c.rx, ry = c.rad || c.ry; // circles and hint ovals share the arc subpath
+    const sub = `M${c.cx - rx} ${c.cy}a${rx} ${ry} 0 1 0 ${2 * rx} 0a${rx} ${ry} 0 1 0 ${-2 * rx} 0Z`;
     d += sub; pd += sub;
   }
   document.getElementById("tutDimPath").setAttribute("d", d);
@@ -5454,18 +5460,19 @@ function tutDimHide() {
 }
 
 // Viewport-minus-holes as non-overlapping rects: sweep the holes' y-edges,
-// then cut each y-slab's x-runs around every hole crossing it. Circles enter
-// as 12 chords (thin rects) — a ~1px staircase at the rim, invisible to a
-// finger, and it keeps every hit surface a plain rect.
+// then cut each y-slab's x-runs around every hole crossing it. Circles and
+// ovals enter as 12 chords (thin rects) — a ~1px staircase at the rim,
+// invisible to a finger, and it keeps every hit surface a plain rect.
 function tutSlabs(rects, circles, W, H) {
   const hs = [];
   for (const r of rects) hs.push({ x: r.x, y: r.y, x2: r.x + r.w, y2: r.y + r.h });
   for (const c of circles) {
+    const rx = c.rad || c.rx, ry = c.rad || c.ry;
     const N = 12;
     for (let i = 0; i < N; i++) {
-      const y0 = c.cy - c.rad + (2 * c.rad * i) / N;
-      const y1 = c.cy - c.rad + (2 * c.rad * (i + 1)) / N;
-      const hw = Math.sqrt(Math.max(0, c.rad * c.rad - ((y0 + y1) / 2 - c.cy) ** 2));
+      const y0 = c.cy - ry + (2 * ry * i) / N;
+      const y1 = c.cy - ry + (2 * ry * (i + 1)) / N;
+      const hw = rx * Math.sqrt(Math.max(0, 1 - ((y0 + y1) / 2 - c.cy) ** 2 / (ry * ry)));
       hs.push({ x: c.cx - hw, y: y0, x2: c.cx + hw, y2: y1 });
     }
   }
@@ -5508,13 +5515,13 @@ function tutRowSwipeApply(beat) {
 // loadPuzzle layout has settled before the holes are cut. Also the live
 // resize/orientation re-cut while a beat is on screen.
 function tutSpotApply() {
-  if (!tutorial) return;
+  if (!tutorial || won) return; // the spotlight is done once the puzzle is (pass-5)
   // The interstitial cards lift the dim; a resize mid-card must not revive it.
   if (document.getElementById("tutCoach").classList.contains("tut-interstitial")) return;
   const beat = (TUTORIAL_BEATS[tutorialCurrentId()] || [])[tutorial.beat];
   if (!beat) return;
   requestAnimationFrame(() => {
-    if (!tutorial) return;
+    if (!tutorial || won) return;
     const cur = (TUTORIAL_BEATS[tutorialCurrentId()] || [])[tutorial.beat];
     if (cur !== beat) return; // a newer beat already owns the overlay
     try {
@@ -5603,15 +5610,23 @@ function tutorialShowBeat() {
   coach.classList.remove("tut-interstitial");
   coach.classList.toggle("hidden", !!beat.hideCoach); // the diamond plays coachless
   document.getElementById("tutCoachText").textContent = beat.text;
-  document.getElementById("tutCoachBtn").classList.toggle("show", beat.kind === "showcase");
-  const closeBtn = document.getElementById("tutCoachClose");
-  clearTimeout(tutCloseTimer);
-  closeBtn.classList.remove("show");
-  if (beat.close && !beat.hideCoach) {
-    // His pass-4: the dismiss X fades in ~1s after the card shows, so the
-    // card is read before it can be cleared.
-    tutCloseTimer = setTimeout(() => closeBtn.classList.add("show"), 1000);
-  }
+  const coachBtn = document.getElementById("tutCoachBtn");
+  coachBtn.classList.toggle("show", beat.kind === "showcase");
+  // Corner advance (his pass-5 heart intro): the gold button leaves its
+  // in-row slot for the card's bottom-right, bigger, fading in after
+  // beat.btnFade ms so the card is read first; btnIcon swaps the glyph
+  // (the arrow advances the sequence, the check starts the solving).
+  const corner = beat.kind === "showcase" && beat.btnFade != null;
+  coach.classList.toggle("tut-corner-btn", corner);
+  coach.classList.toggle("tut-center", !!beat.center);
+  const glyph = TUT_BTN_PATHS[beat.btnIcon] || TUT_BTN_PATHS.arrow;
+  coachBtn.querySelectorAll("path").forEach(p => p.setAttribute("d", glyph));
+  clearTimeout(tutBtnTimer);
+  coachBtn.classList.remove("tut-btn-in");
+  if (corner) tutBtnTimer = setTimeout(() => coachBtn.classList.add("tut-btn-in"), beat.btnFade);
+  // His pass-5: during the 4-buttons card the undo icon sheds its disabled
+  // dim so all four read identical; the class leaves with the beat.
+  document.getElementById("undoBtn").classList.toggle("tut-undim", !!beat.undimUndo);
   const pin = beat.mode || beat.setMode;
   if (pin) { currentMode = pin; updateModeButton(); }
   tutSpotApply();
@@ -5657,8 +5672,13 @@ function showTutInterstitial() {
   const last = tutorial.idx >= 2;
   tutDimHide();
   document.getElementById("tutRowSwipe").classList.add("hidden");
-  clearTimeout(tutCloseTimer); // interstitial cards are arrow-advanced, never closable
-  document.getElementById("tutCoachClose").classList.remove("show");
+  // Interstitial cards are plain bottom-anchored arrow cards: clear any
+  // corner/center state a beat left behind and restore the arrow glyph.
+  clearTimeout(tutBtnTimer);
+  coach.classList.remove("tut-corner-btn", "tut-center");
+  const coachBtn = document.getElementById("tutCoachBtn");
+  coachBtn.classList.remove("tut-btn-in");
+  coachBtn.querySelectorAll("path").forEach(p => p.setAttribute("d", TUT_BTN_PATHS.arrow));
   document.getElementById("tutCoachText").textContent = last ? TUT_CLOSING : TUT_INTERSTITIALS[tutorial.idx];
   document.getElementById("tutCoachBtn").classList.add("show");
   if (last) document.getElementById("tutSkip").classList.add("hidden");
@@ -5678,8 +5698,10 @@ function tutorialExit(screen) {
   tutLocks.clear();
   tutCoachExtra = 0;
   clearTimeout(tutSkipTimer);
-  clearTimeout(tutCloseTimer);
-  document.getElementById("tutCoachClose").classList.remove("show");
+  clearTimeout(tutBtnTimer);
+  document.getElementById("tutCoach").classList.remove("tut-corner-btn", "tut-center");
+  document.getElementById("tutCoachBtn").classList.remove("tut-btn-in");
+  document.getElementById("undoBtn").classList.remove("tut-undim");
   document.body.classList.remove("tut-active");
   document.getElementById("tutCoach").classList.add("hidden");
   tutDimHide();
@@ -5705,13 +5727,6 @@ document.getElementById("tutCoachBtn").addEventListener("click", () => {
   }
   tutorial.beat++;
   tutorialShowBeat();
-});
-
-// The dismiss X on closable beats (his pass-4 — the heart's free-play cards):
-// hides the card until the next beat shows. Showcase/interstitial cards keep
-// their gold arrow and are never closable.
-document.getElementById("tutCoachClose").addEventListener("click", () => {
-  document.getElementById("tutCoach").classList.add("hidden");
 });
 
 // === First-open offer + one-shot notes (batch E) ===
