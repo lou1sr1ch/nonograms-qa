@@ -270,10 +270,19 @@ const CHAR_POOL = "abcdefhijlmnqstuvwxzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 //   3. Hidden trigger: click header title 7 times (works inside itch iframe, no URL access needed)
 // URL flag also writes to localStorage so it's a one-time activation on any device.
 const ADMIN_KEY = "picross.adminMode";
+// Touch gate (2026-09-07): admin/editor is a DESKTOP dev tool — the editor is
+// retired and puzzle edits ship via _apply_edits_*.py scripts. On a phone the
+// 7-tap title trigger is a loaded gun: a fidgeting player lands in a dead
+// desktop admin screen that persists across relaunches (Dre hit exactly this
+// on the first native device run). So: never arm the trigger on coarse-pointer
+// devices, and auto-heal any stale flag already set there (a deliberate
+// ?admin=1 typed into a mobile URL bar still works for that session).
+const _touchPrimary = window.matchMedia && matchMedia("(pointer:coarse)").matches;
 const _urlAdmin = new URLSearchParams(location.search).get("admin") === "1";
 if (_urlAdmin) { try { localStorage.setItem(ADMIN_KEY, "1"); } catch {} }
+if (_touchPrimary && !_urlAdmin) { try { localStorage.setItem(ADMIN_KEY, "0"); } catch {} }
 const _lsAdmin = (() => { try { return localStorage.getItem(ADMIN_KEY) === "1"; } catch { return false; } })();
-const adminMode = _urlAdmin || _lsAdmin;
+const adminMode = _urlAdmin || (_lsAdmin && !_touchPrimary);
 const userMode = !adminMode;
 const editorMode = adminMode && new URLSearchParams(location.search).get("editor") === "1";
 
@@ -602,7 +611,7 @@ document.querySelector("#winModal .modal-backdrop")?.addEventListener("click", h
 let _titleClickCount = 0;
 let _titleClickTimer = null;
 const _titleEl = document.querySelector("header h1");
-if (_titleEl) {
+if (_titleEl && !_touchPrimary) {
   _titleEl.style.cursor = "default";
   _titleEl.addEventListener("click", () => {
     _titleClickCount++;
