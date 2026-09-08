@@ -286,6 +286,16 @@ const adminMode = _urlAdmin || (_lsAdmin && !_touchPrimary);
 const userMode = !adminMode;
 const editorMode = adminMode && new URLSearchParams(location.search).get("editor") === "1";
 
+// DEV_BUILD (2026-09-08): master switch for every developer aid (the solve-screen
+// telemetry badge, the instant-win button, the "Dev tools" settings row). The
+// aids are already invisible to fresh touch users (devMode defaults off and the
+// row can't be unlocked on coarse pointers), but a carried-over container from
+// a dev-era install keeps them — and in-place TestFlight/App Store updates
+// PRESERVE the container (verified on Citrus, batch F5). Source always stays
+// true; sync-native.sh --release flips this to false in the www COPY only, so
+// the submission build is provably clean even for dev-era devices.
+const DEV_BUILD = true;
+
 let currentUserScreen = null; // "home" | "category" | "puzzles" | "solve"
 let currentUserCategoryName = null;
 
@@ -642,7 +652,7 @@ document.getElementById("solveReset")?.addEventListener("click", clearBoard);
 // DEV "Win game" button removed 2026-08-22 (unused, and it visually filled the
 // bottom-right gap which disguised the spacing imbalance). devWinPuzzle() is kept —
 // re-add a trigger if instant-win testing is ever needed again.
-document.getElementById("devWinBtn")?.addEventListener("click", devWinPuzzle);
+if (DEV_BUILD) document.getElementById("devWinBtn")?.addEventListener("click", devWinPuzzle);
 document.getElementById("settingsClose").addEventListener("click", closeSettingsModal);
 document.querySelector("#settingsModal .modal-backdrop").addEventListener("click", closeSettingsModal);
 
@@ -909,7 +919,7 @@ function buildSettingsModal() {
     // likely culprit was turning it off and having the row self-hide per the
     // round-2 gate — which read as a bug. Now the row stays findable forever
     // once unlocked; never-enabled users still never see it.
-    if (key === "devMode" && !adminMode && !settings.devMode && !settings.devUnlocked) continue;
+    if (key === "devMode" && (!DEV_BUILD || (!adminMode && !settings.devMode && !settings.devUnlocked))) continue;
     const li = document.createElement("li");
     li.className = "setting-row";
 
@@ -1150,6 +1160,7 @@ document.addEventListener("scroll", () => {
 // tap on the arrow's SVG path still reports the button. Strip at ship with the
 // rest of the dev bundle (grep dev-mode / dev-only).
 (function initDevShiftBadge() {
+  if (!DEV_BUILD) return;
   const badge = document.createElement("div");
   badge.id = "devShiftBadge";
   badge.setAttribute("aria-hidden", "true");
