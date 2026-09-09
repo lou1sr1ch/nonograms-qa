@@ -129,6 +129,24 @@
 
 * { box-sizing: border-box; }
 
+/* No text selection or iOS callouts anywhere in the app (1.1, batch G3, his
+   report: a hold on the board grew iOS's selection loupe — the magnifier
+   bubble — and fast taps on button labels selected words in blue). The game
+   surface is visual-only; iOS only runs those gestures where selection CAN
+   start, so refusing selectability everywhere kills both. The only text that
+   stays selectable is inside real form fields (the editor's name/fact/source
+   inputs + textarea). */
+body * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+body input, body textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+img { -webkit-user-drag: none; }
+
 /* === Breathing background (2026-08-25) ===
    Two fixed full-screen layers behind everything. ::before carries four soft warm
    radial glows (steam over cream) drifting on a 46s alternate loop; ::after is a
@@ -2351,6 +2369,7 @@ button:disabled:hover {
 }
 .mode-half {
   flex: 1 1 50%;
+  position: relative;  /* anchors the hit ring below */
   font: inherit;
   font-family: var(--font-body);
   font-size: 13px;
@@ -2366,6 +2385,15 @@ button:disabled:hover {
     color 0.15s ease,
     transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: var(--shadow-soft);       /* each half lifts on its own */
+}
+/* Same invisible 5px hit ring as the dpad (1.1, batch G3): taps just outside
+   a half still hit it. The halves face each other across an 8px gap — 5px of
+   growth from each side covers it with a 2px overlap that resolves to Cross
+   (later in paint order); his "meet halfway" spec. */
+.mode-half::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
 }
 .mode-half:active { transform: scale(0.96); transition-duration: 0.15s, 0.15s, 0.08s; }
 /* Divider between halves removed — the gap does that job now visually. */
@@ -3475,11 +3503,24 @@ body.profile-wide-dpad #winFact {
   width: 160px;
   aspect-ratio: 1 / 1;
   max-width: 100%;
+  position: relative;  /* anchors the hit ring below */
   /* none, not manipulation (1.1, batch G2): a pan gesture starting on the pad
      would fire pointercancel mid-hold and kill the direction auto-repeat.
      The pad is a fixed control and never scrolls — same trade as the board. */
   touch-action: none;
   filter: drop-shadow(0 2px 6px rgba(45, 31, 23, 0.08));
+}
+/* Invisible 5px hit ring (1.1, batch G3, his call): taps that JUST miss the
+   visible pad still register — "a few of the times i just missed the dpad."
+   The G2 coordinate hit-test already resolves ANY point (out-of-range coords
+   still fall to a direction by dominant axis), so the ring only had to exist
+   physically; a ::before keeps the visible geometry untouched. Taps in the
+   ring get no ripple (clipped to the button shapes) — the move + press-scale
+   + sfx are the feedback. */
+#dpad::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
 }
 body.dpad-on.user-mode[data-screen="solve"] #dpad { display: block; }
 /* Buoyancy: the CONTAINER bobs on a slow idle loop while the SVG child handles the
