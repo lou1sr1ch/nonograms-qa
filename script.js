@@ -2255,15 +2255,53 @@ function commitCursorAction(mode = currentMode) {
 
 const dpadEl = document.getElementById("dpad");
 if (dpadEl) {
-  dpadEl.addEventListener("click", e => {
-    const btn = e.target.closest(".dpad-btn");
-    if (!btn) return;
-    const dir = btn.dataset.dir;
-    if (dir === "up")     moveCursor(-1, 0);
+  // === 1.1 dpad revamp (batch G2): press-to-move, hold-to-repeat ===
+  // v1 dispatched on click: the cursor moved on finger-UP (reads as lag next
+  // to the ripple, which has always fired on pointerdown), and any finger
+  // slide between down and up made iOS retarget the click to the nearest
+  // COMMON ancestor of the two touch points — closest(".dpad-btn") then found
+  // nothing and the tap vanished. Both halves of his "slow to respond and
+  // occasional unread input" (Citrus playtest) trace to that one choice. Now:
+  //  - dispatch on pointerdown: press = move, no release dependency;
+  //  - hit-test by coordinate math, not DOM shape: every point on the pad
+  //    resolves to a direction (dominant axis from center, 45° seams — what
+  //    the trapezoids already approximate), so seam/gap taps can't drop, and
+  //    the aesthetics pass can redraw the shapes without touching input;
+  //  - direction buttons auto-repeat while held (400ms delay, then 90ms
+  //    steps, keyboard-like); the center toggles, so it never repeats;
+  //  - the click listener survives only as a fallback for activations that
+  //    arrive without pointer events (assistive tech) — the dedup window
+  //    swallows the synthetic click that follows every real tap.
+  const REPEAT_DELAY = 400, REPEAT_RATE = 90;
+  let _dpadFireAt = -Infinity, _dpadPointerId = null;
+  let _dpadRepeatDelay = null, _dpadRepeatTick = null;
+  function _dpadStopRepeat() {
+    if (_dpadRepeatDelay) { clearTimeout(_dpadRepeatDelay); _dpadRepeatDelay = null; }
+    if (_dpadRepeatTick)  { clearInterval(_dpadRepeatTick);  _dpadRepeatTick = null; }
+  }
+  // viewBox-units point -> direction. The center square spans 35..65 on both
+  // axes; outside it the dominant axis wins. With "disable action button" on
+  // there IS no center (the arrows are redrawn to fill it), so the middle
+  // resolves by dominant axis too — otherwise that mode would grow a dead zone.
+  function _dpadHit(x, y) {
+    const dx = x - 50, dy = y - 50;
+    if (!(dpadEffective() && settings.disableActionBtn) &&
+        Math.abs(dx) <= 15 && Math.abs(dy) <= 15) return "center";
+    if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? "right" : "left";
+    return dy > 0 ? "down" : "up";
+  }
+  function _dpadDispatch(dir) {
+    if (dir === "up")         moveCursor(-1, 0);
     else if (dir === "down")  moveCursor(1, 0);
     else if (dir === "left")  moveCursor(0, -1);
     else if (dir === "right") moveCursor(0, 1);
     else if (dir === "center") commitCursorAction();
+  }
+  dpadEl.addEventListener("click", e => {
+    if (performance.now() - _dpadFireAt < 600) return; // pointerdown already fired
+    const btn = e.target.closest(".dpad-btn");
+    if (!btn) return;
+    _dpadDispatch(btn.dataset.dir);
   });
   // Ripple feedback fires on pointerdown (immediate visual response, feels
   // snappier than waiting for click). Inserts a <circle> into the ripples
@@ -2272,14 +2310,21 @@ if (dpadEl) {
   // Buoyant press: scale the SVG down on pointerdown, spring back on release.
   // (The idle bob lives on the container; see the CSS note.)
   const _dpadSvg = dpadEl.querySelector("svg");
-  const _dpadRelease = () => _dpadSvg && _dpadSvg.classList.remove("dpad-press");
+  const _dpadRelease = (e) => {
+    // Multi-touch: only the pointer that pressed the pad releases it.
+    if (_dpadPointerId !== null && e.pointerId !== _dpadPointerId) return;
+    if (_dpadSvg) _dpadSvg.classList.remove("dpad-press");
+    _dpadStopRepeat();
+    _dpadPointerId = null;
+  };
   window.addEventListener("pointerup", _dpadRelease);
   window.addEventListener("pointercancel", _dpadRelease);
+  // The pad must never grow an iOS long-press callout: contextmenu arrives as
+  // a pointercancel mid-hold and would kill the auto-repeat.
+  dpadEl.addEventListener("contextmenu", e => e.preventDefault());
   dpadEl.addEventListener("pointerdown", e => {
-    const btn = e.target.closest(".dpad-btn");
-    if (!btn) return;
-    const dir = btn.dataset.dir;
-    const svg = dpadEl.querySelector("svg");
+    const svg = _dpadSvg;
+    if (!svg) return;
     // Map the tap into viewBox units with plain rect arithmetic — no CTM.
     // v1 used clientX-vs-bounding-rect linear math: wrong under rotate-app
     // (the rect is the axis-aligned bbox of a 90°-rotated element). v2 used
@@ -2292,9 +2337,7 @@ if (dpadEl) {
     const rect = svg.getBoundingClientRect();
     if (_dpadSvg) _dpadSvg.classList.add("dpad-press");
     sfx.tap();
-    const group = svg.querySelector(`.dpad-ripples.${dir}`);
-    if (!group) return;
-    let x = 50, y = 50;  // degenerate rect (hidden dpad) → ripple at center
+    let x = 50, y = 50;  // degenerate rect (hidden dpad) → center
     if (rect.width > 0 && rect.height > 0) {
       // viewBox is 0 0 100 100 (index.html).
       if (document.body.classList.contains("rotate-app")) {
@@ -2307,6 +2350,20 @@ if (dpadEl) {
         y = ((e.clientY - rect.top) / rect.height) * 100;
       }
     }
+    const dir = _dpadHit(x, y);
+    _dpadPointerId = e.pointerId;
+    _dpadFireAt = performance.now();
+    _dpadDispatch(dir);
+    // Hold-to-repeat on the direction buttons only — the center toggles, so
+    // repeating it would flicker the cell on/off.
+    if (dir !== "center") {
+      _dpadStopRepeat();
+      _dpadRepeatDelay = setTimeout(() => {
+        _dpadRepeatTick = setInterval(() => _dpadDispatch(dir), REPEAT_RATE);
+      }, REPEAT_DELAY);
+    }
+    const group = svg.querySelector(`.dpad-ripples.${dir}`);
+    if (!group) return;
     const circle = document.createElementNS(RIPPLE_SVG_NS, "circle");
     circle.setAttribute("cx", x);
     circle.setAttribute("cy", y);
