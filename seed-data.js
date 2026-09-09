@@ -29042,8 +29042,8 @@ const SEED_DATA = {
       ],
       "fact": "Dmitri Mendeleev published the first periodic table in 1869, predicting properties of three then-undiscovered elements (gallium, scandium, germanium). All three were found within 15 years.",
       "source": {
-        "url": "https://sciencenotes.org/periodic-table-for-kids-118-elements/",
-        "attribution": "Periodic table by Todd Helmenstine, Science Notes"
+        "url": "https://commons.wikimedia.org/wiki/File:Simple_Periodic_Table_Chart-en.svg",
+        "attribution": "Simple Periodic Table Chart by Offnfopt, Wikimedia Commons (CC0)"
       },
       "factSource": "https://en.wikipedia.org/wiki/Periodic_table",
       "image": "0069.png"
@@ -38372,5 +38372,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 2026090901
+  "seedVersion": 2026090902
 };
