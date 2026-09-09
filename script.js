@@ -5877,3 +5877,6 @@ if (userMode) {
   loadPuzzle("0001");
 }
 applySettings();
+// Boot watchdog handshake (1.1, batch G4): reaching the end of the top level
+// proves boot completed; the inline watchdog in index.html disarms on this.
+window.__bootOK = true;
