@@ -563,6 +563,12 @@ let brushTarget = null;   // STATE we are painting onto cells we drag over
 let pointerActive = false;
 let currentMode = "fill"; // "fill" | "cross" — used by touch/pen input only
 let won = false;
+// tutorial state is declared up here, not next to the tutorial functions,
+// because updateModeButton() runs at TOP LEVEL below and reaches `tutorial`
+// through dpadEffective() — with the declaration later in the file that read
+// is a TDZ ReferenceError that kills boot whenever settings.dpad is on
+// (batch G5: the 2026-09-09 boot death on Citrus).
+let tutorial = null;     // { idx, beat } while running; null otherwise
 const visited = new Set();
 
 
@@ -5189,7 +5195,8 @@ window.addEventListener("orientationchange", () => setTimeout(() => {
 // effective-value READS (dpadEffective / the paintCell guard); the saved
 // settings are never touched. Replay lives in Settings → "How to play"; the
 // first-open offer is once-ever (picross.tutorialOffered).
-let tutorial = null;     // { idx, beat } while running; null otherwise
+// `tutorial` itself is declared up top with the rest of the boot-time state —
+// do NOT redeclare it here (batch G5; a second `let` is a parse error anyway).
 const tutLocks = new Set(); // completed-beat cells ("prior moves locked", D1)
 
 const TUTORIAL_FALLBACK_ORDER = ["0003", "0001", "0002"];
