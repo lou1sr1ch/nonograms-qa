@@ -897,11 +897,12 @@ function openSettingsModal() {
   buildSettingsModal();
   const modal = document.getElementById("settingsModal");
   modal.classList.remove("hidden");
-  // Always open at the top. The card is its own scroller (.modal-content,
-  // overflow-y:auto) and nothing else reads its scroll state, so reopening
-  // where you left off just hid the top rows for no benefit.
-  const card = modal.querySelector(".modal-content");
-  if (card) card.scrollTop = 0;
+  // Always open at the top. The LIST is the scroller since the 1.1 pinned-
+  // header change (.settings-list, not .modal-content) and nothing else reads
+  // its scroll state, so reopening where you left off just hid the top rows
+  // for no benefit.
+  const listEl = modal.querySelector(".settings-list");
+  if (listEl) listEl.scrollTop = 0;
 }
 
 function closeSettingsModal() {

@@ -2043,6 +2043,25 @@ body.rotate-app .modal-content {
   max-width: 90dvh;   /* app width under rotation = physical height */
 }
 
+/* 1.1 pinned settings header (2026-09-09, Dre: "the settings bar with the x to
+   close is always visible no matter the scroll state — independent from the
+   actual list of settings"). The card stops scrolling as a whole: flex column,
+   header pinned (its existing bottom border becomes the separator the list
+   scrolls under), the LIST becomes the scroller. Scoped to #settingsModal so no
+   other modal's layout moves. max-height stays the base 80vh — safe under
+   rotate-app (80% of the physical short side always fits the rotated view);
+   the vh-mismeasures-rotation trap (habit 17) only bites the other direction. */
+#settingsModal .modal-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#settingsModal .modal-header { flex: none; }
+#settingsModal .settings-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
 .settings-list { list-style: none; padding: 0; margin: 0; }
 .setting-row {
   display: flex;
