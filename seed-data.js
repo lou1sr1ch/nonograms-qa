@@ -1501,7 +1501,8 @@ const SEED_DATA = {
       "source": {
         "url": "https://www.pexels.com/search/pine%20tree/",
         "attribution": ""
-      }
+      },
+      "factSource": "https://en.wikipedia.org/wiki/Pinus_lambertiana"
     },
     "0007": {
       "name": "Mountain Test",
@@ -3127,7 +3128,8 @@ const SEED_DATA = {
       "source": {
         "url": "https://www.ambius.com/resources/blog/plant-profile/everything-you-need-to-know-about-the-venus-fly-trap",
         "attribution": "Photo by Gabriel Spen"
-      }
+      },
+      "factSource": "https://en.wikipedia.org/wiki/Venus_flytrap"
     },
     "0012": {
       "name": "monsterra",
@@ -4326,7 +4328,8 @@ const SEED_DATA = {
       "source": {
         "url": "https://www.pexels.com/photo/close-up-of-a-pink-rose-in-bloom-31686850/",
         "attribution": ""
-      }
+      },
+      "factSource": "https://en.wikipedia.org/wiki/Hildesheim_Cathedral"
     },
     "0014": {
       "name": "pine tree",
@@ -4701,7 +4704,8 @@ const SEED_DATA = {
         "url": "https://www.pineconefestival.org/fun-facts",
         "attribution": "Photo by Vera Emilie"
       },
-      "image": "0014.jpg"
+      "image": "0014.jpg",
+      "factSource": "https://en.wikipedia.org/wiki/Pinus_lambertiana"
     },
     "0015": {
       "name": "Cacao",
@@ -4955,7 +4959,8 @@ const SEED_DATA = {
       "source": {
         "url": "https://unsplash.com/photos/a-cocoa-plant-hanging-from-a-tree-branch-0j4mQEe2Clw",
         "attribution": ""
-      }
+      },
+      "factSource": "https://en.wikipedia.org/wiki/Theobroma_cacao"
     },
     "0016": {
       "name": "maple tree",
@@ -5210,7 +5215,8 @@ const SEED_DATA = {
         "url": "https://plantmegreen.com/blogs/news/everything-you-need-to-know-about-the-types-of-maple-trees",
         "attribution": "Photo by Justin Wei"
       },
-      "image": "0016.jpg"
+      "image": "0016.jpg",
+      "factSource": "https://en.wikipedia.org/wiki/Maple"
     },
     "0017": {
       "name": "Monstera",
@@ -6133,7 +6139,8 @@ const SEED_DATA = {
       "source": {
         "url": "https://www.pexels.com/photo/close-up-of-a-pink-rose-in-bloom-31686850/",
         "attribution": ""
-      }
+      },
+      "factSource": "https://en.wikipedia.org/wiki/Hildesheim_Cathedral"
     },
     "0019": {
       "name": "venus fly trap",
@@ -6494,7 +6501,8 @@ const SEED_DATA = {
           13,
           6
         ]
-      ]
+      ],
+      "factSource": "https://en.wikipedia.org/wiki/Venus_flytrap"
     },
     "0020": {
       "name": "wild cabbage",
@@ -7019,7 +7027,8 @@ const SEED_DATA = {
         "url": "https://gardeningsolutions.ifas.ufl.edu/plants/edibles/vegetables/cole-crop-confusion/",
         "attribution": "Photo by Lan Nguyen Tran"
       },
-      "image": "0020.jpg"
+      "image": "0020.jpg",
+      "factSource": "https://en.wikipedia.org/wiki/Brassica_oleracea"
     },
     "0021": {
       "name": "rose",
@@ -7550,7 +7559,8 @@ const SEED_DATA = {
           6,
           12
         ]
-      ]
+      ],
+      "factSource": "https://en.wikipedia.org/wiki/Hildesheim_Cathedral"
     },
     "0022": {
       "name": "cacao",
@@ -7815,7 +7825,8 @@ const SEED_DATA = {
           2,
           2
         ]
-      ]
+      ],
+      "factSource": "https://en.wikipedia.org/wiki/Theobroma_cacao"
     },
     "0023": {
       "name": "sunflower",
@@ -8340,7 +8351,8 @@ const SEED_DATA = {
         "url": "https://www.sciencekids.co.nz/sciencefacts/plants/sunflowers.html",
         "attribution": "Photo by Ceren B\u00fc\u015fra SEVTEK\u0130N"
       },
-      "image": "0023.jpg"
+      "image": "0023.jpg",
+      "factSource": "https://en.wikipedia.org/wiki/Helianthus_annuus"
     },
     "0024": {
       "name": "tulip",
@@ -8715,7 +8727,8 @@ const SEED_DATA = {
         "url": "https://www.sciencekids.co.nz/sciencefacts/plants/tulips.html",
         "attribution": "Photo by Luna Hu"
       },
-      "image": "0024.avif"
+      "image": "0024.avif",
+      "factSource": "https://en.wikipedia.org/wiki/Tulip"
     },
     "0025": {
       "name": "dog",
@@ -9090,7 +9103,8 @@ const SEED_DATA = {
         "url": "https://www.rover.com/blog/all-about-jindo-dogs-in/",
         "attribution": "Photo by Vlad Solomon"
       },
-      "image": "0025.jpg"
+      "image": "0025.jpg",
+      "factSource": "https://en.wikipedia.org/wiki/Korea_Jindo_Dog"
     },
     "0026": {
       "name": "goldfish",
@@ -9345,7 +9359,8 @@ const SEED_DATA = {
         "url": "https://inlandaquatics.com/fun-facts-about-goldfish/",
         "attribution": "Photo by mart production"
       },
-      "image": "0026.jpg"
+      "image": "0026.jpg",
+      "factSource": "https://en.wikipedia.org/wiki/Goldfish"
     },
     "0027": {
       "name": "zebra",
@@ -10020,7 +10035,8 @@ const SEED_DATA = {
         "url": "https://www.worldanimalprotection.org/latest/blogs/zebra-facts/",
         "attribution": "Photo by Ron Dauphin"
       },
-      "image": "0027.jpg"
+      "image": "0027.jpg",
+      "factSource": "https://en.wikipedia.org/wiki/Zebra"
     },
     "0028": {
       "name": "pig",
@@ -38372,5 +38388,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 2026091001
+  "seedVersion": 2026091002
 };
