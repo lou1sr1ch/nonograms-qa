@@ -1313,10 +1313,7 @@ body.editor-truth-mode .cell.accent::after { display: none !important; }
   margin-top: 8px;
   font-size: 11px;
   color: var(--color-fg-muted);
-  text-decoration: underline;
-  text-decoration-color: var(--color-cinnamon);
 }
-.fact-source:hover { color: var(--color-mocha); }
 .fact-source:empty { display: none; }
 
 .crop-content { width: min(680px, 92vw); }
@@ -3413,11 +3410,20 @@ body.profile-wide-dpad .win-card {
   column-gap: 14px;
   align-items: start;
 }
-body.profile-wide-nodpad .win-preview-wrap,
-body.profile-wide-dpad .win-preview-wrap {
+body.profile-wide-nodpad .win-visual,
+body.profile-wide-dpad .win-visual {
   grid-column: 1;
   grid-row: 1 / -1;
-  align-self: stretch;   /* pre-JS default; the exact-fit pass re-centers + hugs */
+  align-self: stretch;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+body.profile-wide-nodpad .win-preview-wrap,
+body.profile-wide-dpad .win-preview-wrap {
+  align-self: stretch;   /* horizontal stretch inside .win-visual; the exact-fit pass re-centers + hugs */
   flex: none;
 }
 /* Long facts can't be allowed to blow the card's height budget in landscape —
@@ -3457,17 +3463,29 @@ body.profile-wide-dpad #winFact {
 }
 #winFact { margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: var(--color-fg); }
 #winFact:empty { display: none; }
-.win-links { display: flex; gap: 14px; margin-top: 6px; }
-/* Round 5: creds-only — when no attribution exists the row is fully empty;
-   don't leave its margin behind. Same :has pattern as .win-stats above. */
-.win-links:not(:has(a:not(:empty))) { display: none; }
-.win-links a {
+/* Batch H4 (Dre 2026-09-10): NO hyperlinks anywhere in the app — they challenge
+   the theme subtly. Creds render as plain text. The photo credit sits under
+   the photo and fades with the Photo/pixel toggle (keyed on .show-photo, same
+   0.35s ease as #winPhoto's own fade); its space is HELD while the pixel art
+   shows so toggling never reflows the card (the packet-J geometry rule). The
+   fact's source is plain text in the credit's old spot. */
+.win-visual { display: contents; }   /* portrait: wrap+cred act as direct card items */
+.win-photo-cred {
+  margin: 6px 0 0;
   font-size: 11px;
   color: var(--color-fg-muted);
-  text-decoration: underline;
-  text-decoration-color: var(--color-cinnamon);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.35s ease;
 }
-.win-links a:empty { display: none; }
+.win-preview-wrap.show-photo + .win-photo-cred { opacity: 1; }
+.win-photo-cred:empty { display: none; }   /* no attribution → no held gap */
+.win-fact-src {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--color-fg-muted);
+}
+.win-fact-src:empty { display: none; }
 .win-actions { display: flex; gap: 10px; margin-top: 12px; }
 /* Round 4: padding-centering lets the typewriter font's line box sit slightly
    off the visual middle (Dre caught it on all three win buttons). Flex + a

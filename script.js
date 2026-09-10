@@ -2612,19 +2612,15 @@ function showWinModal() {
   }
 
   document.getElementById("winFact").textContent = activePuzzle.fact || "";
-  // Round 5: photo creds ONLY (Dre) — no "source" / "fact source" link rows.
-  const srcA = document.getElementById("winSource");
+  // Batch H4 (his dictation 2026-09-10): NO hyperlinks anywhere in the app —
+  // they "challenge the theme subtly." Creds render as plain text. The photo
+  // credit sits under the photo and fades with the Photo/pixel toggle (CSS
+  // keys it on .show-photo); the fact's source goes in the credit's old spot,
+  // also plain text. (URLs stay in the seed as provenance, just never render.)
   const src = activePuzzle.source;
-  if (src && src.attribution) {
-    if (src.url) srcA.href = src.url; else srcA.removeAttribute("href");
-    srcA.textContent = src.attribution;
-  } else {
-    srcA.removeAttribute("href");
-    srcA.textContent = "";
-  }
-  const refA = document.getElementById("winFactSrc");
-  refA.removeAttribute("href");
-  refA.textContent = "";
+  document.getElementById("winPhotoCred").textContent = (src && src.attribution) ? src.attribution : "";
+  document.getElementById("winFactSrc").textContent =
+    activePuzzle.factSource ? "Source: " + factSourceName(activePuzzle.factSource) : "";
 
   // Next is disabled on the last puzzle of a category rather than wrapping —
   // wrapping felt like being trapped in a loop; "go pick" is the honest state.
@@ -2653,8 +2649,14 @@ function showWinModal() {
   wrap.style.width = ""; wrap.style.alignSelf = ""; wrap.style.justifySelf = "";
   const availW = wrap.clientWidth - 3;                        // wrap border
   const chromeH = cardEl.offsetHeight;                        // card with zero-height preview
+  // Batch H4: in landscape the credit holds a line inside the preview's own
+  // column (so toggling never reflows) — subtract it from the preview's
+  // budget or wrap+cred overflow the card by that line. Portrait counts it
+  // already via chromeH (it's in the text stack). :empty → offsetHeight 0.
+  const credEl = document.getElementById("winPhotoCred");
+  const credSpace = (rotated && credEl && credEl.offsetHeight) ? credEl.offsetHeight + 8 : 0;
   const availH = rotated
-    ? modal.clientHeight - 53                                 // modal pad 24 + card pad 26 + borders 3
+    ? modal.clientHeight - 53 - credSpace                     // modal pad 24 + card pad 26 + borders 3, minus cred line
     : modal.clientHeight - 24 - chromeH - 3;                  // whatever the text stack didn't take
   const aspect = activeW / activeH;
   let fitW = Math.max(60, availW), fitH = fitW / aspect;
@@ -2665,6 +2667,15 @@ function showWinModal() {
   wrap.style.width = (fitW + 3) + "px";
   wrap.style.alignSelf = "center";
   wrap.style.justifySelf = "center";
+}
+
+// factSource values are URLs in the seed (61/61 en.wikipedia.org at batch H4)
+// but the win card shows a NAME, not a raw URL: "Source: Wikipedia".
+function factSourceName(v) {
+  try {
+    const h = new URL(v).hostname.replace(/^www\./, "");
+    return h.endsWith("wikipedia.org") ? "Wikipedia" : h;
+  } catch { return v; }
 }
 
 function hideWinModal() {
@@ -2913,20 +2924,13 @@ function showFactCard() {
     textEl.textContent = "";
     textEl.style.display = "none";
   }
-  // Round 5: photo creds ONLY (Dre) — no "source" / "fact source" link rows.
+  // Batch H4: no hyperlinks anywhere (Dre) — plain-text cred, and
+  // #solveFactSource/#solveFactSourceRef are spans now. (This card is
+  // superseded by the win modal in user mode; admin/editor paths only.)
   const src = activePuzzle.source;
-  if (src && src.attribution) {
-    if (src.url) sourceEl.href = src.url; else sourceEl.removeAttribute("href");
-    sourceEl.textContent = src.attribution;
-  } else {
-    sourceEl.removeAttribute("href");
-    sourceEl.textContent = "";
-  }
+  sourceEl.textContent = (src && src.attribution) ? src.attribution : "";
   const refEl = document.getElementById("solveFactSourceRef");
-  if (refEl) {
-    refEl.removeAttribute("href");
-    refEl.textContent = "";
-  }
+  if (refEl) refEl.textContent = "";
   card.classList.remove("hidden");
   // Fact card now consumes flex space — shrink the board to compensate.
   if (!editorMode && document.body.dataset.screen === "solve") {

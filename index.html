@@ -30,10 +30,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Nonograms" />
   <meta name="theme-color" content="#faf3e6" />
-  <!-- Build stamp: deploy-qa.sh sed-replaces 1788982704 globally on this file, so this
+  <!-- Build stamp: deploy-qa.sh sed-replaces 1789032345 globally on this file, so this
        meta lands stamped for free. script.js reads it into the dev shift badge so a
        screenshot always proves WHICH build the phone is running (stale-PWA check). -->
-  <meta name="build" content="1788982704" />
+  <meta name="build" content="1789032345" />
   <link rel="manifest" href="manifest.webmanifest" />
   <script>
   // Boot watchdog (1.1, batch G4 — the 2026-09-09 Citrus scramble: the app
@@ -72,7 +72,7 @@
     }, 4000);
   });
   </script>
-  <link rel="stylesheet" href="style.css?v=1788982704" />
+  <link rel="stylesheet" href="style.css?v=1789032345" />
 </head>
 <body>
   <!-- Round 3 (2026-08-27): background layers — see style.css. #topVeil fades the
@@ -245,8 +245,8 @@
     <div id="solveFact" class="solve-only fact-card hidden">
       <h3 id="solveFactName"></h3>
       <p id="solveFactText"></p>
-      <a id="solveFactSource" class="fact-source" target="_blank" rel="noopener noreferrer"></a>
-      <a id="solveFactSourceRef" class="fact-source fact-source-ref" target="_blank" rel="noopener noreferrer"></a>
+      <span id="solveFactSource" class="fact-source"></span>
+      <span id="solveFactSourceRef" class="fact-source fact-source-ref"></span>
     </div>
   </main>
   <div id="winModal" class="modal hidden" aria-modal="true" role="dialog">
@@ -260,16 +260,20 @@
         <span id="winTime" class="win-stat"></span>
         <span id="winMistakes" class="win-stat"></span>
       </div>
-      <div class="win-preview-wrap">
-        <canvas id="winPreview"></canvas>
-        <img id="winPhoto" alt="original photo" />
-        <button id="winPhotoToggle" type="button">Photo</button>
+      <!-- Batch H4: .win-visual groups photo + credit. Portrait: display:contents
+           (the wrap stays a direct flex item, layout identical to the pre-H4 card).
+           Landscape: it's the left grid column — wrap centered, credit in the
+           empty space under the photo (Dre's dictation). -->
+      <div class="win-visual">
+        <div class="win-preview-wrap">
+          <canvas id="winPreview"></canvas>
+          <img id="winPhoto" alt="original photo" />
+          <button id="winPhotoToggle" type="button">Photo</button>
+        </div>
+        <p id="winPhotoCred" class="win-photo-cred"></p>
       </div>
       <p id="winFact"></p>
-      <div class="win-links">
-        <a id="winSource" target="_blank" rel="noopener noreferrer"></a>
-        <a id="winFactSrc" target="_blank" rel="noopener noreferrer"></a>
-      </div>
+      <p id="winFactSrc" class="win-fact-src"></p>
       <div class="win-actions">
         <button id="winNext" type="button">Next puzzle →</button>
         <button id="winBack" type="button">Puzzles</button>
@@ -487,8 +491,8 @@
       </div>
     </div>
   </div>
-  <script src="image-manifest.js?v=1788982704"></script>
-  <script src="seed-data.js?v=1788982704"></script>
-  <script src="script.js?v=1788982704"></script>
+  <script src="image-manifest.js?v=1789032345"></script>
+  <script src="seed-data.js?v=1789032345"></script>
+  <script src="script.js?v=1789032345"></script>
 </body>
 </html>
