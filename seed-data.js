@@ -1497,7 +1497,7 @@ const SEED_DATA = {
           ""
         ]
       ],
-      "fact": "The Sugar Pine is the longest pine cone in the world, growing to up to 2 feet long. Many native american tribes utilized the The Sugar Pine's sap for it's stickey and gummy properties.",
+      "fact": "The Sugar Pine has among the longest cones of any conifer, mostly 10 to 20 inches long and occasionally up to 22. Native Americans used its sweet resin as a sweetener.",
       "source": {
         "url": "https://www.pexels.com/search/pine%20tree/",
         "attribution": ""
@@ -2769,12 +2769,13 @@ const SEED_DATA = {
           "#f8f8f8"
         ]
       ],
-      "fact": "With its hardy and resilient nature, it should be no surprise that wild species of Aloe vera are known to live for over 100 years.",
+      "fact": "Aloe vera is the most searched houseplant in the US. One Google Trends study found it topping searches in 15 states in a single year, and first overall across five.",
       "source": {
         "url": "https://lilyofthedesert.com/blog/interesting-facts-about-aloe-plants/",
         "attribution": "Photo by Stephanie Harvey"
       },
-      "image": "0010.avif"
+      "image": "0010.avif",
+      "factSource": "https://www.thezoereport.com/p/the-most-popular-houseplants-in-america-could-be-the-greenery-your-home-needs-now-31453376"
     },
     "0011": {
       "name": "venus fly trap",
@@ -3799,12 +3800,13 @@ const SEED_DATA = {
           "#2b5051"
         ]
       ],
-      "fact": "The Monstera deliciosa plant is consistently the most searched houseplant in over 15 states (US), and would likely be the most popular houseplant if it weren't for the Aloe vera.",
+      "fact": "The Monstera deliciosa is the most searched houseplant in the US. A five-year Google Trends analysis found it the top search in sixteen states, more states than any other houseplant.",
       "source": {
         "url": "https://flowerpowerdaily.com/most-popular-u-s-houseplants-state-by-state/",
         "attribution": "Photo by Maur\u00edcio Guardiano"
       },
-      "image": "0012.jpg"
+      "image": "0012.jpg",
+      "factSource": "https://www.floraldaily.com/article/9421115/us-monstera-is-the-most-popular-houseplant/"
     },
     "0013": {
       "name": "rose",
@@ -4324,7 +4326,7 @@ const SEED_DATA = {
           "#30391d"
         ]
       ],
-      "fact": "Located on the wall of Hildesheim Cathedral in Germany, the oldest living rose bush in the world is approximately 1,000 years old, which famously survived the cathedral being bombed and destroyed during World War II.",
+      "fact": "Located on the wall of Hildesheim Cathedral in Germany, the Thousand-year Rose is believed to be the oldest living rose in the world, with a legend dating back to 815. It famously survived the cathedral being bombed and destroyed during World War II.",
       "source": {
         "url": "https://www.pexels.com/photo/close-up-of-a-pink-rose-in-bloom-31686850/",
         "attribution": ""
@@ -4699,7 +4701,7 @@ const SEED_DATA = {
           "#1a1a1a"
         ]
       ],
-      "fact": "The Sugar Pine is the longest pine cone in the world, growing to up to 2 feet long. Many native american tribes utilized the The Sugar Pine's sap for it's stickey and gummy properties.",
+      "fact": "The Sugar Pine has among the longest cones of any conifer, mostly 10 to 20 inches long and occasionally up to 22. Native Americans used its sweet resin as a sweetener.",
       "source": {
         "url": "https://www.pineconefestival.org/fun-facts",
         "attribution": "Photo by Vera Emilie"
@@ -6135,7 +6137,7 @@ const SEED_DATA = {
           "#30391d"
         ]
       ],
-      "fact": "Located on the wall of Hildesheim Cathedral in Germany, the oldest living rose bush in the world is approximately 1,000 years old, which famously survived the cathedral being bombed and destroyed during World War II.",
+      "fact": "Located on the wall of Hildesheim Cathedral in Germany, the Thousand-year Rose is believed to be the oldest living rose in the world, with a legend dating back to 815. It famously survived the cathedral being bombed and destroyed during World War II.",
       "source": {
         "url": "https://www.pexels.com/photo/close-up-of-a-pink-rose-in-bloom-31686850/",
         "attribution": ""
@@ -7022,7 +7024,7 @@ const SEED_DATA = {
           "#493a29"
         ]
       ],
-      "fact": "Brassica oleracea is a single wild cabbage species that has been selectively bred over thousands of years into more than 300 distinct cultivars, including kale, broccoli, cauliflower, cabbage, Brussels sprouts, and kohlrabi, which appear as entirely different vegetables.",
+      "fact": "Brassica oleracea is a single wild cabbage species that has been selectively bred over thousands of years into a wide range of cultivars, including kale, broccoli, cauliflower, cabbage, Brussels sprouts, and kohlrabi, some hardly recognizable as members of the same species.",
       "source": {
         "url": "https://gardeningsolutions.ifas.ufl.edu/plants/edibles/vegetables/cole-crop-confusion/",
         "attribution": "Photo by Lan Nguyen Tran"
@@ -7548,7 +7550,7 @@ const SEED_DATA = {
           "#57613c"
         ]
       ],
-      "fact": "Located on the wall of Hildesheim Cathedral in Germany, the oldest living rose bush in the world is approximately 1,000 years old, which famously survived the cathedral being bombed and destroyed during World War II.",
+      "fact": "Located on the wall of Hildesheim Cathedral in Germany, the Thousand-year Rose is believed to be the oldest living rose in the world, with a legend dating back to 815. It famously survived the cathedral being bombed and destroyed during World War II.",
       "source": {
         "url": "https://figandbloom.com/blogs/news/fun-facts-about-roses",
         "attribution": "Photo by Fabio Andr\u00e9s"
@@ -8346,7 +8348,7 @@ const SEED_DATA = {
           ""
         ]
       ],
-      "fact": "They are used in a process called phytoremediation to extract toxins such as lead, arsenic, and uranium from contaminated soil, having been notably planted after the Chernobyl and Fukushima nuclear disasters.",
+      "fact": "They are used in a process called phytoremediation to extract toxins such as lead, cadmium, and uranium from contaminated soil, having been notably planted after the Chernobyl and Fukushima nuclear disasters.",
       "source": {
         "url": "https://www.sciencekids.co.nz/sciencefacts/plants/sunflowers.html",
         "attribution": "Photo by Ceren B\u00fc\u015fra SEVTEK\u0130N"
@@ -9098,7 +9100,7 @@ const SEED_DATA = {
           "#645a51"
         ]
       ],
-      "fact": "In 1993, a Korean Jindo (dog breed pictured) named Baekgu traveled approximately 180 miles over seven months to return to his original elderly owner after being sold to a new home, becoming a cultural icon in South Korea",
+      "fact": "In 1993, a Korean Jindo (dog breed pictured) named Baekgu traveled approximately 180 miles over seven months to return to her original elderly owner after being sold to a new home, becoming a cultural icon in South Korea",
       "source": {
         "url": "https://www.rover.com/blog/all-about-jindo-dogs-in/",
         "attribution": "Photo by Vlad Solomon"
@@ -9354,7 +9356,7 @@ const SEED_DATA = {
           "#e7edee"
         ]
       ],
-      "fact": "Goldfish have a memory span of at least three months, debunking the common myth that they only have a three-second memory.  They are capable of learning complex behaviors, such as distinguishing between the music of Bach and Stravinsky, and recognizing their owners' faces.",
+      "fact": "Goldfish have a memory span of at least three months, debunking the common myth that they only have a three-second memory. They can distinguish between different shapes, colors, and sounds, and even between individual humans.",
       "source": {
         "url": "https://inlandaquatics.com/fun-facts-about-goldfish/",
         "attribution": "Photo by mart production"
@@ -10030,7 +10032,7 @@ const SEED_DATA = {
           "#8c7146"
         ]
       ],
-      "fact": "Each zebra has a unique stripe pattern akin to human fingerprints, allowing individuals to recognize one another within the herd.",
+      "fact": "Each zebra has a unique stripe pattern akin to human fingerprints.",
       "source": {
         "url": "https://www.worldanimalprotection.org/latest/blogs/zebra-facts/",
         "attribution": "Photo by Ron Dauphin"
@@ -38388,5 +38390,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 2026091002
+  "seedVersion": 2026091201
 };
