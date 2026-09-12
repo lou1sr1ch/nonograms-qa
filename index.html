@@ -30,10 +30,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Nonograms" />
   <meta name="theme-color" content="#faf3e6" />
-  <!-- Build stamp: deploy-qa.sh sed-replaces 1789221172 globally on this file, so this
+  <!-- Build stamp: deploy-qa.sh sed-replaces 1789227520 globally on this file, so this
        meta lands stamped for free. script.js reads it into the dev shift badge so a
        screenshot always proves WHICH build the phone is running (stale-PWA check). -->
-  <meta name="build" content="1789221172" />
+  <meta name="build" content="1789227520" />
   <link rel="manifest" href="manifest.webmanifest" />
   <script>
   // Boot watchdog (1.1, batch G4 — the 2026-09-09 Citrus scramble: the app
@@ -72,7 +72,7 @@
     }, 4000);
   });
   </script>
-  <link rel="stylesheet" href="style.css?v=1789221172" />
+  <link rel="stylesheet" href="style.css?v=1789227520" />
 </head>
 <body>
   <!-- Round 3 (2026-08-27): background layers — see style.css. #topVeil fades the
@@ -208,19 +208,31 @@
           <clipPath id="dpad-clip-down"><use href="#dpad-shape-down"/></clipPath>
           <clipPath id="dpad-clip-left"><use href="#dpad-shape-left"/></clipPath>
           <clipPath id="dpad-clip-center"><use href="#dpad-shape-center"/></clipPath>
-          <linearGradient id="dpad-grad-light" x1="0" y1="0" x2="1" y2="1">
+          <!-- H9 round 2: userSpaceOnUse vertical ramp — every button samples the
+               same top-to-bottom light (one light source for the whole pad). -->
+          <linearGradient id="dpad-grad-light" gradientUnits="userSpaceOnUse" x1="50" y1="0" x2="50" y2="100">
             <stop offset="0%"   class="dpad-grad-light-a"/>
             <stop offset="100%" class="dpad-grad-light-b"/>
           </linearGradient>
-          <linearGradient id="dpad-grad-dark" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id="dpad-grad-dark" gradientUnits="userSpaceOnUse" x1="50" y1="0" x2="50" y2="100">
             <stop offset="0%"   class="dpad-grad-dark-a"/>
             <stop offset="100%" class="dpad-grad-dark-b"/>
           </linearGradient>
         </defs>
+        <use href="#dpad-shape-up"     class="dpad-bevel dpad-bevel-lite"/>
+        <use href="#dpad-shape-up"     class="dpad-bevel dpad-bevel-shade"/>
         <path id="dpad-shape-up"     class="dpad-btn dpad-up"     data-dir="up"     d=""/>
+        <use href="#dpad-shape-right"  class="dpad-bevel dpad-bevel-lite"/>
+        <use href="#dpad-shape-right"  class="dpad-bevel dpad-bevel-shade"/>
         <path id="dpad-shape-right"  class="dpad-btn dpad-right"  data-dir="right"  d=""/>
+        <use href="#dpad-shape-down"   class="dpad-bevel dpad-bevel-lite"/>
+        <use href="#dpad-shape-down"   class="dpad-bevel dpad-bevel-shade"/>
         <path id="dpad-shape-down"   class="dpad-btn dpad-down"   data-dir="down"   d=""/>
+        <use href="#dpad-shape-left"   class="dpad-bevel dpad-bevel-lite"/>
+        <use href="#dpad-shape-left"   class="dpad-bevel dpad-bevel-shade"/>
         <path id="dpad-shape-left"   class="dpad-btn dpad-left"   data-dir="left"   d=""/>
+        <use href="#dpad-shape-center" class="dpad-bevel dpad-bevel-lite-center"/>
+        <use href="#dpad-shape-center" class="dpad-bevel dpad-bevel-shade-center"/>
         <rect id="dpad-shape-center" class="dpad-btn dpad-center" data-dir="center" x="35" y="35" width="30" height="30" rx="6"/>
         <g class="dpad-ripples up"     clip-path="url(#dpad-clip-up)"></g>
         <g class="dpad-ripples right"  clip-path="url(#dpad-clip-right)"></g>
@@ -491,8 +503,8 @@
       </div>
     </div>
   </div>
-  <script src="image-manifest.js?v=1789221172"></script>
-  <script src="seed-data.js?v=1789221172"></script>
-  <script src="script.js?v=1789221172"></script>
+  <script src="image-manifest.js?v=1789227520"></script>
+  <script src="seed-data.js?v=1789227520"></script>
+  <script src="script.js?v=1789227520"></script>
 </body>
 </html>

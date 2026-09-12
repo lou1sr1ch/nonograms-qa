@@ -5888,6 +5888,45 @@ if (userMode) {
   loadPuzzle("0001");
 }
 applySettings();
+// DEV-ONLY (batch H9, the headless sim loop): deep-jump into a solve screen
+// via #dev-solve=NNNN[&dpad=1] — boots straight past the library so a
+// screenshot loop can reach any board state without taps. Pre-marks the
+// once-ever modals (tutorial offer, one-shot notes) as seen so they never
+// cover the shot. Stripped from release by the DEV_BUILD strip.
+if (DEV_BUILD && userMode) {
+  const devJump = location.hash.match(/dev-solve=(\d{4})/);
+  if (devJump && PUZZLES[devJump[1]]) {
+    try {
+      localStorage.setItem(TUT_OFFER_KEY, "1");
+      localStorage.setItem(ONESHOT_FLAGS.landscape, "1");
+      localStorage.setItem(ONESHOT_FLAGS.dpad, "1");
+    } catch {}
+    document.getElementById("tutOffer").classList.add("hidden");
+    if (/dpad=1/.test(location.hash)) { settings.dpad = true; saveSettings(); applySettings(); }
+    // Board-theme preview: &theme=NAME adds body.theme-NAME (visual prototype
+    // only — theme SELECTION is a settings row, his call, not built yet).
+    const devTheme = location.hash.match(/theme=([a-z-]+)/);
+    if (devTheme) document.body.classList.add("theme-" + devTheme[1]);
+    loadPuzzle(devJump[1]);
+    // &play=1: light mid-solve state for theme screenshots — fill each row's
+    // first truth cell, cross each row's first blank. Writes state directly
+    // (no stroke machinery: no undo, no sfx, no win check). Deterministic.
+    if (/play=1/.test(location.hash)) {
+      const T = PUZZLES[devJump[1]].truth;
+      for (let r = 0; r < T.length; r++) {
+        let filled = false, crossed = false;
+        for (let c = 0; c < T[r].length && (!filled || !crossed); c++) {
+          if (givenCells.has(r + "," + c)) continue;
+          const el = boardEl.children[r * activeW + c];
+          if (T[r][c] && !filled) { board[r][c] = STATE_FILLED; applyCellState(el, STATE_FILLED); filled = true; }
+          else if (!T[r][c] && !crossed) { board[r][c] = STATE_CROSSED; applyCellState(el, STATE_CROSSED); crossed = true; }
+        }
+      }
+      updateHintCompletion();
+    }
+    setUserScreen("solve");
+  }
+}
 // Boot watchdog handshake (1.1, batch G4): reaching the end of the top level
 // proves boot completed; the inline watchdog in index.html disarms on this.
 window.__bootOK = true;

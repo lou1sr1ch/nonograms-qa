@@ -495,6 +495,33 @@ main {
 #board.won .cell.crossed::before { content: ""; }
 #board.won .cell { cursor: default; transition: background-color 0.4s ease; }
 
+/* === Board themes (1.1, batch H9 — PREVIEW PROTOTYPES, his ruling pending) ===
+   Mechanics: the minor gridlines are #board's background through 1px gaps; the
+   5-cell majors are inset box-shadows on the cells. A theme recolors those two
+   layers + the border; cells/fills/crosses are untouched, so solving, the win
+   reveal (inline styles), the given ring, and the cursor all keep working.
+   Selection UI is NOT built (a settings row is his call) — dev preview only.
+   theme-graph: coffee graph paper, all existing tokens.
+   theme-graphblue: classic drafting paper — the blues are PROPOSED new colors,
+   they exist nowhere in the palette; they ship only if he picks this one. */
+body.theme-graph #board {
+  background: var(--color-steam);
+  border-color: var(--color-cinnamon);
+}
+body.theme-graph .cell.col-divider { box-shadow: inset -1px 0 0 var(--color-cinnamon); }
+body.theme-graph .cell.row-divider { box-shadow: inset 0 -1px 0 var(--color-cinnamon); }
+body.theme-graph .cell.col-divider.row-divider { box-shadow: inset -1px 0 0 var(--color-cinnamon), inset 0 -1px 0 var(--color-cinnamon); }
+
+body.theme-graphblue #board {
+  background: #b7cfe3;
+  border-color: #6b8fae;
+}
+body.theme-graphblue .cell { background: var(--color-surface); }
+body.theme-graphblue .cell.filled { background: var(--color-espresso); }
+body.theme-graphblue .cell.col-divider { box-shadow: inset -1px 0 0 #7fa3c4; }
+body.theme-graphblue .cell.row-divider { box-shadow: inset 0 -1px 0 #7fa3c4; }
+body.theme-graphblue .cell.col-divider.row-divider { box-shadow: inset -1px 0 0 #7fa3c4, inset 0 -1px 0 #7fa3c4; }
+
 /* Hint (given) cells — TWO golden beams chasing each other around the cell's
    outline, centered ON the gridline with an intentional slight bleed into
    adjacent cells (Dre v4, batch C5: "sitting in the middle of the outline/grid
@@ -2374,14 +2401,19 @@ button:disabled:hover {
   padding: 8px 12px;
   border: none;
   border-radius: var(--radius-md);      /* all corners rounded on each half */
-  background: linear-gradient(135deg, var(--color-oat) 0%, var(--color-surface) 100%);
+  background: linear-gradient(180deg, var(--color-oat) 0%, var(--color-latte) 100%);
   color: var(--color-fg-muted);
   cursor: pointer;
   transition:
     background-color 0.15s ease,
     color 0.15s ease,
     transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: var(--shadow-soft);       /* each half lifts on its own */
+  /* H9 round 2: same molded-button language as the dpad — top light catch,
+     bottom shade lip, soft cast. One light source for the whole bar. */
+  box-shadow:
+    inset 0 1.5px 0 rgba(253, 250, 242, 0.75),
+    inset 0 -2px 0 rgba(45, 31, 23, 0.14),
+    0 3px 5px rgba(45, 31, 23, 0.16);
 }
 /* Same invisible 5px hit ring as the dpad (1.1, batch G3): taps just outside
    a half still hit it. The halves face each other across an 8px gap — 5px of
@@ -2396,8 +2428,13 @@ button:disabled:hover {
 /* Divider between halves removed — the gap does that job now visually. */
 #modeBtn.mode-fill  .mode-half-fill,
 #modeBtn.mode-cross .mode-half-cross {
-  background: linear-gradient(135deg, var(--color-espresso) 0%, var(--color-cocoa) 100%);
+  background: linear-gradient(180deg, var(--color-espresso) 0%, var(--color-cocoa) 100%);
   color: var(--color-foam);
+  /* Dark-button version of the same bevel: fainter light catch, deeper lip. */
+  box-shadow:
+    inset 0 1.5px 0 rgba(253, 250, 242, 0.18),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
+    0 3px 5px rgba(45, 31, 23, 0.18);
 }
 
 /* Fill/Cross layout variants live in the per-profile blocks near the bottom of
@@ -3521,21 +3558,49 @@ body.profile-wide-dpad #winFact {
   width: 160px;
   aspect-ratio: 1 / 1;
   max-width: 100%;
-  position: relative;  /* anchors the hit ring below */
+  position: relative;  /* anchors the hit ring + socket below */
+  isolation: isolate;  /* the socket's z-index:-1 stays inside the pad */
   /* none, not manipulation (1.1, batch G2): a pan gesture starting on the pad
      would fire pointercancel mid-hold and kill the direction auto-repeat.
      The pad is a fixed control and never scrolls — same trade as the board. */
   touch-action: none;
-  filter: drop-shadow(0 2px 6px rgba(45, 31, 23, 0.08));
+}
+/* The socket (1.1, batch H9 — Wii-Play-Tanks depth round 1): a recessed well
+   the pad floats in. Dark lip at the top + light catch at the bottom reads as
+   a depression in the surface; the pad's own cast shadow lives on the svg so
+   it follows the bob instead of outlining the socket. z-index:-1 keeps it
+   behind the svg (isolation above contains it). Painted outside the border
+   box, it also hit-tests as the pad — the G3 ring's job, visually anchored. */
+#dpad::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border-radius: 30px;
+  background: var(--color-oat);
+  box-shadow:
+    inset 0 4px 9px rgba(45, 31, 23, 0.22),
+    inset 0 1.5px 2px rgba(45, 31, 23, 0.14),
+    inset 0 -2px 3px rgba(253, 250, 242, 0.85),
+    0 1px 0 rgba(253, 250, 242, 0.6);
+  z-index: -1;
+  transition: box-shadow 0.12s ease-out;
+}
+/* Pressing the pad pushes it INTO the socket: the recess deepens. */
+#dpad:has(svg.dpad-press)::before {
+  box-shadow:
+    inset 0 6px 12px rgba(45, 31, 23, 0.28),
+    inset 0 2px 3px rgba(45, 31, 23, 0.16),
+    inset 0 -1px 2px rgba(253, 250, 242, 0.7),
+    0 1px 0 rgba(253, 250, 242, 0.6);
 }
 /* Invisible 5px hit ring (1.1, batch G3, his call): taps that JUST miss the
    visible pad still register — "a few of the times i just missed the dpad."
    The G2 coordinate hit-test already resolves ANY point (out-of-range coords
    still fall to a direction by dominant axis), so the ring only had to exist
-   physically; a ::before keeps the visible geometry untouched. Taps in the
-   ring get no ripple (clipped to the button shapes) — the move + press-scale
-   + sfx are the feedback. */
-#dpad::before {
+   physically; a pseudo-element keeps the visible geometry untouched. Taps in
+   the ring get no ripple (clipped to the button shapes) — the move + press
+   scale + sfx are the feedback. (::after since H9: ::before is the socket.) */
+#dpad::after {
   content: "";
   position: absolute;
   inset: -5px;
@@ -3551,11 +3616,24 @@ body.dpad-on.user-mode[data-screen="solve"] #dpad { animation: float-bob 4.8s ea
 #dpad svg {
   width: 100%; height: 100%; display: block;
   transition: transform 0.34s cubic-bezier(0.3, 1.7, 0.55, 1);
+  /* The pad's cast shadow lives here (not on #dpad) so it wraps the button
+     cross silhouette and follows the bob; the socket would only outline
+     itself. Base value = the resting/bob-bottom shadow (also the static
+     reduce-motion state); the animation lengthens it as the pad rises. */
+  filter: drop-shadow(0 5px 6px rgba(45, 31, 23, 0.22));
   /* Long-press must not grow a selection/callout: it arrives as pointercancel
      mid-hold and kills hold-to-repeat (1.1, batch G2). */
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+}
+/* Shadow bob, synced with float-bob (same duration/easing, applied by the same
+   gate so both start on the same frame): tight + dark when the pad sits low,
+   long + diffuse when it floats up — the levitation cue (1.1, batch H9). */
+body.dpad-on.user-mode[data-screen="solve"] #dpad svg { animation: dpad-bob-shadow 4.8s ease-in-out infinite; }
+@keyframes dpad-bob-shadow {
+  0%, 100% { filter: drop-shadow(0 5px 6px rgba(45, 31, 23, 0.22)); }
+  50%      { filter: drop-shadow(0 12px 16px rgba(45, 31, 23, 0.10)); }
 }
 #dpad svg.dpad-press { transform: scale(0.93); transition-duration: 0.09s; }
 .dpad-btn {
@@ -3567,13 +3645,26 @@ body.dpad-on.user-mode[data-screen="solve"] #dpad { animation: float-bob 4.8s ea
      the black stroke so all buttons on screen read as gradient-only surfaces. */
 }
 .dpad-center { fill: url(#dpad-grad-dark); }
+/* Bevel rims (1.1, batch H9 — the molded-button read): two <use> copies of each
+   button shape painted UNDER the main path, offset vertically — a light rim
+   peeks above (top-lit), a shade rim below. Slanted edges get the rim on the
+   correct face for free (the offset exposes it along the slant's lit/shaded
+   side). Geometry tracks the JS-drawn paths automatically via the hrefs. */
+.dpad-bevel { pointer-events: none; }
+.dpad-bevel-lite  { fill: var(--color-surface);      transform: translateY(-1.2px); }
+.dpad-bevel-shade { fill: rgba(45, 31, 23, 0.30);    transform: translateY(1.8px); }
+.dpad-bevel-lite-center  { fill: rgba(250, 243, 230, 0.28); transform: translateY(-1.2px); }
+.dpad-bevel-shade-center { fill: rgba(0, 0, 0, 0.38);       transform: translateY(1.8px); }
 /* When the "disable action button" setting is on, hide the dpad's center rect —
    arrows are re-rendered as triangles by applyDpadStyle so they fill the empty
    region. Fill/Cross buttons take over the "commit action" role. */
 body.disable-action-btn-on .dpad-center { display: none; }
-/* Gradient stops driven from CSS custom properties so theming still works. */
+/* Gradient stops driven from CSS custom properties so theming still works.
+   H9 round 2: the face ramps oat → latte (light from the top) so the bevel
+   rims have contrast to work against — the lite rim (brighter than the oat
+   top) reads on the lit edge, the shade rim on the latte bottom. */
 .dpad-grad-light-a { stop-color: var(--color-oat); }
-.dpad-grad-light-b { stop-color: var(--color-surface); }
+.dpad-grad-light-b { stop-color: var(--color-latte); }
 .dpad-grad-dark-a  { stop-color: var(--color-espresso); }
 .dpad-grad-dark-b  { stop-color: var(--color-cocoa); }
 /* Ripple feedback on tap. Each button has a paired <g class="dpad-ripples">
@@ -3599,6 +3690,8 @@ body.reduce-motion .dpad-ripple { animation: none; opacity: 0; }
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 12px;
+  /* Engraved into the button: light catch directly under the glyph (H9). */
+  text-shadow: 0 1px 0 rgba(253, 250, 242, 0.5);
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -3606,6 +3699,7 @@ body.reduce-motion .dpad-ripple { animation: none; opacity: 0; }
 .dpad-glyphs text.glyph-center {
   fill: var(--color-foam);
   font-size: 8px;
+  text-shadow: none;
 }
 
 /* Cursor cell — highlighted with cinnamon outline. Rendered in solve mode only. */
