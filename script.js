@@ -1172,6 +1172,10 @@ document.addEventListener("scroll", () => {
   badge.id = "devShiftBadge";
   badge.setAttribute("aria-hidden", "true");
   document.body.appendChild(badge);
+  // Dev builds self-label on every screen: the stamp-only readout needs no
+  // dev-mode unlock (which is desktop-only since F1), so the phone can always
+  // answer "which build am I on" — the stale-binary confusion class dies here.
+  document.body.classList.add("dev-build");
   const buildMeta = document.querySelector('meta[name="build"]');
   const build = buildMeta ? buildMeta.content : "?";
   const taps = [];
@@ -1187,8 +1191,13 @@ document.addEventListener("scroll", () => {
     if (taps.length > 4) taps.shift();
   }, { capture: true, passive: true });
   setInterval(() => {
-    if (!document.body.classList.contains("dev-mode") ||
-        document.body.dataset.screen !== "solve") return;
+    const full = document.body.classList.contains("dev-mode") &&
+                 document.body.dataset.screen === "solve";
+    if (!full) {
+      badge.textContent = "b" + build;
+      badge.classList.remove("bad");
+      return;
+    }
     const layout = document.querySelector(".layout");
     const main = document.querySelector(".layout main");
     const pnr = document.querySelector(".puzzle-and-ref");

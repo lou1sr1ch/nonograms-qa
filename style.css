@@ -980,6 +980,12 @@ body.dev-mode.user-mode[data-screen="solve"] #devWinBtn {
   word-break: break-all;
 }
 body.dev-mode.user-mode[data-screen="solve"] #devShiftBadge { display: block; }
+/* Dev builds self-label on every screen (stamp only) — no dev-mode unlock
+   needed, which matters because the unlock is desktop-only since F1. Docked
+   small bottom-right so it never covers list content; the full telemetry
+   still requires dev-mode + solve screen (the rule above). */
+body.dev-build #devShiftBadge { display: block; }
+body.dev-build:not(.dev-mode) #devShiftBadge { left: auto; right: 6px; }
 #devShiftBadge.bad {
   color: #fff;
   background: rgba(176, 42, 42, 0.92);
