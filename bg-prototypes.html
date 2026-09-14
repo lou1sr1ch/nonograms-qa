@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Background Motion Studies</title>
+<style>
+  @font-face { font-family: Aghja; src: url("fonts/Aghja.otf"); font-weight: 500; }
+  @font-face { font-family: Compagnon; src: url("fonts/Compagnon-Roman.otf"); font-weight: 400; }
+  @font-face { font-family: Compagnon; src: url("fonts/Compagnon-Bold.otf"); font-weight: 700; }
+
+  :root {
+    --cream: #F6EFE3;
+    --foam: #FAF3E6;
+    --cocoa: #3B2A1E;
+    --cocoa-soft: rgba(59,42,30,.62);
+    --cinnamon: #A85B2A;
+    --latte: #C9A87C;
+    --card-line: rgba(59,42,30,.14);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cream);
+    color: var(--cocoa);
+    font-family: Compagnon, Georgia, serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 18px 64px; }
+
+  .eyebrow {
+    font-weight: 700; font-size: 12px; letter-spacing: .18em;
+    color: var(--cinnamon); text-transform: uppercase;
+  }
+  h1 {
+    font-family: Aghja, Georgia, serif; font-weight: 500;
+    font-size: clamp(34px, 7vw, 46px); line-height: 1.1;
+    margin: 8px 0 14px;
+  }
+  .lede { max-width: 62ch; color: var(--cocoa-soft); }
+  .lede + .lede { margin-top: 10px; }
+
+  .judge {
+    margin: 22px 0 8px; padding: 14px 18px;
+    border: 1px solid var(--card-line); border-radius: 14px;
+    background: var(--foam);
+  }
+  .judge strong { color: var(--cinnamon); }
+
+  section { margin-top: 44px; }
+  .spec {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--card-line); padding-bottom: 8px; margin-bottom: 22px;
+  }
+  h2 { font-family: Aghja, Georgia, serif; font-weight: 500; font-size: 30px; }
+  .spec span { color: var(--cocoa-soft); font-size: 14px; }
+
+  .studies {
+    display: grid; gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+
+  .stage {
+    position: relative; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 12px 32px rgba(59,42,30,.28);
+  }
+  .stage canvas { display: block; width: 100%; aspect-ratio: 9 / 19; }
+
+  /* mock app chrome over the live background — legibility is judged against this */
+  .chrome {
+    position: absolute; inset: 0; pointer-events: none;
+    display: flex; flex-direction: column; padding: 16px 14px 0;
+  }
+  .chrome-top { display: flex; align-items: center; justify-content: space-between; }
+  .cback, .cgear { font-size: 22px; color: rgba(250,243,230,.92); text-shadow: 0 1px 6px rgba(0,0,0,.3); }
+  .ctitle {
+    font-family: Aghja, Georgia, serif; font-size: 27px; color: #FAF3E6;
+    text-shadow: 0 1px 8px rgba(0,0,0,.3);
+  }
+  .crows { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .crow {
+    background: rgba(250,243,230,.94); border-radius: 14px;
+    padding: 13px 16px; display: flex; justify-content: space-between; align-items: baseline;
+    color: var(--cocoa); box-shadow: 0 2px 10px rgba(0,0,0,.16);
+  }
+  .csize { opacity: .5; font-size: 13px; }
+  .crow.ghost { justify-content: center; letter-spacing: .35em; opacity: .5; padding: 8px 16px; }
+
+  figcaption { display: flex; gap: 12px; margin-top: 12px; align-items: flex-start; }
+  .chip {
+    flex: none; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--cocoa); color: var(--foam);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+  }
+  figcaption strong { display: block; font-size: 17px; }
+  figcaption span.note { color: var(--cocoa-soft); font-size: 14px; }
+
+  footer {
+    margin-top: 52px; padding-top: 20px;
+    border-top: 1px solid var(--card-line);
+    color: var(--cocoa-soft); font-size: 14px;
+  }
+  footer p + p { margin-top: 8px; }
+  footer .reply { color: var(--cocoa); }
+  footer .reply strong { color: var(--cinnamon); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Visual program · phase 1 · ruling page</div>
+    <h1>Background Motion Studies</h1>
+    <p class="lede">Six live candidates for the per-category animated backgrounds — flora in its deep green + pastel scheme, fauna in orange-yellow with the walking paw prints. Each frame is a phone-shaped canvas with a mock puzzle list laid over it, so legibility is judged against something close to the real screen, not a bare animation.</p>
+    <p class="lede">Nothing on this page is in the app. Whichever study wins gets rebuilt inside it.</p>
+    <div class="judge"><strong>How to judge:</strong> watch each one for 20+ seconds before deciding. The right background is the one you stop noticing — if any of them pulls your eye away from the list rows, that's the one to kill. Everything is a dial: speed, density, size, opacity, palette.</div>
+  </header>
+
+  <section>
+    <div class="spec"><h2>flora</h2><span>your spec: deeper green + pastel accent</span></div>
+    <div class="studies">
+
+      <figure class="study">
+        <div class="stage" data-cat="flora" data-rows="aloe vera·15 × 15|monsterra·15 × 15|tulip·10 × 15|pine·20 × 15|rose·15 × 15">
+          <canvas id="cv-drift"></canvas>
+        </div>
+        <figcaption><span class="chip">A</span><div><strong>Drift</strong><span class="note">the cogs baseline — soft artifacts wander, breathe, and every few seconds one does a slow bubble-pop; edges steer instead of bounce</span></div></figcaption>
+      </figure>
+
+      <figure class="study">
+        <div class="stage" data-cat="flora" data-rows="aloe vera·15 × 15|monsterra·15 × 15|tulip·10 × 15|pine·20 × 15|rose·15 × 15">
+          <canvas id="cv-rise"></canvas>
+        </div>
+        <figcaption><span class="chip">B</span><div><strong>Rise</strong><span class="note">the Rocket League "bubbly" read — bubbles float up with a gentle sway, fade out near the top</span></div></figcaption>
+      </figure>
+
+      <figure class="study">
+        <div class="stage" data-cat="flora" data-rows="aloe vera·15 × 15|monsterra·15 × 15|tulip·10 × 15|pine·20 × 15|rose·15 × 15">
+          <canvas id="cv-sway"></canvas>
+        </div>
+        <figcaption><span class="chip">C</span><div><strong>Sway</strong><span class="note">the PS4 minimal end — three wide light bands slide almost imperceptibly, a few motes drift; the calmest option</span></div></figcaption>
+      </figure>
+
+      <figure class="study">
+        <div class="stage" data-cat="flora" data-rows="aloe vera·15 × 15|monsterra·15 × 15|tulip·10 × 15|pine·20 × 15|rose·15 × 15">
+          <canvas id="cv-garden"></canvas>
+        </div>
+        <figcaption><span class="chip">D</span><div><strong>Garden</strong><span class="note">A's exact motion, but half the artifacts are soft leaves — tests themed shapes vs pure abstraction</span></div></figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="spec"><h2>fauna</h2><span>your spec: orange-yellow + darker paw prints walking across</span></div>
+    <div class="studies">
+
+      <figure class="study">
+        <div class="stage" data-cat="fauna" data-rows="goldfish·15 × 15|zebra·20 × 15|pig·15 × 15">
+          <canvas id="cv-tracks"></canvas>
+        </div>
+        <figcaption><span class="chip">E</span><div><strong>Tracks</strong><span class="note">your spec, pure — prints imprint one by one along a lazy path, walk off the far side, and fade behind</span></div></figcaption>
+      </figure>
+
+      <figure class="study">
+        <div class="stage" data-cat="fauna" data-rows="goldfish·15 × 15|zebra·20 × 15|pig·15 × 15">
+          <canvas id="cv-tracksdrift"></canvas>
+        </div>
+        <figcaption><span class="chip">F</span><div><strong>Tracks + Drift</strong><span class="note">the same walk over a warm ambient drift field — tests whether prints alone carry it or want company</span></div></figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+  <footer>
+    <p class="reply"><strong>Reply with letters</strong> — "flora A, fauna E" — or mix and tune: "A but slower", "B with D's leaves", "E with more fade". Nothing here is final; the dials are the point.</p>
+    <p>Engineering: canvas 2D, pixel ratio capped, animation pauses when the tab hides, and Reduce Motion shows a static frame. All six are seeded, so you and I see the exact same compositions.</p>
+  </footer>
+
+</div>
+
+<script>
+"use strict";
+const TAU = Math.PI * 2;
+const REDUCED = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function sstep(a, b, x) { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
+function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; }
+
+const FLORA = ["#DFF2E4", "#BFE6CD", "#97D2AF", "#74BD93"];
+const FAUNA = ["#FBE7C0", "#F6D89E", "#EEC37F", "#E3AE5C"];
+
+/* ---------- bases (the category color worlds) ---------- */
+
+function floraBase(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, w * 0.7, h);
+  g.addColorStop(0, "#10402F"); g.addColorStop(1, "#1B5B40");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const r = ctx.createRadialGradient(w * 0.9, h * 0.08, 0, w * 0.9, h * 0.08, Math.max(w, h) * 0.95);
+  r.addColorStop(0, "rgba(188,226,205,0.30)"); r.addColorStop(1, "rgba(188,226,205,0)");
+  ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
+}
+
+function faunaBase(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, w * 0.6, h);
+  g.addColorStop(0, "#F0B44B"); g.addColorStop(1, "#DE9A2E");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const r = ctx.createRadialGradient(w * 0.15, h * 0.1, 0, w * 0.15, h * 0.1, Math.max(w, h) * 0.9);
+  r.addColorStop(0, "rgba(248,222,168,0.35)"); r.addColorStop(1, "rgba(248,222,168,0)");
+  ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
+}
+
+/* ---------- motion layers ---------- */
+
+// A: Drift — floating artifacts that breathe and occasionally bubble; soft edge steering
+function makeDrift(rand, colors, opts) {
+  opts = opts || {};
+  const N = opts.n || 13;
+  let blobs = null;
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!blobs) {
+      blobs = [];
+      for (let i = 0; i < 2; i++) blobs.push({
+        wash: true, x: rand() * w, y: rand() * h, r: (80 + rand() * 60) * k,
+        vx: 0, vy: 0, a: 0.05, bf: 0.4 + rand() * 0.3, ph: rand() * TAU,
+        c: colors[0], popAt: Infinity, popT: -1
+      });
+      for (let i = 0; i < N; i++) {
+        const sp = (5 + rand() * 8) * k, an = rand() * TAU;
+        blobs.push({
+          x: rand() * w, y: rand() * h, r: (9 + rand() * 20) * k,
+          vx: Math.cos(an) * sp, vy: Math.sin(an) * sp,
+          a: 0.14 + rand() * 0.15, bf: TAU / (6 + rand() * 5), ph: rand() * TAU,
+          c: colors[1 + Math.floor(rand() * (colors.length - 1))],
+          popAt: 3 + rand() * 6, popT: -1
+        });
+      }
+    }
+    const maxSp = 15 * k;
+    for (const b of blobs) {
+      if (b.wash) {
+        b.x += Math.cos(b.ph + t * 0.05) * dt * 4;
+        b.y += Math.sin(b.ph * 1.3 + t * 0.04) * dt * 4;
+      } else {
+        b.x += b.vx * dt; b.y += b.vy * dt;
+        const m = b.r + 16;
+        if (b.x < m) b.vx += (m - b.x) * dt * 1.1;
+        if (b.x > w - m) b.vx -= (b.x - (w - m)) * dt * 1.1;
+        if (b.y < m) b.vy += (m - b.y) * dt * 1.1;
+        if (b.y > h - m) b.vy -= (b.y - (h - m)) * dt * 1.1;
+        const sp = Math.hypot(b.vx, b.vy);
+        if (sp > maxSp) { b.vx *= maxSp / sp; b.vy *= maxSp / sp; }
+      }
+      let s = 1 + 0.13 * Math.sin(t * b.bf + b.ph);
+      if (!b.wash) {
+        if (b.popT >= 0) {
+          b.popT += dt;
+          if (b.popT > 1.7) { b.popT = -1; b.popAt = t + 3.5 + rand() * 6; }
+          else s *= 1 + 0.65 * Math.sin(Math.PI * b.popT / 1.7);
+        } else if (t > b.popAt) b.popT = 0;
+      }
+      const R = Math.max(1, b.r * s);
+      const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, R);
+      g.addColorStop(0, hexA(b.c, b.a)); g.addColorStop(1, hexA(b.c, 0));
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(b.x, b.y, R, 0, TAU); ctx.fill();
+    }
+  }};
+}
+
+// B: Rise — bubbles float up with sway, fading at both ends of the trip
+function makeRise(rand, colors) {
+  let bs = null, spawn = 0;
+  function bubble(w, h, yPos) {
+    const k = Math.min(w, h) / 360, r = (6 + rand() * 20) * k;
+    return {
+      x: rand() * w, y: yPos, r,
+      vy: -(13 + rand() * 12) * k,
+      sw: (6 + rand() * 12) * k, sf: 0.35 + rand() * 0.5, ph: rand() * TAU,
+      c: colors[1 + Math.floor(rand() * (colors.length - 1))]
+    };
+  }
+  return { draw(ctx, w, h, t, dt) {
+    if (!bs) { bs = []; for (let i = 0; i < 10; i++) bs.push(bubble(w, h, rand() * h)); }
+    spawn += dt;
+    if (spawn > 1.15 && bs.length < 18) { spawn = 0; bs.push(bubble(w, h, h + 30)); }
+    for (let i = bs.length - 1; i >= 0; i--) {
+      bs[i].y += bs[i].vy * dt;
+      if (bs[i].y < -bs[i].r * 1.2) bs.splice(i, 1);
+    }
+    for (const b of bs) {
+      const prog = (h + b.r - b.y) / (h + 2 * b.r);
+      const a = 0.30 * sstep(0, 0.10, prog) * (1 - sstep(0.80, 1, prog));
+      if (a <= 0.004) continue;
+      const x = b.x + Math.sin(t * b.sf + b.ph) * b.sw;
+      const g = ctx.createRadialGradient(x, b.y, 0, x, b.y, b.r);
+      g.addColorStop(0, hexA(b.c, a)); g.addColorStop(1, hexA(b.c, 0));
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x, b.y, b.r, 0, TAU); ctx.fill();
+    }
+  }};
+}
+
+// C: Sway — wide soft light bands sliding very slowly + tiny motes (the minimal end)
+function makeSway(rand, colors) {
+  const bands = [
+    { y: 0.30, p: 46, ph: rand() * TAU, wd: 0.62, a: 0.14, c: colors[1] },
+    { y: 0.55, p: 63, ph: rand() * TAU, wd: 0.78, a: 0.11, c: colors[2] },
+    { y: 0.80, p: 80, ph: rand() * TAU, wd: 0.66, a: 0.09, c: colors[0] },
+  ];
+  let motes = null;
+  return { draw(ctx, w, h, t, dt) {
+    if (!motes) {
+      motes = [];
+      for (let i = 0; i < 9; i++) motes.push({
+        x: rand() * w, y: rand() * h, r: 1.4 + rand() * 2.2,
+        vx: (rand() - 0.5) * 6, vy: (rand() - 0.5) * 6
+      });
+    }
+    for (const bd of bands) {
+      const yy = h * bd.y + Math.sin(t * TAU / bd.p + bd.ph) * h * 0.05;
+      ctx.save(); ctx.translate(w / 2, yy); ctx.rotate(-0.40);
+      const half = w * bd.wd;
+      const g = ctx.createLinearGradient(-half, 0, half, 0);
+      g.addColorStop(0, hexA(bd.c, 0)); g.addColorStop(0.5, hexA(bd.c, bd.a)); g.addColorStop(1, hexA(bd.c, 0));
+      ctx.fillStyle = g; ctx.fillRect(-half, -h * 1.2, half * 2, h * 2.4);
+      ctx.restore();
+    }
+    for (const m of motes) {
+      m.x += m.vx * dt; m.y += m.vy * dt;
+      if (m.x < -4) m.x = w + 4; if (m.x > w + 4) m.x = -4;
+      if (m.y < -4) m.y = h + 4; if (m.y > h + 4) m.y = -4;
+      ctx.fillStyle = "rgba(240,250,244,0.28)";
+      ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, TAU); ctx.fill();
+    }
+  }};
+}
+
+// D: Garden — Drift's motion, half the artifacts replaced by soft leaves
+function makeGarden(rand, colors) {
+  const drift = makeDrift(rand, colors, { n: 7 });
+  let leaves = null;
+  function leafPath(ctx, L, Wd) {
+    ctx.beginPath();
+    ctx.moveTo(-L / 2, 0);
+    ctx.quadraticCurveTo(-L * 0.05, -Wd / 2, L / 2, 0);
+    ctx.quadraticCurveTo(-L * 0.05, Wd / 2, -L / 2, 0);
+    ctx.closePath();
+  }
+  return { draw(ctx, w, h, t, dt) {
+    drift.draw(ctx, w, h, t, dt);
+    const k = Math.min(w, h) / 360;
+    if (!leaves) {
+      leaves = [];
+      for (let i = 0; i < 7; i++) {
+        const sp = (4 + rand() * 7) * k, an = rand() * TAU;
+        leaves.push({
+          x: rand() * w, y: rand() * h, L: (26 + rand() * 22) * k,
+          rot: rand() * TAU, vr: (rand() - 0.5) * 0.3,
+          vx: Math.cos(an) * sp, vy: Math.sin(an) * sp,
+          bf: TAU / (7 + rand() * 5), ph: rand() * TAU,
+          c: i % 2 ? "#A9DDBD" : "#7CC79E", a: 0.20 + rand() * 0.14
+        });
+      }
+    }
+    const maxSp = 14 * k;
+    for (const f of leaves) {
+      f.x += f.vx * dt; f.y += f.vy * dt; f.rot += f.vr * dt;
+      const m = f.L * 0.6 + 14;
+      if (f.x < m) f.vx += (m - f.x) * dt * 1.1;
+      if (f.x > w - m) f.vx -= (f.x - (w - m)) * dt * 1.1;
+      if (f.y < m) f.vy += (m - f.y) * dt * 1.1;
+      if (f.y > h - m) f.vy -= (f.y - (h - m)) * dt * 1.1;
+      const sp = Math.hypot(f.vx, f.vy);
+      if (sp > maxSp) { f.vx *= maxSp / sp; f.vy *= maxSp / sp; }
+      const s = 1 + 0.10 * Math.sin(t * f.bf + f.ph);
+      ctx.save(); ctx.translate(f.x, f.y);
+      ctx.rotate(f.rot + Math.sin(t * 0.3 + f.ph) * 0.15);
+      ctx.scale(s, s);
+      ctx.fillStyle = hexA(f.c, f.a);
+      leafPath(ctx, f.L, f.L * 0.44); ctx.fill();
+      ctx.restore();
+    }
+  }};
+}
+
+// E: Tracks — paw prints imprint one by one along a lazy path, fade behind
+function makeTracks(rand) {
+  let prints = null, walk = null, nextAt = 0;
+  function paw(ctx, u) {
+    ctx.beginPath(); ctx.ellipse(0, 2.2 * u, 5.6 * u, 4.6 * u, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-4.8 * u, -3.0 * u, 2.0 * u, 2.6 * u, -0.5, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, -4.6 * u, 2.1 * u, 2.8 * u, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(4.8 * u, -3.0 * u, 2.0 * u, 2.6 * u, 0.5, 0, TAU); ctx.fill();
+  }
+  function newWalk(w, h) {
+    return {
+      s: 0, base: h * (0.42 + rand() * 0.3),
+      amp: h * (0.06 + rand() * 0.06), k: 0.010 + rand() * 0.006,
+      acc: 24, side: rand() < 0.5 ? -1 : 1
+    };
+  }
+  return { draw(ctx, w, h, t, dt) {
+    if (prints === null) { prints = []; walk = newWalk(w, h); }
+    if (!walk) { if (t > nextAt) walk = newWalk(w, h); }
+    else {
+      const k = Math.min(w, h) / 360;
+      const v = 40 * k + 26;
+      walk.s += v * dt; walk.acc += v * dt;
+      while (walk.acc >= 24) {
+        walk.acc -= 24;
+        const x = walk.s - 30;
+        const y = walk.base + Math.sin(walk.s * walk.k) * walk.amp;
+        const dy = walk.amp * walk.k * Math.cos(walk.s * walk.k);
+        const rot = Math.atan2(dy, 1) + Math.PI / 2;
+        walk.side *= -1;
+        const lat = walk.side * 8 * k;
+        prints.push({ x: x - dy * lat, y: y + lat, rot, born: t });
+      }
+      if (walk.s - 30 > w + 40) { walk = null; nextAt = t + 1.8; }
+    }
+    for (let i = prints.length - 1; i >= 0; i--) if (t - prints[i].born > 5.4) prints.splice(i, 1);
+    const u = (w / 340) * 0.9;
+    for (const p of prints) {
+      const age = t - p.born;
+      const a = 0.34 * Math.min(1, age / 0.28) * (age < 3.6 ? 1 : Math.max(0, 1 - (age - 3.6) / 1.6));
+      if (a <= 0.004) continue;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = `rgba(122,74,20,${a})`;
+      paw(ctx, u);
+      ctx.restore();
+    }
+  }};
+}
+
+/* ---------- engine ---------- */
+
+function attach(id, base, makeLayers, seed) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const rand = mulberry32(seed);
+  const layers = makeLayers.map(f => f(rand));
+  let w = 1, h = 1;
+  function render(t, dt) {
+    base(ctx, w, h);
+    for (const l of layers) l.draw(ctx, w, h, t, dt);
+  }
+  function size() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const r = canvas.getBoundingClientRect();
+    w = Math.max(1, Math.round(r.width)); h = Math.max(1, Math.round(r.height));
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (REDUCED) render(7, 0);
+  }
+  new ResizeObserver(size).observe(canvas);
+  size();
+  if (REDUCED) { render(7, 0); return; }
+  let last = 0, t = 0, raf = 0, running = false;
+  function frame(ts) {
+    if (!running) return;
+    if (!last) last = ts;
+    let dt = (ts - last) / 1000; last = ts;
+    if (dt > 0.05) dt = 0.05;
+    t += dt;
+    render(t, dt);
+    raf = requestAnimationFrame(frame);
+  }
+  function start() { if (running) return; running = true; last = 0; raf = requestAnimationFrame(frame); }
+  function stop() { running = false; cancelAnimationFrame(raf); }
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); else start(); });
+  start();
+}
+
+attach("cv-drift",       floraBase, [r => makeDrift(r, FLORA)], 11);
+attach("cv-rise",        floraBase, [r => makeRise(r, FLORA)], 22);
+attach("cv-sway",        floraBase, [r => makeSway(r, FLORA)], 33);
+attach("cv-garden",      floraBase, [r => makeGarden(r, FLORA)], 44);
+attach("cv-tracks",      faunaBase, [r => makeTracks(r)], 55);
+attach("cv-tracksdrift", faunaBase, [r => makeDrift(r, FAUNA), r => makeTracks(r)], 66);
+
+/* ---------- mock app chrome over each stage ---------- */
+
+document.querySelectorAll(".stage").forEach(st => {
+  const cat = st.dataset.cat;
+  const rows = st.dataset.rows.split("|").map(s => s.split("·"));
+  st.insertAdjacentHTML("beforeend",
+    `<div class="chrome"><div class="chrome-top"><span class="cback">‹</span><span class="ctitle">${cat}</span><span class="cgear">⚙</span></div>` +
+    `<div class="crows">${rows.map(r => `<div class="crow"><span>${r[0]}</span><span class="csize">${r[1] || ""}</span></div>`).join("")}` +
+    `<div class="crow ghost">•••</div></div></div>`);
+});
+</script>
+</body>
+</html>
