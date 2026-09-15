@@ -118,10 +118,74 @@
     <p class="lede">Six live candidates for the per-category animated backgrounds — flora in its deep green + pastel scheme, fauna in orange-yellow with the walking paw prints. Each frame is a phone-shaped canvas with a mock puzzle list laid over it, so legibility is judged against something close to the real screen, not a bare animation.</p>
     <p class="lede">Nothing on this page is in the app. Whichever study wins gets rebuilt inside it.</p>
     <div class="judge"><strong>How to judge:</strong> watch each one for 20+ seconds before deciding. The right background is the one you stop noticing — if any of them pulls your eye away from the list rows, that's the one to kill. Everything is a dial: speed, density, size, opacity, palette.</div>
+    <div class="judge"><strong>Round 2 (2026-09-14), built from your notes:</strong> G/H consolidate the flora background (C's light band, narrowed and dimmed, over the shared gradient) with D's leaves re-animated to fall from the canopy on fresh paths; H is the branch limit-test. I rebuilds the paw paths (diluted, any-side to any-side, occasional loopty loop — paw shape is still the placeholder until your silhouette lands). J/K/L are the first three new categories. Round 1 stays below for reference.</div>
   </header>
 
   <section>
-    <div class="spec"><h2>flora</h2><span>your spec: deeper green + pastel accent</span></div>
+    <div class="spec"><h2>round 2 · flora — consolidated</h2><span>the shared gradient + C's bands tamed + D's leaves, re-animated</span></div>
+    <div class="studies">
+
+      <figure class="study">
+        <div class="stage" data-cat="flora" data-rows="aloe vera·15 × 15|monsterra·15 × 15|tulip·10 × 15|pine·20 × 15|rose·15 × 15">
+          <canvas id="cv-fall"></canvas>
+        </div>
+        <figcaption><span class="chip">G</span><div><strong>Fall</strong><span class="note">the consolidated background: C's light bands narrowed ~35% and dimmed ~55% + the depth washes, with D's leaves now falling — each one sways down over 30-60s on its own path, and every leaf that lands is replaced by a new one on a brand-new trajectory</span></div></figcaption>
+      </figure>
+
+      <figure class="study">
+        <div class="stage" data-cat="flora" data-rows="aloe vera·15 × 15|monsterra·15 × 15|tulip·10 × 15|pine·20 × 15|rose·15 × 15">
+          <canvas id="cv-bough"></canvas>
+        </div>
+        <figcaption><span class="chip">H</span><div><strong>Bough</strong><span class="note">the limit-test, same consolidated background: two branches grow in from the lower corners over ~40s each, leaves popping out as the branch reaches them, then the whole bough sways gently forever. Fully procedural — no keyframes, no changing silhouette problem; a new seed grows a different tree</span></div></figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="spec"><h2>round 2 · fauna — revised</h2><span>F's warm field, the paths rebuilt per your notes</span></div>
+    <div class="studies">
+
+      <figure class="study">
+        <div class="stage" data-cat="fauna" data-rows="goldfish·15 × 15|zebra·20 × 15|pig·15 × 15">
+          <canvas id="cv-tracks2"></canvas>
+        </div>
+        <figcaption><span class="chip">I</span><div><strong>Tracks v2</strong><span class="note">one walker at a time now, entering and exiting on any sides with real distance between them, longer rests between walks, and every few walks the path does a little loopty loop. The paw shape is still the round-1 placeholder — it swaps to your silhouette the moment the file lands in to import/</span></div></figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="spec"><h2>round 2 · new categories — the confident three</h2><span>same recipe: one color, a slight gradient, calm themed artifacts</span></div>
+    <div class="studies">
+
+      <figure class="study">
+        <div class="stage" data-cat="mathematics" data-rows="integral·10 × 15|phi·15 × 15|pi·15 × 15|sigma·10 × 10|division·10 × 10">
+          <canvas id="cv-figures"></canvas>
+        </div>
+        <figcaption><span class="chip">J</span><div><strong>Figures</strong><span class="note">violet-slate — math glyphs (π ∑ √ ∞ Δ) drifting and breathing like the cogs artifacts; every few seconds one swells, fades, and comes back as a different glyph</span></div></figcaption>
+      </figure>
+
+      <figure class="study">
+        <div class="stage" data-cat="geomorphology" data-rows="mountains·10 × 10|islands·20 × 15|valley·20 × 15|river·15 × 10|lake·15 × 10">
+          <canvas id="cv-strata"></canvas>
+        </div>
+        <figcaption><span class="chip">K</span><div><strong>Strata</strong><span class="note">warm umber — a topographic map that never sits still: nested contour rings morphing almost too slowly to catch, terrain breathing</span></div></figcaption>
+      </figure>
+
+      <figure class="study">
+        <div class="stage" data-cat="physics" data-rows="gamma rays·15 × 15|infrared waves·15 × 15|pendulum·20 × 15|visible light·15 × 15">
+          <canvas id="cv-orbits"></canvas>
+        </div>
+        <figcaption><span class="chip">L</span><div><strong>Orbits</strong><span class="note">deep teal — electrons tracing slow ellipses around soft nuclei; periodic, predictable, the calmest kind of motion there is</span></div></figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="spec"><h2>round 1 · flora (reference)</h2><span>your spec: deeper green + pastel accent</span></div>
     <div class="studies">
 
       <figure class="study">
@@ -156,7 +220,7 @@
   </section>
 
   <section>
-    <div class="spec"><h2>fauna</h2><span>your spec: orange-yellow + darker paw prints walking across</span></div>
+    <div class="spec"><h2>round 1 · fauna (reference)</h2><span>your spec: orange-yellow + darker paw prints walking across</span></div>
     <div class="studies">
 
       <figure class="study">
@@ -177,8 +241,8 @@
   </section>
 
   <footer>
-    <p class="reply"><strong>Reply with letters</strong> — "flora A, fauna E" — or mix and tune: "A but slower", "B with D's leaves", "E with more fade". Nothing here is final; the dials are the point.</p>
-    <p>Engineering: canvas 2D, pixel ratio capped, animation pauses when the tab hides, and Reduce Motion shows a static frame. All six are seeded, so you and I see the exact same compositions.</p>
+    <p class="reply"><strong>Reply with letters again</strong> — "flora G, fauna I" — or keep tuning: "bands dimmer still", "leaves bigger", "H with one branch only", "loops more often". The paw silhouette: drop any image into <strong>to import/</strong> and tell me the filename — black-on-white is ideal, a transparent PNG works too. I handle the background removal, the trace, and the color; you never need to match the palette yourself. And the paw print is a great candidate to draw yourself — it would be the first piece of your art living in the app.</p>
+    <p>Engineering: canvas 2D, pixel ratio capped, animation pauses when the tab hides, and Reduce Motion shows a static frame. Everything is seeded, so you and I see the exact same compositions. Nothing on this page is in the app; the winners get rebuilt inside it.</p>
   </footer>
 
 </div>
@@ -198,6 +262,11 @@ function mulberry32(a) {
 }
 function sstep(a, b, x) { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
 function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; }
+function rotAround(p, c, a) {
+  if (!a) return p;
+  const dx = p.x - c.x, dy = p.y - c.y, cs = Math.cos(a), sn = Math.sin(a);
+  return { x: c.x + dx * cs - dy * sn, y: c.y + dx * sn + dy * cs };
+}
 
 const FLORA = ["#DFF2E4", "#BFE6CD", "#97D2AF", "#74BD93"];
 const FAUNA = ["#FBE7C0", "#F6D89E", "#EEC37F", "#E3AE5C"];
@@ -446,14 +515,525 @@ function makeTracks(rand) {
   }};
 }
 
+/* ================= round 2 (his 2026-09-14 notes) ================= */
+
+// shared tamed light bands — C's layer, narrowed ~35% and dimmed ~55% per his ruling
+function makeBands(rand, colors, opts) {
+  const o = opts || {};
+  const bands = o.list || [
+    { y: 0.30, p: 52, ph: rand() * TAU, wd: 0.40, a: 0.065, c: colors[1] },
+    { y: 0.55, p: 67, ph: rand() * TAU, wd: 0.48, a: 0.050, c: colors[2] },
+    { y: 0.80, p: 84, ph: rand() * TAU, wd: 0.42, a: 0.040, c: colors[0] },
+  ];
+  const moteN = o.motes == null ? 9 : o.motes;
+  const moteA = o.moteA || 0.20;
+  let motes = null;
+  return { draw(ctx, w, h, t, dt) {
+    if (!motes) {
+      motes = [];
+      for (let i = 0; i < moteN; i++) motes.push({
+        x: rand() * w, y: rand() * h, r: 1.2 + rand() * 2.0,
+        vx: (rand() - 0.5) * 6, vy: (rand() - 0.5) * 6
+      });
+    }
+    for (const bd of bands) {
+      const yy = h * bd.y + Math.sin(t * TAU / bd.p + bd.ph) * h * 0.05;
+      ctx.save(); ctx.translate(w / 2, yy); ctx.rotate(-0.40);
+      const half = w * bd.wd;
+      const g = ctx.createLinearGradient(-half, 0, half, 0);
+      g.addColorStop(0, hexA(bd.c, 0)); g.addColorStop(0.5, hexA(bd.c, bd.a)); g.addColorStop(1, hexA(bd.c, 0));
+      ctx.fillStyle = g; ctx.fillRect(-half, -h * 1.2, half * 2, h * 2.4);
+      ctx.restore();
+    }
+    for (const m of motes) {
+      m.x += m.vx * dt; m.y += m.vy * dt;
+      if (m.x < -4) m.x = w + 4; if (m.x > w + 4) m.x = -4;
+      if (m.y < -4) m.y = h + 4; if (m.y > h + 4) m.y = -4;
+      ctx.fillStyle = `rgba(240,250,244,${moteA})`;
+      ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, TAU); ctx.fill();
+    }
+  }};
+}
+
+// the two big soft depth washes from Drift, on their own
+function makeWashes(rand, colorHex, n) {
+  let washes = null;
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!washes) {
+      washes = [];
+      for (let i = 0; i < (n || 2); i++) washes.push({
+        x: rand() * w, y: rand() * h, r: (85 + rand() * 60) * k,
+        ph: rand() * TAU, a: 0.05
+      });
+    }
+    for (const b of washes) {
+      b.x += Math.cos(b.ph + t * 0.05) * dt * 4;
+      b.y += Math.sin(b.ph * 1.3 + t * 0.04) * dt * 4;
+      const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      g.addColorStop(0, hexA(colorHex, b.a)); g.addColorStop(1, hexA(colorHex, 0));
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, TAU); ctx.fill();
+    }
+  }};
+}
+
+function leafPath2(ctx, L, Wd) {
+  ctx.beginPath();
+  ctx.moveTo(-L / 2, 0);
+  ctx.quadraticCurveTo(-L * 0.05, -Wd / 2, L / 2, 0);
+  ctx.quadraticCurveTo(-L * 0.05, Wd / 2, -L / 2, 0);
+  ctx.closePath();
+}
+
+// G: Fall — D's leaves, falling from the canopy; each leaf's path is generated fresh
+function makeFall(rand) {
+  const COLS = ["#A9DDBD", "#7CC79E", "#CDEEDB"];
+  let leaves = null;
+  function spawn(w, h, k, first) {
+    const L = (22 + rand() * 20) * k;
+    return {
+      L, M: L,
+      x0: rand() * w,
+      y: first ? -L + rand() * (h + 2 * L) : -L,
+      dur: 32 + rand() * 26,
+      swA: (14 + rand() * 22) * k,
+      sf: TAU / (4.5 + rand() * 3.5),
+      ph: rand() * TAU,
+      fl: TAU / (1.7 + rand() * 1.6),
+      flA: 0.20 + rand() * 0.16,
+      rot0: (rand() - 0.5) * 0.7,
+      dv: (rand() - 0.5) * 5 * k,
+      c: COLS[Math.floor(rand() * COLS.length)],
+      a: 0.22 + rand() * 0.12
+    };
+  }
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!leaves) { leaves = []; for (let i = 0; i < 7; i++) leaves.push(spawn(w, h, k, true)); }
+    for (let i = 0; i < leaves.length; i++) {
+      const f = leaves[i];
+      f.y += ((h + 2 * f.M) / f.dur) * dt;
+      f.x0 += f.dv * dt;
+      if (f.x0 < -f.swA) f.x0 = -f.swA; if (f.x0 > w + f.swA) f.x0 = w + f.swA;
+      if (f.y > h + f.M) { leaves[i] = spawn(w, h, k, false); continue; }
+      const prog = (f.y + f.M) / (h + 2 * f.M);
+      const a = f.a * sstep(0, 0.07, prog) * (1 - sstep(0.90, 1, prog));
+      if (a <= 0.004) continue;
+      const x = f.x0 + Math.sin(t * f.sf + f.ph) * f.swA;
+      const rot = f.rot0 + Math.sin(t * f.sf + f.ph + 0.7) * 0.40 + Math.sin(t * f.fl + f.ph * 1.7) * f.flA;
+      const s = 1 + 0.07 * Math.sin(t * f.fl * 0.7 + f.ph);
+      ctx.save(); ctx.translate(x, f.y); ctx.rotate(rot); ctx.scale(s, s);
+      ctx.fillStyle = hexA(f.c, a);
+      leafPath2(ctx, f.L, f.L * 0.44); ctx.fill();
+      ctx.strokeStyle = hexA("#2F6B4F", a * 0.55);
+      ctx.lineWidth = Math.max(0.8, f.L * 0.03);
+      ctx.beginPath(); ctx.moveTo(-f.L * 0.36, 0); ctx.quadraticCurveTo(0, f.L * 0.03, f.L * 0.36, 0); ctx.stroke();
+      ctx.restore();
+    }
+  }};
+}
+
+// H: Bough — two branches grow in from the lower corners, leaves pop out, then sway
+function makeBough(rand) {
+  let boughs = null;
+  const LC = ["#A9DDBD", "#7CC79E", "#CDEEDB"];
+  function genSkeleton(rand2, w, h, side) {
+    const k = Math.min(w, h) / 360;
+    const root = { x: side < 0 ? -0.06 * w : 1.06 * w, y: h * (0.88 + rand2() * 0.07) };
+    const tip  = { x: w * (0.46 + rand2() * 0.12), y: h * (0.34 + rand2() * 0.18) };
+    function wander(p0, p1, npts, amp) {
+      const dx = p1.x - p0.x, dy = p1.y - p0.y;
+      const dl = Math.hypot(dx, dy) || 1, px = -dy / dl, py = dx / dl;
+      const f1 = 1.6 + rand2() * 1.5, f2 = 3.5 + rand2() * 2.5, f3 = 6.5 + rand2() * 3;
+      const q1 = rand2() * TAU, q2 = rand2() * TAU, q3 = rand2() * TAU;
+      const pts = [];
+      for (let i = 0; i <= npts; i++) {
+        const u = i / npts;
+        const off = (Math.sin(u * f1 * TAU * 0.5 + q1) * 0.55
+                   + Math.sin(u * f2 * TAU * 0.5 + q2) * 0.30
+                   + Math.sin(u * f3 * TAU * 0.5 + q3) * 0.15) * amp * Math.pow(u, 0.7);
+        pts.push({ x: p0.x + dx * u + px * off, y: p0.y + dy * u + py * off });
+      }
+      return pts;
+    }
+    const main = wander(root, tip, 150, w * 0.055);
+    const branches = [{ pts: main, w0: 7 * k, w1: 1.6 * k }];
+    for (const u0 of [0.40, 0.66]) {
+      const idx = Math.floor(u0 * 150);
+      const P = main[idx], Q = main[Math.min(150, idx + 4)];
+      const dirA = Math.atan2(Q.y - P.y, Q.x - P.x);
+      const turn = (side < 0 ? -1 : 1) * (0.55 + rand2() * 0.45) * (u0 < 0.5 ? 1 : -1);
+      const a = dirA + turn;
+      const len = (0.20 + rand2() * 0.14) * Math.min(w, h) * 1.6;
+      branches.push({ pts: wander(P, { x: P.x + Math.cos(a) * len, y: P.y + Math.sin(a) * len }, 55, w * 0.035), w0: 3.6 * k, w1: 1 * k });
+    }
+    const leaves = [];
+    for (let bi = 0; bi < branches.length; bi++) {
+      const pts = branches[bi].pts;
+      for (let j = Math.floor(pts.length * 0.22); j < pts.length - 2; j += (bi === 0 ? 5 : 4)) {
+        const d = { x: pts[j + 1].x - pts[j - 1].x, y: pts[j + 1].y - pts[j - 1].y };
+        leaves.push({
+          bi, idx: j, rot: Math.atan2(d.y, d.x) + (rand2() < 0.5 ? 1 : -1) * (0.7 + rand2() * 0.5),
+          L: (13 + rand2() * 10) * k,
+          c: LC[Math.floor(rand2() * 3)], a: 0.30 + rand2() * 0.15
+        });
+      }
+    }
+    return { branches, leaves, root, startT: 0, dur: 38 };
+  }
+  const CH = 12;
+  return { draw(ctx, w, h, t, dt) {
+    if (!boughs) {
+      const bL = genSkeleton(mulberry32(907), w, h, -1); bL.startT = 2;  bL.dur = 38;
+      const bR = genSkeleton(mulberry32(1133), w, h, 1); bR.startT = 13; bR.dur = 36;
+      boughs = [bL, bR];
+    }
+    for (const B of boughs) {
+      const g = Math.min(1, Math.max(0, (t - B.startT) / B.dur));
+      if (g <= 0) continue;
+      const ge = 1 - Math.pow(1 - g, 2);
+      const swayPh = B.root.x < w / 2 ? 0 : 1.9;
+      const swayAt = u => 0.016 * Math.pow(u, 1.5) * Math.sin(t * TAU / 9 + swayPh);
+      for (let bi = 0; bi < B.branches.length; bi++) {
+        const br = B.branches[bi];
+        const n = Math.max(2, Math.floor(br.pts.length * ge));
+        for (let i0 = 1; i0 < n; i0 += CH) {
+          const i1 = Math.min(n - 1, i0 + CH - 1);
+          ctx.strokeStyle = "rgba(12,53,39,0.55)";
+          ctx.lineWidth = br.w0 + (br.w1 - br.w0) * (((i0 + i1) / 2) / br.pts.length);
+          ctx.lineCap = "round"; ctx.lineJoin = "round";
+          ctx.beginPath();
+          for (let i = i0 - 1; i <= i1; i++) {
+            const p = rotAround(br.pts[i], B.root, swayAt(i / br.pts.length));
+            if (i === i0 - 1) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+          }
+          ctx.stroke();
+        }
+      }
+      for (const f of B.leaves) {
+        const pts = B.branches[f.bi].pts;
+        const n = pts.length * ge;
+        if (f.idx > n) continue;
+        const pop = Math.min(1, (n - f.idx) / 6);
+        const s0 = pop * pop * (3 - 2 * pop);
+        const s = s0 * (1 + 0.3 * Math.sin(Math.PI * Math.min(1, s0)));
+        if (s <= 0.01) continue;
+        const u = f.idx / pts.length;
+        const ang = swayAt(u);
+        const p = rotAround(pts[f.idx], B.root, ang);
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(f.rot + ang * 2); ctx.scale(s, s);
+        ctx.fillStyle = hexA(f.c, f.a);
+        leafPath2(ctx, f.L, f.L * 0.44); ctx.fill();
+        ctx.restore();
+      }
+    }
+  }};
+}
+
+// I: Tracks v2 — one walker at a time, any side to any distant side, sometimes a loopty loop
+function makeTracksV2(rand) {
+  let prints = null, walk = null, nextAt = 0;
+  // PLACEHOLDER paw — swaps to his silhouette when the file lands in to import/
+  function paw(ctx, u) {
+    ctx.beginPath(); ctx.ellipse(0, 2.2 * u, 5.6 * u, 4.6 * u, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-4.8 * u, -3.0 * u, 2.0 * u, 2.6 * u, -0.5, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, -4.6 * u, 2.1 * u, 2.8 * u, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(4.8 * u, -3.0 * u, 2.0 * u, 2.6 * u, 0.5, 0, TAU); ctx.fill();
+  }
+  function sidePoint(side, w, h, m) {
+    if (side === 0) return { x: -m, y: h * (0.15 + rand() * 0.7) };
+    if (side === 1) return { x: w + m, y: h * (0.15 + rand() * 0.7) };
+    if (side === 2) return { x: w * (0.12 + rand() * 0.76), y: -m };
+    return { x: w * (0.12 + rand() * 0.76), y: h + m };
+  }
+  function newWalk(w, h) {
+    return { pts: genPath(w, h), i: 0, acc: 12, side: rand() < 0.5 ? -1 : 1, sp: (44 + rand() * 26) * (Math.min(w, h) / 360) + 22 };
+  }
+  function genPath(w, h) {
+    const m = 36, minD = 1.15 * Math.min(w, h);
+    let P0, P1, tries = 0;
+    do {
+      P0 = sidePoint(Math.floor(rand() * 4), w, h, m);
+      P1 = sidePoint(Math.floor(rand() * 4), w, h, m);
+      tries++;
+    } while (Math.hypot(P1.x - P0.x, P1.y - P0.y) < minD && tries < 40);
+    const dx = P1.x - P0.x, dy = P1.y - P0.y, dl = Math.hypot(dx, dy) || 1;
+    const px = -dy / dl, py = dx / dl, mn = Math.min(w, h);
+    const C1 = { x: P0.x + dx * (0.22 + rand() * 0.16) + px * (rand() - 0.5) * 0.9 * mn,
+                 y: P0.y + dy * (0.22 + rand() * 0.16) + py * (rand() - 0.5) * 0.9 * mn };
+    const C2 = { x: P0.x + dx * (0.60 + rand() * 0.18) + px * (rand() - 0.5) * 0.9 * mn,
+                 y: P0.y + dy * (0.60 + rand() * 0.18) + py * (rand() - 0.5) * 0.9 * mn };
+    const N = 320, pts = [];
+    for (let i = 0; i <= N; i++) {
+      const u = i / N, v = 1 - u;
+      pts.push({
+        x: v*v*v*P0.x + 3*v*v*u*C1.x + 3*v*u*u*C2.x + u*u*u*P1.x,
+        y: v*v*v*P0.y + 3*v*v*u*C1.y + 3*v*u*u*C2.y + u*u*u*P1.y
+      });
+    }
+    if (rand() < 0.30) { // the loopty loop
+      const R = (0.07 + rand() * 0.06) * mn;
+      let total = 0; const cum = [0];
+      for (let i = 1; i <= N; i++) { total += Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y); cum.push(total); }
+      const du = Math.min(0.30, (Math.PI * R * 2.5) / total / 2);
+      const u0 = 0.32 + rand() * 0.36;
+      const iA = Math.max(2, Math.floor((u0 - du) * N)), iB = Math.min(N - 2, Math.ceil((u0 + du) * N));
+      const ic = Math.floor(u0 * N);
+      const ta = Math.atan2(pts[ic+1].y - pts[ic-1].y, pts[ic+1].x - pts[ic-1].x);
+      const ra = ta - Math.PI / 2, cs = Math.cos(ra), sn = Math.sin(ra);
+      for (let i = iA; i <= iB; i++) {
+        const v = (i - iA) / (iB - iA);
+        const env = Math.pow(Math.sin(Math.PI * v), 0.8);
+        const ox = Math.cos(2 * Math.PI * v) - 1, oy = Math.sin(2 * Math.PI * v);
+        pts[i].x += env * R * (ox * cs - oy * sn);
+        pts[i].y += env * R * (ox * sn + oy * cs);
+      }
+    }
+    let total = 0; const cum = [0];
+    for (let i = 1; i <= N; i++) { total += Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y); cum.push(total); }
+    const M = Math.max(2, Math.floor(total / 3)), out = [];
+    let j = 0;
+    for (let i = 0; i <= M; i++) {
+      const target = total * i / M;
+      while (j < N - 1 && cum[j + 1] < target) j++;
+      const seg = cum[j + 1] - cum[j] || 1, f = Math.min(1, (target - cum[j]) / seg);
+      out.push({ x: pts[j].x + (pts[j+1].x - pts[j].x) * f, y: pts[j].y + (pts[j+1].y - pts[j].y) * f });
+    }
+    return out;
+  }
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (prints === null) { prints = []; walk = newWalk(w, h); }
+    if (!walk) { if (t > nextAt) walk = newWalk(w, h); }
+    else {
+      walk.i += walk.sp * dt / 3;
+      walk.acc += walk.sp * dt;
+      const SPACING = 30 * k + 8;
+      while (walk.acc >= SPACING) {
+        walk.acc -= SPACING;
+        const i0 = Math.min(walk.pts.length - 2, Math.max(1, Math.floor(walk.i)));
+        const d = { x: walk.pts[i0+1].x - walk.pts[i0-1].x, y: walk.pts[i0+1].y - walk.pts[i0-1].y };
+        const dl = Math.hypot(d.x, d.y) || 1;
+        walk.side *= -1;
+        const lat = walk.side * 7.5 * k;
+        prints.push({
+          x: walk.pts[i0].x - d.y / dl * lat, y: walk.pts[i0].y + d.x / dl * lat,
+          rot: Math.atan2(d.y, d.x) + Math.PI / 2, born: t
+        });
+      }
+      if (walk.i >= walk.pts.length - 2) { walk = null; nextAt = t + 3 + rand() * 4; }
+    }
+    for (let i = prints.length - 1; i >= 0; i--) if (t - prints[i].born > 4.9) prints.splice(i, 1);
+    const u = (w / 340) * 0.9;
+    for (const p of prints) {
+      const age = t - p.born;
+      const a = 0.30 * Math.min(1, age / 0.28) * (age < 3.3 ? 1 : Math.max(0, 1 - (age - 3.3) / 1.6));
+      if (a <= 0.004) continue;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = `rgba(122,74,20,${a})`;
+      paw(ctx, u);
+      ctx.restore();
+    }
+  }};
+}
+
+// J: Figures (mathematics) — drifting, breathing glyphs; a slow swell turns one into another
+const MATH_GLYPHS = ["π","∑","√","∞","Δ","θ","φ","λ","+","×","÷","=","∫","≈","∂","%"];
+function mathBase(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, w * 0.6, h);
+  g.addColorStop(0, "#272142"); g.addColorStop(1, "#372C5C");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const r = ctx.createRadialGradient(w * 0.82, h * 0.10, 0, w * 0.82, h * 0.10, Math.max(w, h) * 0.9);
+  r.addColorStop(0, "rgba(190,172,255,0.22)"); r.addColorStop(1, "rgba(190,172,255,0)");
+  ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
+}
+function makeFigures(rand) {
+  const COLS = ["#C5B9F5", "#A99BE8", "#8F7FD8"];
+  let fs = null;
+  function spawn(w, h, k) {
+    const an = rand() * TAU, sp = (4 + rand() * 8) * k;
+    return {
+      g: MATH_GLYPHS[Math.floor(rand() * MATH_GLYPHS.length)],
+      x: rand() * w, y: rand() * h,
+      fs: (24 + rand() * 36) * k,
+      vx: Math.cos(an) * sp, vy: Math.sin(an) * sp,
+      bf: TAU / (6 + rand() * 5), ph: rand() * TAU,
+      rot: (rand() - 0.5) * 0.5, vr: (rand() - 0.5) * 0.08,
+      c: COLS[Math.floor(rand() * 3)], a: 0.10 + rand() * 0.10,
+      popAt: 6 + rand() * 10, popT: -1, swapped: false
+    };
+  }
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!fs) { fs = []; for (let i = 0; i < 11; i++) fs.push(spawn(w, h, k)); }
+    const maxSp = 12 * k;
+    for (const f of fs) {
+      f.x += f.vx * dt; f.y += f.vy * dt; f.rot += f.vr * dt;
+      const m = f.fs * 0.6 + 14;
+      if (f.x < m) f.vx += (m - f.x) * dt * 1.1;
+      if (f.x > w - m) f.vx -= (f.x - (w - m)) * dt * 1.1;
+      if (f.y < m) f.vy += (m - f.y) * dt * 1.1;
+      if (f.y > h - m) f.vy -= (f.y - (h - m)) * dt * 1.1;
+      const sp = Math.hypot(f.vx, f.vy);
+      if (sp > maxSp) { f.vx *= maxSp / sp; f.vy *= maxSp / sp; }
+      let s = 1 + 0.10 * Math.sin(t * f.bf + f.ph), aMul = 1;
+      if (f.popT >= 0) {
+        f.popT += dt;
+        if (f.popT >= 2.2) { f.popT = -1; f.popAt = t + 6 + rand() * 10; }
+        else {
+          const v = f.popT / 2.2;
+          if (v >= 0.5 && !f.swapped) { f.g = MATH_GLYPHS[Math.floor(rand() * MATH_GLYPHS.length)]; f.swapped = true; }
+          s *= 1 + 0.45 * Math.sin(Math.PI * v);
+          aMul = Math.abs(v - 0.5) * 2;
+        }
+      } else if (t > f.popAt) { f.popT = 0; f.swapped = false; }
+      const a = f.a * aMul;
+      if (a <= 0.004) continue;
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.rot); ctx.scale(s, s);
+      ctx.font = `700 ${f.fs}px Compagnon, Georgia, serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = hexA(f.c, a);
+      ctx.fillText(f.g, 0, 0);
+      ctx.restore();
+    }
+  }};
+}
+
+// K: Strata (geomorphology) — nested topo contours morphing imperceptibly
+function geoBase(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, w * 0.5, h);
+  g.addColorStop(0, "#40291B"); g.addColorStop(1, "#5A3D27");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const r = ctx.createRadialGradient(w * 0.2, h * 0.85, 0, w * 0.2, h * 0.85, Math.max(w, h) * 0.85);
+  r.addColorStop(0, "rgba(232,190,140,0.18)"); r.addColorStop(1, "rgba(232,190,140,0)");
+  ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
+}
+function makeStrata(rand) {
+  let hills = null;
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!hills) {
+      hills = [];
+      const spots = [[0.30, 0.22], [0.72, 0.52], [0.28, 0.80]];
+      for (const sp of spots) {
+        hills.push({
+          cx: w * sp[0], cy: h * sp[1],
+          R0: (80 + rand() * 55) * k, gap: (11 + rand() * 5) * k,
+          rings: 5 + Math.floor(rand() * 3),
+          a1: 0.10 + rand() * 0.08, a2: 0.06 + rand() * 0.05, a3: 0.03 + rand() * 0.03,
+          p1: rand() * TAU, p2: rand() * TAU, p3: rand() * TAU,
+          w1: TAU / (55 + rand() * 50) * (rand() < 0.5 ? -1 : 1),
+          w2: TAU / (70 + rand() * 60) * (rand() < 0.5 ? -1 : 1),
+          w3: TAU / (90 + rand() * 70) * (rand() < 0.5 ? -1 : 1),
+          c: rand() < 0.5 ? "#E8C49A" : "#D9A86F",
+          a: 0.10 + rand() * 0.06
+        });
+      }
+    }
+    ctx.lineWidth = Math.max(1, 1.3 * k);
+    for (const hl of hills) {
+      for (let j = 0; j < hl.rings; j++) {
+        const R = hl.R0 - j * hl.gap;
+        if (R < 8 * k) continue;
+        ctx.strokeStyle = hexA(hl.c, hl.a * (1 - j / (hl.rings + 2)));
+        ctx.beginPath();
+        for (let i = 0; i <= 96; i++) {
+          const th = i / 96 * TAU;
+          const rr = R * (1 + hl.a1 * Math.sin(3 * th + hl.p1 + t * hl.w1)
+                        + hl.a2 * Math.sin(5 * th + hl.p2 + t * hl.w2)
+                        + hl.a3 * Math.sin(8 * th + hl.p3 + t * hl.w3));
+          const x = hl.cx + Math.cos(th) * rr, y = hl.cy + Math.sin(th) * rr * 0.82;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath(); ctx.stroke();
+      }
+    }
+  }};
+}
+
+// L: Orbits (physics) — electrons tracing slow ellipses around soft nuclei
+function physBase(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, w * 0.7, h);
+  g.addColorStop(0, "#0E2A38"); g.addColorStop(1, "#18485F");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const r = ctx.createRadialGradient(w * 0.85, h * 0.12, 0, w * 0.85, h * 0.12, Math.max(w, h) * 0.9);
+  r.addColorStop(0, "rgba(150,220,250,0.20)"); r.addColorStop(1, "rgba(150,220,250,0)");
+  ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
+}
+function makeOrbits(rand) {
+  let atoms = null;
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!atoms) {
+      atoms = [];
+      for (let i = 0; i < 3; i++) {
+        const orbits = [];
+        const nO = 2 + Math.floor(rand() * 2);
+        for (let j = 0; j < nO; j++) {
+          const els = [];
+          const nE = 1 + Math.floor(rand() * 2);
+          for (let e = 0; e < nE; e++) els.push({
+            th0: rand() * TAU, om: TAU / (8 + rand() * 12) * (rand() < 0.5 ? -1 : 1),
+            r: (2.0 + rand() * 1.4) * k, a: 0.30 + rand() * 0.12
+          });
+          orbits.push({ rx: (30 + j * 16 + rand() * 12) * k, sq: 0.34 + rand() * 0.18, tilt: rand() * Math.PI, els });
+        }
+        atoms.push({
+          x: w * (0.2 + rand() * 0.6), y: h * (0.18 + rand() * 0.64),
+          nr: (3.4 + rand() * 1.4) * k, na: 0.26 + rand() * 0.10,
+          ph: rand() * TAU, orbits
+        });
+      }
+    }
+    for (const at of atoms) {
+      const ax = at.x + Math.cos(at.ph + t * 0.045) * 6 * k;
+      const ay = at.y + Math.sin(at.ph * 1.31 + t * 0.038) * 6 * k;
+      for (const o of at.orbits) {
+        const cs = Math.cos(o.tilt), sn = Math.sin(o.tilt);
+        ctx.strokeStyle = "rgba(191,233,245,0.08)";
+        ctx.lineWidth = Math.max(0.8, 1.1 * k);
+        ctx.beginPath();
+        for (let i = 0; i <= 72; i++) {
+          const th = i / 72 * TAU;
+          const ex = Math.cos(th) * o.rx, ey = Math.sin(th) * o.rx * o.sq;
+          const x = ax + ex * cs - ey * sn, y = ay + ex * sn + ey * cs;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath(); ctx.stroke();
+        for (const e of o.els) {
+          const th = e.th0 + t * e.om;
+          const ex = Math.cos(th) * o.rx, ey = Math.sin(th) * o.rx * o.sq;
+          const x = ax + ex * cs - ey * sn, y = ay + ex * sn + ey * cs;
+          const g = ctx.createRadialGradient(x, y, 0, x, y, e.r * 3.2);
+          g.addColorStop(0, `rgba(205,239,250,${e.a})`); g.addColorStop(1, "rgba(205,239,250,0)");
+          ctx.fillStyle = g;
+          ctx.beginPath(); ctx.arc(x, y, e.r * 3.2, 0, TAU); ctx.fill();
+          ctx.fillStyle = `rgba(230,247,252,${Math.min(1, e.a + 0.25)})`;
+          ctx.beginPath(); ctx.arc(x, y, e.r, 0, TAU); ctx.fill();
+        }
+      }
+      const ng = ctx.createRadialGradient(ax, ay, 0, ax, ay, at.nr * 3);
+      ng.addColorStop(0, `rgba(168,220,240,${at.na})`); ng.addColorStop(1, "rgba(168,220,240,0)");
+      ctx.fillStyle = ng;
+      ctx.beginPath(); ctx.arc(ax, ay, at.nr * 3, 0, TAU); ctx.fill();
+    }
+  }};
+}
+
 /* ---------- engine ---------- */
 
-function attach(id, base, makeLayers, seed) {
+function attach(id, base, makeLayers, seed, stillT) {
   const canvas = document.getElementById(id);
   if (!canvas) return;
+  const _qs = new URLSearchParams(location.search);
+  // ?only=id1,id2 — attach only the named studies (verification harness:
+  // headless software rendering pays per attached canvas, so isolate one)
+  if (_qs.has("only") && !_qs.get("only").split(",").includes(id)) return;
   const ctx = canvas.getContext("2d");
   const rand = mulberry32(seed);
   const layers = makeLayers.map(f => f(rand));
+  const still = stillT == null ? 7 : stillT;
   let w = 1, h = 1;
   function render(t, dt) {
     base(ctx, w, h);
@@ -465,11 +1045,25 @@ function attach(id, base, makeLayers, seed) {
     w = Math.max(1, Math.round(r.width)); h = Math.max(1, Math.round(r.height));
     canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (REDUCED) render(7, 0);
+    if (REDUCED) render(still, 0);
   }
   new ResizeObserver(size).observe(canvas);
   size();
-  if (REDUCED) { render(7, 0); return; }
+  // deterministic time control: ?freeze=T integrates the layers in dt<=0.05
+  // steps to t=T and stops (no rAF). Headless verification + future dial shots.
+  // reduced-motion uses the same path with the study's still time.
+  function integrateTo(T) {
+    const steps = Math.max(1, Math.ceil(T / 0.05));
+    for (let i = 1; i <= steps; i++) render(T * i / steps, T / steps);
+  }
+  const _f = _qs.has("freeze") ? Math.max(0, parseFloat(_qs.get("freeze")) || 0) : NaN;
+  if (!isNaN(_f)) { integrateTo(_f); return; }
+  if (REDUCED) {
+    // integrate state deterministically to the still frame (dt-dependent layers
+    // like the walkers need the journey, not just the destination)
+    integrateTo(still);
+    return;
+  }
   let last = 0, t = 0, raf = 0, running = false;
   function frame(ts) {
     if (!running) return;
@@ -492,6 +1086,19 @@ attach("cv-sway",        floraBase, [r => makeSway(r, FLORA)], 33);
 attach("cv-garden",      floraBase, [r => makeGarden(r, FLORA)], 44);
 attach("cv-tracks",      faunaBase, [r => makeTracks(r)], 55);
 attach("cv-tracksdrift", faunaBase, [r => makeDrift(r, FAUNA), r => makeTracks(r)], 66);
+
+/* round 2 — his 2026-09-14 rulings. Font-gated: Figures draws glyphs in
+   Compagnon, which loads async on the QA site; without the gate the first
+   seconds (and the reduced-motion still) render in the fallback serif. */
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(attachRound2); else attachRound2();
+function attachRound2() {
+  attach("cv-fall",    floraBase, [r => makeBands(r, FLORA), r => makeWashes(r, FLORA[0], 2), r => makeFall(r)], 77);
+  attach("cv-bough",   floraBase, [r => makeBands(r, FLORA), r => makeWashes(r, FLORA[0], 2), r => makeBough(r)], 88, 60);
+  attach("cv-tracks2", faunaBase, [r => makeDrift(r, FAUNA), r => makeTracksV2(r)], 99, 12);
+  attach("cv-figures", mathBase,  [r => makeWashes(r, "#8F7FD8", 2), r => makeFigures(r)], 111);
+  attach("cv-strata",  geoBase,   [r => makeStrata(r)], 122);
+  attach("cv-orbits",  physBase,  [r => makeWashes(r, "#9FD8EC", 2), r => makeOrbits(r)], 133);
+}
 
 /* ---------- mock app chrome over each stage ---------- */
 
