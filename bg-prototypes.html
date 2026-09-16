@@ -98,6 +98,18 @@
   }
   figcaption strong { display: block; font-size: 17px; }
   figcaption span.note { color: var(--cocoa-soft); font-size: 14px; }
+  .win {
+    display: inline-block; margin-left: 8px; padding: 1px 9px 2px;
+    border-radius: 999px; background: var(--cinnamon); color: var(--foam);
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    vertical-align: 2px;
+  }
+  .parked {
+    display: inline-block; margin-left: 8px; padding: 1px 9px 2px;
+    border-radius: 999px; border: 1px solid var(--card-line); color: var(--cocoa-soft);
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    vertical-align: 2px;
+  }
 
   footer {
     margin-top: 52px; padding-top: 20px;
@@ -119,6 +131,7 @@
     <p class="lede">Nothing on this page is in the app. Whichever study wins gets rebuilt inside it.</p>
     <div class="judge"><strong>How to judge:</strong> watch each one for 20+ seconds before deciding. The right background is the one you stop noticing — if any of them pulls your eye away from the list rows, that's the one to kill. Everything is a dial: speed, density, size, opacity, palette.</div>
     <div class="judge"><strong>Round 2 (2026-09-14), built from your notes:</strong> G/H consolidate the flora background (C's light band, narrowed and dimmed, over the shared gradient) with D's leaves re-animated to fall from the canopy on fresh paths; H is the branch limit-test. I rebuilds the paw paths (diluted, any-side to any-side, occasional loopty loop — paw shape is still the placeholder until your silhouette lands). J/K/L are the first three new categories. Round 1 stays below for reference.</div>
+    <div class="judge"><strong>Round 3 (2026-09-15), built from your ruling:</strong> G wins flora "for now" — revised per your note: the hard-dot motes are out, and the ambient artifacts are the round-1 glow kind (larger, borderless, bleeding into the background). K advanced per your four-part spec: a startup cycle where each cluster grows its rings one at a time, freer roaming, outermost-first merging when two meet, and two smaller clusters joining the two large. H stays parked exactly as it was — its next step is the animation-tooling endeavor, not more canvas. M/N/O/P are the greenlit categories: instruments, geography, astronomy, chemistry.</div>
   </header>
 
   <section>
@@ -129,14 +142,14 @@
         <div class="stage" data-cat="flora" data-rows="aloe vera·15 × 15|monsterra·15 × 15|tulip·10 × 15|pine·20 × 15|rose·15 × 15">
           <canvas id="cv-fall"></canvas>
         </div>
-        <figcaption><span class="chip">G</span><div><strong>Fall</strong><span class="note">the consolidated background: C's light bands narrowed ~35% and dimmed ~55% + the depth washes, with D's leaves now falling — each one sways down over 30-60s on its own path, and every leaf that lands is replaced by a new one on a brand-new trajectory</span></div></figcaption>
+        <figcaption><span class="chip">G</span><div><strong>Fall</strong><span class="win">winner · revised</span><span class="note">the consolidated background: C's light bands narrowed ~35% and dimmed ~55% + the depth washes, with D's leaves falling — each sways down over 30-60s on its own path and every landed leaf respawns on a fresh trajectory. Revised 2026-09-15 per your ruling: the hard-dot motes are out — the ambient artifacts are now the round-1 glow kind, larger and borderless, bleeding into the background</span></div></figcaption>
       </figure>
 
       <figure class="study">
         <div class="stage" data-cat="flora" data-rows="aloe vera·15 × 15|monsterra·15 × 15|tulip·10 × 15|pine·20 × 15|rose·15 × 15">
           <canvas id="cv-bough"></canvas>
         </div>
-        <figcaption><span class="chip">H</span><div><strong>Bough</strong><span class="note">the limit-test, same consolidated background: two branches grow in from the lower corners over ~40s each, leaves popping out as the branch reaches them, then the whole bough sways gently forever. Fully procedural — no keyframes, no changing silhouette problem; a new seed grows a different tree</span></div></figcaption>
+        <figcaption><span class="chip">H</span><div><strong>Bough</strong><span class="parked">parked</span><span class="note">kept on the page exactly as built — "quite endearing… not quite at the level I had in mind." The next step isn't more canvas: it's the animation-tooling endeavor (a real tool built for this class of smooth, elegant animation), picked up when we take it on together</span></div></figcaption>
       </figure>
 
     </div>
@@ -171,7 +184,7 @@
         <div class="stage" data-cat="geomorphology" data-rows="mountains·10 × 10|islands·20 × 15|valley·20 × 15|river·15 × 10|lake·15 × 10">
           <canvas id="cv-strata"></canvas>
         </div>
-        <figcaption><span class="chip">K</span><div><strong>Strata</strong><span class="note">warm umber — a topographic map that never sits still: nested contour rings morphing almost too slowly to catch, terrain breathing</span></div></figcaption>
+        <figcaption><span class="chip">K</span><div><strong>Strata v2</strong><span class="win">advanced</span><span class="note">warm umber — topography with a life cycle now: each cluster spawns as a single enclosed shape and grows its outer rings one at a time while already breathing (the startup cycle), then roams the map freely forever — slightly faster, farther afield. Two that meet merge into one, the absorbed cluster's rings fading outermost first. Two large + about two smaller in play at any given time. v1 kept in the wings for one-line rollback</span></div></figcaption>
       </figure>
 
       <figure class="study">
@@ -179,6 +192,41 @@
           <canvas id="cv-orbits"></canvas>
         </div>
         <figcaption><span class="chip">L</span><div><strong>Orbits</strong><span class="note">deep teal — electrons tracing slow ellipses around soft nuclei; periodic, predictable, the calmest kind of motion there is</span></div></figcaption>
+      </figure>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="spec"><h2>round 3 · the greenlit four</h2><span>your 2026-09-15 go-ahead — instruments, geography, astronomy, chemistry</span></div>
+    <div class="studies">
+
+      <figure class="study">
+        <div class="stage" data-cat="instruments" data-rows="piano·15 × 10|trumpet·20 × 15|drumkit·15 × 10|bass·10 × 10">
+          <canvas id="cv-notes"></canvas>
+        </div>
+        <figcaption><span class="chip">M</span><div><strong>Notes</strong><span class="note">warm wood — the Figures engine retuned for the category: ♪ ♫ ♩ ♬ and the accidentals drifting and breathing like sheet music lifting off a stand, with the same pop-swap into a new glyph every few seconds</span></div></figcaption>
+      </figure>
+
+      <figure class="study">
+        <div class="stage" data-cat="geography" data-rows="brazil·15 × 15|chile·15 × 20|india·15 × 15|japan·15 × 15|italy·15 × 15">
+          <canvas id="cv-atlas"></canvas>
+        </div>
+        <figcaption><span class="chip">N</span><div><strong>Atlas</strong><span class="note">ocean blue — a surveyor's calm: a faint graticule panning slowly east under soft cloud glows drifting with it. The map is implied, never drawn</span></div></figcaption>
+      </figure>
+
+      <figure class="study">
+        <div class="stage" data-cat="astronomy" data-rows="orion·15 × 15|saturn·15 × 15|the moon·10 × 10|solar system·20 × 15">
+          <canvas id="cv-night"></canvas>
+        </div>
+        <figcaption><span class="chip">O</span><div><strong>Night</strong><span class="note">deep indigo — a field of ~75 stars, each twinkling on its own slow clock, and every ~15-40s a single meteor streaks once and is gone. The empty-folder preview: astronomy's rows are placeholders until the category gets its puzzles</span></div></figcaption>
+      </figure>
+
+      <figure class="study">
+        <div class="stage" data-cat="chemistry" data-rows="table of elements·20 × 15|graduated cylinder·10 × 15">
+          <canvas id="cv-solution"></canvas>
+        </div>
+        <figcaption><span class="chip">P</span><div><strong>Solution</strong><span class="note">deep teal-green — micro-bubbles fizzing up through a still solution, three faint benzene rings turning slowly beneath the surface</span></div></figcaption>
       </figure>
 
     </div>
@@ -241,7 +289,7 @@
   </section>
 
   <footer>
-    <p class="reply"><strong>Reply with letters again</strong> — "flora G, fauna I" — or keep tuning: "bands dimmer still", "leaves bigger", "H with one branch only", "loops more often". The paw silhouette: drop any image into <strong>to import/</strong> and tell me the filename — black-on-white is ideal, a transparent PNG works too. I handle the background removal, the trace, and the color; you never need to match the palette yourself. And the paw print is a great candidate to draw yourself — it would be the first piece of your art living in the app.</p>
+    <p class="reply"><strong>Reply with letters again</strong> — or keep tuning: "glow softer", "leaves bigger", "merges rarer", "meteor more often", "M with only eighth notes". K rolls back to v1 with one line if the new cycle doesn't land. The paw silhouette: drop any image into <strong>to import/</strong> and tell me the filename — black-on-white is ideal, a transparent PNG works too. I handle the background removal, the trace, and the color; you never need to match the palette yourself. And the paw print is a great candidate to draw yourself — it would be the first piece of your art living in the app.</p>
     <p>Engineering: canvas 2D, pixel ratio capped, animation pauses when the tab hides, and Reduce Motion shows a static frame. Everything is seeded, so you and I see the exact same compositions. Nothing on this page is in the app; the winners get rebuilt inside it.</p>
   </footer>
 
@@ -351,28 +399,34 @@ function makeDrift(rand, colors, opts) {
 }
 
 // B: Rise — bubbles float up with sway, fading at both ends of the trip
-function makeRise(rand, colors) {
+function makeRise(rand, colors, o) {
+  o = o || {};
+  const R0 = o.r0 == null ? 6 : o.r0, R1 = o.r1 == null ? 20 : o.r1;
+  const N0 = o.n0 == null ? 10 : o.n0, CAP = o.cap == null ? 18 : o.cap;
+  const EVERY = o.spawnEvery == null ? 1.15 : o.spawnEvery;
+  const VY0 = o.vy0 == null ? 13 : o.vy0, VY1 = o.vy1 == null ? 12 : o.vy1;
+  const AMAX = o.alpha == null ? 0.30 : o.alpha;
   let bs = null, spawn = 0;
   function bubble(w, h, yPos) {
-    const k = Math.min(w, h) / 360, r = (6 + rand() * 20) * k;
+    const k = Math.min(w, h) / 360, r = (R0 + rand() * R1) * k;
     return {
       x: rand() * w, y: yPos, r,
-      vy: -(13 + rand() * 12) * k,
+      vy: -(VY0 + rand() * VY1) * k,
       sw: (6 + rand() * 12) * k, sf: 0.35 + rand() * 0.5, ph: rand() * TAU,
       c: colors[1 + Math.floor(rand() * (colors.length - 1))]
     };
   }
   return { draw(ctx, w, h, t, dt) {
-    if (!bs) { bs = []; for (let i = 0; i < 10; i++) bs.push(bubble(w, h, rand() * h)); }
+    if (!bs) { bs = []; for (let i = 0; i < N0; i++) bs.push(bubble(w, h, rand() * h)); }
     spawn += dt;
-    if (spawn > 1.15 && bs.length < 18) { spawn = 0; bs.push(bubble(w, h, h + 30)); }
+    if (spawn > EVERY && bs.length < CAP) { spawn = 0; bs.push(bubble(w, h, h + 30)); }
     for (let i = bs.length - 1; i >= 0; i--) {
       bs[i].y += bs[i].vy * dt;
       if (bs[i].y < -bs[i].r * 1.2) bs.splice(i, 1);
     }
     for (const b of bs) {
       const prog = (h + b.r - b.y) / (h + 2 * b.r);
-      const a = 0.30 * sstep(0, 0.10, prog) * (1 - sstep(0.80, 1, prog));
+      const a = AMAX * sstep(0, 0.10, prog) * (1 - sstep(0.80, 1, prog));
       if (a <= 0.004) continue;
       const x = b.x + Math.sin(t * b.sf + b.ph) * b.sw;
       const g = ctx.createRadialGradient(x, b.y, 0, x, b.y, b.r);
@@ -848,25 +902,29 @@ function mathBase(ctx, w, h) {
   r.addColorStop(0, "rgba(190,172,255,0.22)"); r.addColorStop(1, "rgba(190,172,255,0)");
   ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
 }
-function makeFigures(rand) {
-  const COLS = ["#C5B9F5", "#A99BE8", "#8F7FD8"];
+function makeFigures(rand, o) {
+  o = o || {};
+  const COLS = o.cols || ["#C5B9F5", "#A99BE8", "#8F7FD8"];
+  const GLYPHS = o.glyphs || MATH_GLYPHS;
+  const N = o.n || 11;
+  const FONT = o.font || "Compagnon, Georgia, serif";
   let fs = null;
   function spawn(w, h, k) {
     const an = rand() * TAU, sp = (4 + rand() * 8) * k;
     return {
-      g: MATH_GLYPHS[Math.floor(rand() * MATH_GLYPHS.length)],
+      g: GLYPHS[Math.floor(rand() * GLYPHS.length)],
       x: rand() * w, y: rand() * h,
       fs: (24 + rand() * 36) * k,
       vx: Math.cos(an) * sp, vy: Math.sin(an) * sp,
       bf: TAU / (6 + rand() * 5), ph: rand() * TAU,
       rot: (rand() - 0.5) * 0.5, vr: (rand() - 0.5) * 0.08,
-      c: COLS[Math.floor(rand() * 3)], a: 0.10 + rand() * 0.10,
+      c: COLS[Math.floor(rand() * COLS.length)], a: 0.10 + rand() * 0.10,
       popAt: 6 + rand() * 10, popT: -1, swapped: false
     };
   }
   return { draw(ctx, w, h, t, dt) {
     const k = Math.min(w, h) / 360;
-    if (!fs) { fs = []; for (let i = 0; i < 11; i++) fs.push(spawn(w, h, k)); }
+    if (!fs) { fs = []; for (let i = 0; i < N; i++) fs.push(spawn(w, h, k)); }
     const maxSp = 12 * k;
     for (const f of fs) {
       f.x += f.vx * dt; f.y += f.vy * dt; f.rot += f.vr * dt;
@@ -883,7 +941,7 @@ function makeFigures(rand) {
         if (f.popT >= 2.2) { f.popT = -1; f.popAt = t + 6 + rand() * 10; }
         else {
           const v = f.popT / 2.2;
-          if (v >= 0.5 && !f.swapped) { f.g = MATH_GLYPHS[Math.floor(rand() * MATH_GLYPHS.length)]; f.swapped = true; }
+          if (v >= 0.5 && !f.swapped) { f.g = GLYPHS[Math.floor(rand() * GLYPHS.length)]; f.swapped = true; }
           s *= 1 + 0.45 * Math.sin(Math.PI * v);
           aMul = Math.abs(v - 0.5) * 2;
         }
@@ -891,7 +949,7 @@ function makeFigures(rand) {
       const a = f.a * aMul;
       if (a <= 0.004) continue;
       ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.rot); ctx.scale(s, s);
-      ctx.font = `700 ${f.fs}px Compagnon, Georgia, serif`;
+      ctx.font = `700 ${f.fs}px ${FONT}`;
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillStyle = hexA(f.c, a);
       ctx.fillText(f.g, 0, 0);
@@ -1021,6 +1079,378 @@ function makeOrbits(rand) {
   }};
 }
 
+/* ================= round 3 (his 2026-09-15 ruling) =================
+   G Fall: the hard-dot motes out, the round-1 glow blobs in — "the ones
+   that were more gradient ish, and larger… a glow, because the artifact
+   bled into the background instead of having harsh/obvious outlines."
+   K Strata v2: clusters grow their rings one at a time on entry, then
+   roam freely and merge outermost-ring-first; ~2 small ones join the 2
+   large. M/N/O/P: Notes / Atlas / Night / Solution (greenlit same note). */
+
+// G revision: the round-1 glow artifact kind (Drift's wander/breathe/pop,
+// softer — leaves + bands share the scene; no washes, G has its own).
+function makeGlow(rand, colors) {
+  let blobs = null;
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!blobs) {
+      blobs = [];
+      for (let i = 0; i < 7; i++) {
+        const sp = (5 + rand() * 8) * k, an = rand() * TAU;
+        blobs.push({
+          x: rand() * w, y: rand() * h, r: (14 + rand() * 24) * k,
+          vx: Math.cos(an) * sp, vy: Math.sin(an) * sp,
+          a: 0.10 + rand() * 0.11, bf: TAU / (6 + rand() * 5), ph: rand() * TAU,
+          c: colors[1 + Math.floor(rand() * (colors.length - 1))],
+          popAt: 3 + rand() * 6, popT: -1
+        });
+      }
+    }
+    const maxSp = 15 * k;
+    for (const b of blobs) {
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      const m = b.r + 16;
+      if (b.x < m) b.vx += (m - b.x) * dt * 1.1;
+      if (b.x > w - m) b.vx -= (b.x - (w - m)) * dt * 1.1;
+      if (b.y < m) b.vy += (m - b.y) * dt * 1.1;
+      if (b.y > h - m) b.vy -= (b.y - (h - m)) * dt * 1.1;
+      const sp = Math.hypot(b.vx, b.vy);
+      if (sp > maxSp) { b.vx *= maxSp / sp; b.vy *= maxSp / sp; }
+      let s = 1 + 0.13 * Math.sin(t * b.bf + b.ph);
+      if (b.popT >= 0) {
+        b.popT += dt;
+        if (b.popT > 1.7) { b.popT = -1; b.popAt = t + 3.5 + rand() * 6; }
+        else s *= 1 + 0.65 * Math.sin(Math.PI * b.popT / 1.7);
+      } else if (t > b.popAt) b.popT = 0;
+      const R = Math.max(1, b.r * s);
+      const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, R);
+      g.addColorStop(0, hexA(b.c, b.a)); g.addColorStop(1, hexA(b.c, 0));
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(b.x, b.y, R, 0, TAU); ctx.fill();
+    }
+  }};
+}
+
+/* K v2: Strata (geomorphology) — his 2026-09-15 four-part spec:
+   (a) startup cycle: a cluster spawns as one enclosed shape and GROWS its
+       outer rings one at a time while already morphing; once all clusters
+       are in play nothing ever disappears, the cycle is just move/shift.
+   (b) liberal paths: ever so slightly faster morph, and free roam over a
+       better portion of the screen.
+   (c) merging: two clusters that meet merge into one, the absorbed one's
+       rings fading OUTERMOST first.
+   (d) population: 2 large + on average 2 smaller ones at any given time
+       (a small one grows in from an edge a while after any merge).
+   v1 makeStrata stays in-file above — rollback is the one-line attach. */
+function makeStrataV2(rand) {
+  const COLS = ["#E8C49A", "#D9A86F"];
+  let clusters = null, merging = null, lastEvent = 0;
+  function mk(w, h, k, big, spawnAt, spot) {
+    const R0 = (big ? 80 + rand() * 55 : 46 + rand() * 24) * k;
+    const rings = big ? 5 + Math.floor(rand() * 3) : 4 + Math.floor(rand() * 2);
+    const gap = Math.min((10.5 + rand() * 4.5) * k, (R0 - 14 * k) / (rings - 1));
+    let cx, cy;
+    if (spot) { cx = w * (spot[0] + (rand() - 0.5) * 0.08); cy = h * (spot[1] + (rand() - 0.5) * 0.08); }
+    else { // respawns grow in from an edge, clear of the margins
+      const side = Math.floor(rand() * 4), m = R0 * 1.05 + 10;
+      if (side === 0) { cx = m; cy = m + rand() * (h - 2 * m); }
+      else if (side === 1) { cx = w - m; cy = m + rand() * (h - 2 * m); }
+      else if (side === 2) { cy = m; cx = m + rand() * (w - 2 * m); }
+      else { cy = h - m; cx = m + rand() * (w - 2 * m); }
+    }
+    return {
+      cx, cy, R0, rings, gap,
+      a1: 0.10 + rand() * 0.08, a2: 0.06 + rand() * 0.05, a3: 0.03 + rand() * 0.03,
+      p1: rand() * TAU, p2: rand() * TAU, p3: rand() * TAU,
+      // ~1.3x v1's morph freqs — "ever so slightly faster"
+      w1: TAU / (40 + rand() * 36) * (rand() < 0.5 ? -1 : 1),
+      w2: TAU / (52 + rand() * 44) * (rand() < 0.5 ? -1 : 1),
+      w3: TAU / (66 + rand() * 52) * (rand() < 0.5 ? -1 : 1),
+      c: COLS[Math.floor(rand() * COLS.length)], a: 0.10 + rand() * 0.06,
+      hd: rand() * TAU, turn: (rand() - 0.5) * 0.24, sp: (4.5 + rand() * 3) * k,
+      state: "wait", spawnAt, grown: 0, mergeOk: 0
+    };
+  }
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!clusters) {
+      clusters = [
+        mk(w, h, k, true, 0.5, [0.28, 0.22]),
+        mk(w, h, k, true, 3.0, [0.74, 0.52]),
+        mk(w, h, k, false, 5.5, [0.24, 0.80]),
+        mk(w, h, k, false, 8.0, [0.56, 0.68])
+      ];
+    }
+    for (const c of clusters) {
+      if (c.state === "wait") { if (t >= c.spawnAt) { c.state = "grow"; c.grown = 0.01; } continue; }
+      if (c.state === "grow") {
+        c.grown += dt / 1.5; // one ring appears per ~1.5s, morphing all the while
+        if (c.grown >= c.rings) { c.grown = c.rings; c.state = "roam"; }
+      }
+      if (c.state === "roam") {
+        c.hd += c.turn * dt;
+        const vx = Math.cos(c.hd) * c.sp, vy = Math.sin(c.hd) * c.sp;
+        const m = c.R0 * 1.02 + 8;
+        let sx = 0, sy = 0;
+        if (c.cx < m) sx = (m - c.cx) * 0.9; else if (c.cx > w - m) sx = -(c.cx - (w - m)) * 0.9;
+        if (c.cy < m) sy = (m - c.cy) * 0.9; else if (c.cy > h - m) sy = -(c.cy - (h - m)) * 0.9;
+        c.cx += (vx + sx) * dt; c.cy += (vy + sy) * dt;
+        if (sx || sy) c.hd = Math.atan2(vy + sy, vx + sx); // bend, don't fight the wall
+      }
+    }
+    if (merging) {
+      const { surv, abs, t0, dur } = merging;
+      const p = (t - t0) / dur;
+      abs.cx += (surv.cx - abs.cx) * (1 - Math.pow(0.5, dt / 0.55));
+      abs.cy += (surv.cy - abs.cy) * (1 - Math.pow(0.5, dt / 0.55));
+      if (p >= 1) {
+        surv.rings = Math.min(9, surv.rings + 1);
+        surv.R0 *= 1.06;
+        surv.gap = Math.min(surv.gap, (surv.R0 - 14 * k) / (surv.rings - 1));
+        surv.mergeOk = t + 8;
+        clusters.splice(clusters.indexOf(abs), 1);
+        merging = null; lastEvent = t;
+      }
+    } else {
+      let best = null, bestD = Infinity;
+      for (let i = 0; i < clusters.length; i++) for (let j = i + 1; j < clusters.length; j++) {
+        const A = clusters[i], B = clusters[j];
+        if (A.state !== "roam" || B.state !== "roam" || t < A.mergeOk || t < B.mergeOk) continue;
+        const d = Math.hypot(A.cx - B.cx, A.cy - B.cy);
+        if (d < 0.72 * (A.R0 + B.R0) && d < bestD) { bestD = d; best = [A, B]; }
+      }
+      if (best) {
+        const surv = best[0].R0 >= best[1].R0 ? best[0] : best[1];
+        const abs = surv === best[0] ? best[1] : best[0];
+        abs.state = "abs";
+        merging = { surv, abs, t0: t, dur: 3.4 };
+      }
+      const active = clusters.filter(c => c.state !== "abs").length;
+      if (!merging && active < 4 && t - lastEvent > 14) {
+        clusters.push(mk(w, h, k, false, t + 0.1, null));
+        lastEvent = t;
+      }
+    }
+    ctx.lineWidth = Math.max(1, 1.3 * k);
+    for (const c of clusters) {
+      if (c.state === "wait") continue;
+      let R0e = c.R0, mP = -1;
+      if (merging) {
+        mP = Math.min(1, (t - merging.t0) / merging.dur);
+        if (merging.abs === c) R0e = c.R0 * (1 - 0.3 * mP);
+        else if (merging.surv === c) R0e = c.R0 * (1 + 0.06 * sstep(0, 1, mP));
+      }
+      const nf = c.state === "grow" ? c.grown : c.rings;
+      const f = Math.floor(nf), frac = nf - f;
+      for (let j = 0; j < c.rings; j++) {
+        let R = R0e - j * c.gap;
+        if (R < 8 * k) continue;
+        let aJ = 1;
+        if (c.state === "grow") {
+          // startup: the innermost ring first; outer rings arrive one at a time
+          if (j < c.rings - f - (frac > 0.001 ? 1 : 0)) continue;
+          if (frac > 0.001 && j === c.rings - f - 1) {
+            aJ = sstep(0, 0.6, frac);
+            R *= 0.96 + 0.04 * sstep(0, 1, frac);
+          }
+        }
+        if (merging && merging.abs === c) {
+          const st = (j / c.rings) * 0.72; // j=0 outermost fades first
+          aJ *= 1 - sstep(st, st + 0.28, mP);
+          if (aJ <= 0.004) continue;
+        }
+        ctx.strokeStyle = hexA(c.c, c.a * (1 - j / (c.rings + 2)) * aJ);
+        ctx.beginPath();
+        for (let i = 0; i <= 96; i++) {
+          const th = i / 96 * TAU;
+          const rr = R * (1 + c.a1 * Math.sin(3 * th + c.p1 + t * c.w1)
+                        + c.a2 * Math.sin(5 * th + c.p2 + t * c.w2)
+                        + c.a3 * Math.sin(8 * th + c.p3 + t * c.w3));
+          const x = c.cx + Math.cos(th) * rr, y = c.cy + Math.sin(th) * rr * 0.82;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath(); ctx.stroke();
+      }
+    }
+  }};
+}
+
+// M: Notes (instruments) — warm wood, drifting note glyphs (Figures engine)
+function woodBase(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, w * 0.6, h);
+  g.addColorStop(0, "#3A2416"); g.addColorStop(1, "#58391D");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const r = ctx.createRadialGradient(w * 0.78, h * 0.12, 0, w * 0.78, h * 0.12, Math.max(w, h) * 0.9);
+  r.addColorStop(0, "rgba(255,214,150,0.20)"); r.addColorStop(1, "rgba(255,214,150,0)");
+  ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
+}
+const NOTE_GLYPHS = ["♪", "♫", "♩", "♬", "♮", "♭", "♯"];
+
+// N: Atlas (geography) — ocean, a slow graticule, drifting cloud glows
+function atlasBase(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, w * 0.5, h);
+  g.addColorStop(0, "#12303E"); g.addColorStop(1, "#1D4A5E");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const r = ctx.createRadialGradient(w * 0.25, h * 0.18, 0, w * 0.25, h * 0.18, Math.max(w, h) * 0.85);
+  r.addColorStop(0, "rgba(140,205,230,0.16)"); r.addColorStop(1, "rgba(140,205,230,0)");
+  ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
+}
+function makeGraticule(rand) {
+  let lines = null;
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!lines) {
+      lines = [];
+      for (let i = 0; i < 5; i++) lines.push({ v: true, off: i / 5 + rand() * 0.04, amp: (30 + rand() * 50) * k, ph: rand() * TAU });
+      for (let i = 0; i < 4; i++) lines.push({ v: false, off: i / 4 + rand() * 0.05, amp: (24 + rand() * 40) * k, ph: rand() * TAU });
+    }
+    const pan = (t * 3.5 * k) % (w * 1.6);
+    ctx.lineWidth = Math.max(1, 1.1 * k);
+    ctx.strokeStyle = "rgba(170,215,235,0.055)";
+    for (const L of lines) {
+      ctx.beginPath();
+      if (L.v) {
+        const bx = ((L.off * w * 1.6 + pan) % (w * 1.6)) - w * 0.3;
+        for (let i = 0; i <= 40; i++) {
+          const y = i / 40 * h;
+          const x = bx + Math.sin(y / h * 2.4 + L.ph) * L.amp;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+      } else {
+        const by = L.off * h * 1.3 - h * 0.15;
+        for (let i = 0; i <= 40; i++) {
+          const x = i / 40 * w;
+          const y = by + Math.sin(x / w * 2.2 + L.ph + t * 0.02) * L.amp;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+    }
+  }};
+}
+function makeClouds(rand) {
+  let cs = null;
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!cs) {
+      cs = [];
+      for (let i = 0; i < 6; i++) cs.push({
+        x: rand() * w, y: h * (0.08 + rand() * 0.84), r: (26 + rand() * 40) * k,
+        vx: (3 + rand() * 5) * k, a: 0.05 + rand() * 0.05,
+        bf: TAU / (9 + rand() * 7), ph: rand() * TAU, sq: 0.45 + rand() * 0.2
+      });
+    }
+    for (const c of cs) {
+      c.x += c.vx * dt;
+      if (c.x - c.r > w) { c.x = -c.r; c.y = h * (0.08 + rand() * 0.84); }
+      const R = c.r * (1 + 0.10 * Math.sin(t * c.bf + c.ph));
+      ctx.save(); ctx.translate(c.x, c.y); ctx.scale(1, c.sq);
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+      g.addColorStop(0, `rgba(235,246,250,${c.a})`); g.addColorStop(1, "rgba(235,246,250,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
+  }};
+}
+
+// O: Night (astronomy) — indigo, twinkling stars, a rare meteor
+function astroBase(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, w * 0.4, h);
+  g.addColorStop(0, "#10162E"); g.addColorStop(1, "#1D2748");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const r = ctx.createRadialGradient(w * 0.7, h * 0.85, 0, w * 0.7, h * 0.85, Math.max(w, h) * 0.9);
+  r.addColorStop(0, "rgba(120,140,220,0.14)"); r.addColorStop(1, "rgba(120,140,220,0)");
+  ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
+}
+function makeStars(rand) {
+  let stars = null, meteor = null;
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!stars) {
+      stars = [];
+      for (let i = 0; i < 75; i++) stars.push({
+        x: rand() * w, y: rand() * h, r: (0.7 + rand() * 1.4) * k,
+        a: 0.25 + rand() * 0.45, tf: TAU / (2.5 + rand() * 4), ph: rand() * TAU,
+        depth: 0.55 + rand() * 0.45
+      });
+      meteor = { next: 14 + rand() * 26, t0: -1, x0: 0, y0: 0, dx: 0, dy: 0 };
+    }
+    for (const s of stars) {
+      const a = s.a * s.depth * (0.55 + 0.45 * Math.sin(t * s.tf + s.ph));
+      if (a <= 0.01) continue;
+      ctx.fillStyle = `rgba(232,238,252,${a.toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU); ctx.fill();
+    }
+    const m = meteor;
+    if (m.t0 < 0 && t > m.next) {
+      m.t0 = t;
+      m.x0 = w * (0.15 + rand() * 0.7); m.y0 = h * (0.05 + rand() * 0.3);
+      const an = Math.PI * (0.72 + rand() * 0.2), d = (140 + rand() * 90) * k;
+      m.dx = Math.cos(an) * d; m.dy = Math.sin(an) * d * 0.55;
+    }
+    if (m.t0 >= 0) {
+      const p = (t - m.t0) / 1.15;
+      if (p >= 1) { m.t0 = -1; m.next = t + 14 + rand() * 26; }
+      else {
+        const head = p, tail = Math.max(0, p - 0.22);
+        const hx = m.x0 + m.dx * head, hy = m.y0 + m.dy * head;
+        const tx = m.x0 + m.dx * tail, ty = m.y0 + m.dy * tail;
+        const g = ctx.createLinearGradient(tx, ty, hx, hy);
+        g.addColorStop(0, "rgba(210,225,255,0)");
+        g.addColorStop(1, `rgba(210,225,255,${(0.55 * Math.sin(Math.PI * p)).toFixed(3)})`);
+        ctx.strokeStyle = g; ctx.lineWidth = Math.max(1, 1.6 * k);
+        ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(hx, hy); ctx.stroke();
+      }
+    }
+  }};
+}
+
+// P: Solution (chemistry) — teal, micro-bubbles rising, faint benzene rings
+function chemBase(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, 0, w * 0.5, h);
+  g.addColorStop(0, "#0E2E2A"); g.addColorStop(1, "#174A42");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const r = ctx.createRadialGradient(w * 0.3, h * 0.75, 0, w * 0.3, h * 0.75, Math.max(w, h) * 0.85);
+  r.addColorStop(0, "rgba(120,220,195,0.15)"); r.addColorStop(1, "rgba(120,220,195,0)");
+  ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
+}
+const CHEM = ["#D9F7EE", "#BFF0E4", "#8FE0CC", "#63CDAF"];
+function makeHexes(rand) {
+  let hx = null;
+  return { draw(ctx, w, h, t, dt) {
+    const k = Math.min(w, h) / 360;
+    if (!hx) {
+      hx = [];
+      for (let i = 0; i < 3; i++) hx.push({
+        x: w * (0.2 + rand() * 0.6), y: h * (0.15 + rand() * 0.7),
+        r: (34 + rand() * 26) * k, rot: rand() * TAU, vr: (rand() - 0.5) * 0.05,
+        vx: (rand() - 0.5) * 3 * k, vy: (rand() - 0.5) * 3 * k,
+        a: 0.05 + rand() * 0.04, bf: TAU / (8 + rand() * 6), ph: rand() * TAU
+      });
+    }
+    for (const x of hx) {
+      x.x += x.vx * dt; x.y += x.vy * dt; x.rot += x.vr * dt;
+      const m = x.r + 10;
+      if (x.x < m) x.vx += (m - x.x) * dt * 0.8;
+      if (x.x > w - m) x.vx -= (x.x - (w - m)) * dt * 0.8;
+      if (x.y < m) x.vy += (m - x.y) * dt * 0.8;
+      if (x.y > h - m) x.vy -= (x.y - (h - m)) * dt * 0.8;
+      const a = x.a * (0.7 + 0.3 * Math.sin(t * x.bf + x.ph));
+      ctx.strokeStyle = `rgba(170,235,220,${a.toFixed(3)})`;
+      ctx.lineWidth = Math.max(1, 1.4 * k);
+      ctx.beginPath(); // outer hexagon
+      for (let i = 0; i <= 6; i++) {
+        const th = x.rot + i / 6 * TAU;
+        const px = x.x + Math.cos(th) * x.r, py = x.y + Math.sin(th) * x.r;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.beginPath(); ctx.arc(x.x, x.y, x.r * 0.55, 0, TAU); ctx.stroke(); // the aromatic ring
+    }
+  }};
+}
+
 /* ---------- engine ---------- */
 
 function attach(id, base, makeLayers, seed, stillT) {
@@ -1092,12 +1522,18 @@ attach("cv-tracksdrift", faunaBase, [r => makeDrift(r, FAUNA), r => makeTracks(r
    seconds (and the reduced-motion still) render in the fallback serif. */
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(attachRound2); else attachRound2();
 function attachRound2() {
-  attach("cv-fall",    floraBase, [r => makeBands(r, FLORA), r => makeWashes(r, FLORA[0], 2), r => makeFall(r)], 77);
+  // G revised (his 2026-09-15): motes off the bands, the round-1 glow blobs in
+  attach("cv-fall",    floraBase, [r => makeBands(r, FLORA, { motes: 0 }), r => makeWashes(r, FLORA[0], 2), r => makeGlow(r, FLORA), r => makeFall(r)], 77);
   attach("cv-bough",   floraBase, [r => makeBands(r, FLORA), r => makeWashes(r, FLORA[0], 2), r => makeBough(r)], 88, 60);
   attach("cv-tracks2", faunaBase, [r => makeDrift(r, FAUNA), r => makeTracksV2(r)], 99, 12);
   attach("cv-figures", mathBase,  [r => makeWashes(r, "#8F7FD8", 2), r => makeFigures(r)], 111);
-  attach("cv-strata",  geoBase,   [r => makeStrata(r)], 122);
+  attach("cv-strata",  geoBase,   [r => makeStrataV2(r)], 122, 45);
   attach("cv-orbits",  physBase,  [r => makeWashes(r, "#9FD8EC", 2), r => makeOrbits(r)], 133);
+  // round 3 — the greenlit four (his 2026-09-15)
+  attach("cv-notes",   woodBase,  [r => makeWashes(r, "#E8B96F", 2), r => makeFigures(r, { glyphs: NOTE_GLYPHS, cols: ["#F0CD96", "#E4B87C", "#D3A265"], font: "Compagnon, 'Apple Symbols', 'Segoe UI Symbol', Georgia, serif" })], 144);
+  attach("cv-atlas",   atlasBase, [r => makeGraticule(r), r => makeClouds(r)], 155);
+  attach("cv-night",   astroBase, [r => makeStars(r)], 166);
+  attach("cv-solution", chemBase, [r => makeHexes(r), r => makeRise(r, CHEM, { r0: 1.5, r1: 5.5, n0: 14, spawnEvery: 0.8, cap: 26, vy0: 9, vy1: 13, alpha: 0.22 })], 177);
 }
 
 /* ---------- mock app chrome over each stage ---------- */
