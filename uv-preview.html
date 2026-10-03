@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0062 ultraviolet waves — QA preview</title>
+<style>
+  :root { --bg:#12101c; --card:#1d1a2b; --ink:#e8e4f2; --dim:#9a93b3; --line:#332e4a; --accent:#8f7bff; --warn:#ffb347; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:24px 16px 64px; background:var(--bg); color:var(--ink);
+         font:15px/1.55 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  h2 { font-size:17px; margin:0 0 10px; }
+  p.sub { color:var(--dim); margin:0 0 24px; max-width:70ch; }
+  .row { display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; max-width:520px; }
+  .grid { display:grid; gap:1px; background:var(--line); border:1px solid var(--line); width:fit-content; }
+  .cell { width:16px; height:16px; background:#0b0916; position:relative; }
+  .cell.full { background:var(--c); }
+  .cell.hole::after { content:""; position:absolute; inset:1px; border:2px solid var(--warn); border-radius:2px; }
+  .cell.given::before { content:""; position:absolute; inset:3px; border:1.5px solid #fff; border-radius:50%; opacity:.9; }
+  .cap { margin-top:10px; color:var(--dim); font-size:13px; max-width:44ch; }
+  .verdict { margin-top:14px; font-size:13.5px; color:var(--ink); background:#262140; border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  .fact { margin-top:12px; font-size:13px; color:var(--dim); border-top:1px solid var(--line); padding-top:10px; }
+  .winimg { margin-top:12px; width:100%; border-radius:8px; display:block; }
+  .flag { color:var(--warn); }
+  code { background:#262140; padding:1px 5px; border-radius:5px; font-size:12.5px; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; margin-right:16px; font-size:12.5px; color:var(--dim); }
+  .sw { width:12px; height:12px; border-radius:3px; display:inline-block; background:#0b0916; border:1px solid var(--line); }
+</style>
+</head>
+<body>
+<h1>0062 ultraviolet waves — the puzzle you asked to see</h1>
+<p class="sub">You asked how to look at the uv puzzle on your phone. Short answer: no build on your phone
+can show it — it staged on 2026-09-14 for the 1.1 content drop, after the App Store build went up, and even
+approved build 4 freezes its content earlier than that. So this page renders it exactly as the app would:
+same truth grid, same colors, same givens, same fact card and win photo. It is also the decision page for the
+open 0062 fork — as staged vs the two one-cell tweaks vs sourcing a different image.</p>
+
+<div class="legend">
+  <span><i class="sw"></i> empty</span>
+  <span><i class="sw" style="background:#3c61d2"></i> filled (art)</span>
+  <span><i class="sw" style="box-shadow:inset 0 0 0 2px #fff; border-radius:50%"></i> given (pre-revealed)</span>
+  <span><i class="sw" style="border:2px solid var(--warn)"></i> the removed cell</span>
+</div>
+
+<div class="row" id="cards"></div>
+
+<div class="card" style="max-width:1060px; margin-top:20px;">
+  <h2>The fork, restated</h2>
+  <div class="verdict" id="forktext"></div>
+  <p class="cap flag" style="max-width:none"><b>Record correction, found while building this page:</b> the docs say the
+  H13 staging set 0062's photo attribution ("Photo by ZX" ZAKARIA"). Both seed copies (nonograms/ and
+  nonograms-native/www/) carry an EMPTY attribution field for 0062 right now. Whatever held the string is gone —
+  it needs one staging pass at the drop, alongside this ruling.</p>
+</div>
+
+<script>
+const D = {"name": "ultraviolet waves", "w": 20, "h": 15, "truth": [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], "colors": [["#060411", "#060411", "#060411", "#060411", "#060411", "#060411", "#060411", "#060411", "#060411", "#060411", "#102b85", "#060411", "#060411", "#040933", "#040933", "#040933", "#040933", "#021c69", "#021c69", "#021c69"], ["#1d369c", "#1d369c", "#2e4ab7", "#2e4ab7", "#2e4ab7", "#2e4ab7", "#2e4ab7", "#2e4ab7", "#000f3e", "#000f3e", "#000f3e", "#040933", "#040933", "#060411", "#060411", "#060411", "#060411", "#060411", "#060411", "#060411"], ["#1d369c", "#2e4ab7", "#2e4ab7", "#3c61d2", "#3c61d2", "#3c61d2", "#3c61d2", "#000f3e", "#3c61d2", "#3c61d2", "#2e4ab7", "#000f3e", "#1d369c", "#102b85", "#040f4d", "#040933", "#040933", "#060411", "#060411", "#060411"], ["#1d369c", "#2e4ab7", "#2e4ab7", "#3c61d2", "#2e4ab7", "#102b85", "#000f3e", "#3c61d2", "#3c61d2", "#3c61d2", "#3c61d2", "#3c61d2", "#000f3e", "#2e4ab7", "#2e4ab7", "#1d369c", "#1d369c", "#021c69", "#021c69", "#040933"], ["#1d369c", "#2e4ab7", "#2e4ab7", "#2e4ab7", "#2e4ab7", "#000f3e", "#3255c5", "#3255c5", "#3255c5", "#2e4ab7", "#273fae", "#273fae", "#273fae", "#000f3e", "#000f3e", "#2e4ab7", "#1d369c", "#102b85", "#102b85", "#040f4d"], ["#1d369c", "#1d369c", "#1d369c", "#1d369c", "#000f3e", "#000f3e", "#2e4ab7", "#2e4ab7", "#3255c5", "#3255c5", "#3255c5", "#3255c5", "#273fae", "#273fae", "#273fae", "#000f3e", "#1d369c", "#102b85", "#021c69", "#040f4d"], ["#102b85", "#1d369c", "#1d369c", "#1d369c", "#000f3e", "#000f3e", "#d9d5d6", "#d9d5d6", "#dcd7d6", "#dcd7d6", "#59c9df", "#427ad4", "#4e8cdf", "#59ade3", "#59ade3", "#3255c5", "#000f3e", "#102b85", "#021c69", "#040f4d"], ["#021c69", "#102b85", "#102b85", "#102b85", "#000f3e", "#000f3e", "#59c9df", "#dcd7d6", "#d9d5d6", "#d9d5d6", "#d9d5d6", "#dcd7d6", "#dcd7d6", "#d9d5d6", "#d9d5d6", "#59c9df", "#000f3e", "#021c69", "#021c69", "#021c69"], ["#021c69", "#102b85", "#102b85", "#102b85", "#000f3e", "#000f3e", "#102b85", "#2e4ab7", "#3c61d2", "#3c61d2", "#3c61d2", "#dcd7d6", "#dcd7d6", "#d9d5d6", "#bdc9c8", "#5973e8", "#000f3e", "#021c69", "#021c69", "#040f4d"], ["#021c69", "#021c69", "#021c69", "#102b85", "#000f3e", "#021c69", "#102b85", "#102b85", "#102b85", "#1d369c", "#2e4ab7", "#2e4ab7", "#3c61d2", "#3c61d2", "#2e4ab7", "#3c61d2", "#000f3e", "#021c69", "#021c69", "#040f4d"], ["#040f4d", "#021c69", "#021c69", "#021c69", "#021c69", "#021c69", "#021c69", "#021c69", "#102b85", "#102b85", "#102b85", "#102b85", "#102b85", "#1d369c", "#102b85", "#000f3e", "#000f3e", "#040f4d", "#040f4d", "#040f4d"], ["#040933", "#2e4ab7", "#1d369c", "#040f4d", "#021c69", "#021c69", "#021c69", "#021c69", "#021c69", "#102b85", "#021c69", "#102b85", "#021c69", "#102b85", "#021c69", "#021c69", "#040f4d", "#040f4d", "#040f4d", "#040f4d"], ["#040933", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#021c69", "#021c69", "#021c69", "#040f4d", "#021c69", "#021c69", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040933", "#040933"], ["#040933", "#040933", "#040933", "#040933", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040933", "#040933", "#040933", "#040933"], ["#040933", "#040933", "#040933", "#040933", "#040933", "#040933", "#040933", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040f4d", "#040933", "#040933", "#040f4d", "#040933", "#040933", "#040933"]], "fact": "Johann Ritter discovered ultraviolet in 1801, just one year after infrared. He found that invisible light beyond violet darkened silver chloride faster than visible light, a discovery that later enabled photography.", "factSource": "https://en.wikipedia.org/wiki/Ultraviolet", "img": "images/0062.jpg", "givensStaged": [[2, 11], [3, 8], [3, 12], [4, 13], [5, 6]], "givensTweak": [[3, 12], [4, 13], [5, 6]], "holeA": [3, 8], "holeB": [4, 7]};
+
+function renderSolution(givens, hole) {
+  const g = document.createElement('div');
+  g.className = 'grid';
+  g.style.gridTemplateColumns = `repeat(${D.w}, 16px)`;
+  const gset = new Set(givens.map(([y,x]) => y + ',' + x));
+  for (let y = 1; y <= D.h; y++) {
+    for (let x = 1; x <= D.w; x++) {
+      const c = document.createElement('div');
+      c.className = 'cell';
+      if (D.truth[y-1][x-1]) { c.classList.add('full'); c.style.setProperty('--c', D.colors[y-1][x-1]); }
+      if (hole && hole[0] === y && hole[1] === x) c.classList.add('hole');
+      if (gset.has(y + ',' + x)) c.classList.add('given');
+      g.appendChild(c);
+    }
+  }
+  return g;
+}
+
+function card(title, bodyHtml, extra) {
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML = `<h2>${title}</h2>`;
+  el.appendChild(bodyHtml);
+  const cap = document.createElement('div');
+  cap.className = 'cap';
+  cap.innerHTML = extra || '';
+  el.appendChild(cap);
+  document.getElementById('cards').appendChild(el);
+  return el;
+}
+
+// 1. as staged
+const c1 = card('AS STAGED — ships with 5 givens', renderSolution(D.givensStaged, null),
+  `The grid as authored. The truth has <b>2 valid solutions</b> as a raw grid, so the app pre-reveals
+   <b>5 givens</b> (white rings) — with those, line logic alone completes the puzzle. The art reads clean:
+   the cyan-white burst is the UV lamp, the blues are its glow. 20 × 15, physics folder.`);
+const f = document.createElement('div');
+f.className = 'fact';
+f.innerHTML = `<b>Fact card:</b> ${D.fact}<br><span style="opacity:.7">source: ${D.factSource}</span>`;
+c1.appendChild(f);
+const im = document.createElement('img');
+im.className = 'winimg'; im.src = D.img; im.alt = 'win photo';
+c1.appendChild(im);
+
+// 2. tweak A
+card('TWEAK A — remove 1 cell (row 3, col 8), 3 givens', renderSolution(D.givensTweak, D.holeA),
+  `Removes one dark-blue pixel in the upper glow (orange box). The grid still technically admits 2 global
+   solutions, but now <b>3 givens</b> make line logic complete it — inside the app the player can never
+   deviate. Fleet convention (at most 3 givens) preserved; the art change is one pixel.`);
+
+// 3. tweak B
+card('TWEAK B — remove 1 cell (row 4, col 7), 3 givens', renderSolution(D.givensTweak, D.holeB),
+  `Same trade, a different pixel — slightly deeper in the wave body (orange box). Identical outcome:
+   3 givens, line logic completes, art visibly unchanged at phone scale.`);
+
+document.getElementById('forktext').innerHTML =
+  `Your options, one line each. <b>(1) As staged:</b> ship it with 5 givens — the art stays pixel-exact,
+   the only cost is two extra pre-revealed cells on this one puzzle. <b>(2) Tweak A or B:</b> one pixel
+   leaves the art, convention holds at 3 givens. <b>(3) Replace the image:</b> you source a different UV
+   photo and I re-run the pixelate + solvability pipeline from scratch. If you stay silent, the default at
+   the drop is (1) as staged — no art touched. This is a drop-time ruling, parked until then.`;
+</script>
+</body>
+</html>
