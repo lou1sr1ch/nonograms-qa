@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logo intro — trace study</title>
+<!--
+  LOGO INTRO TRACE STUDY (round 23)
+  His deferred ideal, from the doctrine: "logo ballpoint-trace animation
+  (letter by letter, one word at a time, like a pen writing)". The shipped
+  hero is a clip wipe; this page is the pen-trace candidate for his eyeball.
+
+  Methodology (recorded since 2026-08-26 in style.css's hero-write comment):
+  "the real thing needs the wordmark vectorized to single-stroke SVG paths
+  animated by stroke-dashoffset." That is exactly what this page is: one
+  centerline path per pen stroke, drawn in order by shrinking each path's
+  dash gap, with a pen-nib dot leading the current stroke.
+
+  Coordinates: hand-traced over the Aghja wordmark at font-size 220 (guides
+  rendered headless, /tmp/guide_nonograms.png + /tmp/guide_original.png,
+  shown under ?guide=1). The fills are NOT exact Aghja silhouettes — this
+  study answers the trace FEEL only; the production pass extracts the exact
+  glyph outlines from fonts/Aghja.otf (fonttools) for the fill layer while
+  these centerlines drive the trace.
+
+  Engineering per the Visual/animation doctrine: transform/opacity-class
+  motion only, rAF paused when hidden, prefers-reduced-motion = the finished
+  wordmark instantly, ?freeze=<seconds> renders one deterministic frame for
+  sim screenshots.
+-->
+<style>
+  :root { --espresso:#2d1f17; --foam:#faf3e6; --oat:#f1e7d3; --steam:#cfc4b0; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:flex; flex-direction:column;
+         align-items:center; justify-content:center; gap:28px; padding:32px 16px;
+         background:linear-gradient(115deg, var(--foam), var(--oat));
+         font:14px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+         color:var(--espresso); }
+  svg { width:min(1150px, 94vw); height:auto; display:block; }
+  #wordmark path { fill:none; stroke:var(--espresso);
+         stroke-linecap:round; stroke-linejoin:round;
+         transition:stroke-width .7s cubic-bezier(.33,1,.68,1); }
+  #wordmark.settled path { stroke-width:6.4; }
+  #wordmark.settled .dot { opacity:1; }
+  .note code { background:rgba(45,31,23,.08); border-radius:5px; padding:1px 5px; }
+  .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+         justify-content:center; }
+  button { background:var(--espresso); color:var(--foam); border:0;
+         border-radius:9px; padding:8px 16px; font-size:13.5px; cursor:pointer; }
+  button:active { transform:translateY(1px); }
+  label { font-size:12.5px; color:#6b5a4a; display:flex; gap:6px; align-items:center; }
+  select { border:1px solid var(--steam); border-radius:8px; padding:6px 9px;
+         background:var(--foam); color:var(--espresso); font-size:13px; }
+  .note { font-size:12px; color:#8a7663; max-width:70ch; text-align:center; margin:0; }
+</style>
+</head>
+<body>
+<svg id="wordmark" viewBox="0 0 3450 760" role="img" aria-label="Nonograms Original — traced logo study">
+  <!-- ============ NONOGRAMS (baseline y=420, x-top 297, cap-top 187) ============ -->
+  <g id="w1">
+    <!-- N: left stem, then diagonal + right stem -->
+    <path data-l="0" data-s="0" stroke-width="5" d="M 150 200 C 146 280 147 350 151 416"/>
+    <path data-l="0" data-s="1" stroke-width="5" d="M 160 208 C 206 252 244 330 270 414 C 283 348 291 268 296 204"/>
+    <!-- o -->
+    <path data-l="1" data-s="0" stroke-width="5" d="M 340 330 C 356 299 444 299 461 335 C 477 369 459 414 405 417 C 351 419 325 379 340 330"/>
+    <!-- n -->
+    <path data-l="2" data-s="0" stroke-width="5" d="M 512 300 C 510 345 511 385 513 416 C 516 427 524 422 527 412 C 538 368 554 330 580 317 C 609 302 639 312 645 346 C 650 376 647 400 645 417"/>
+    <!-- o -->
+    <path data-l="3" data-s="0" stroke-width="5" d="M 677 330 C 693 299 781 299 798 335 C 814 369 796 414 742 417 C 688 419 662 379 677 330"/>
+    <!-- g: bowl + descender loop -->
+    <path data-l="4" data-s="0" stroke-width="5" d="M 840 330 C 856 299 938 299 955 335 C 971 369 953 414 901 417 C 849 419 824 379 840 330"/>
+    <path data-l="4" data-s="1" stroke-width="5" d="M 949 398 C 961 450 954 496 914 519 C 879 538 846 526 851 504 C 855 487 876 485 886 497"/>
+    <!-- r -->
+    <path data-l="5" data-s="0" stroke-width="5" d="M 1008 305 C 1006 350 1007 390 1009 416 C 1012 427 1020 422 1023 412 C 1030 383 1041 358 1059 349 C 1076 341 1089 349 1093 367"/>
+    <!-- a: bowl + right stem -->
+    <path data-l="6" data-s="0" stroke-width="5" d="M 1130 332 C 1143 303 1215 301 1231 334 C 1246 364 1231 411 1186 415 C 1141 419 1116 380 1130 332"/>
+    <path data-l="6" data-s="1" stroke-width="5" d="M 1231 340 C 1235 370 1235 395 1237 417"/>
+    <!-- m -->
+    <path data-l="7" data-s="0" stroke-width="5" d="M 1305 305 C 1303 350 1304 390 1306 416 C 1309 427 1317 422 1320 412 C 1330 370 1345 333 1370 323 C 1398 312 1418 328 1422 360 C 1425 386 1424 403 1424 416 C 1427 427 1435 422 1438 412 C 1448 370 1463 333 1488 323 C 1516 312 1536 328 1540 360 C 1543 386 1542 403 1542 416"/>
+    <!-- s -->
+    <path data-l="8" data-s="0" stroke-width="5" d="M 1695 318 C 1668 294 1612 294 1587 324 C 1567 349 1582 371 1617 377 C 1662 384 1695 391 1697 414 C 1699 437 1651 446 1610 434 C 1587 427 1571 417 1563 404"/>
+  </g>
+  <!-- ============ ORIGINAL (shifted +1900; baseline y=424, cap-top 192) ============ -->
+  <g id="w2">
+    <!-- O -->
+    <path data-l="9" data-s="0" stroke-width="5" d="M 2045 250 C 2070 194 2158 194 2184 254 C 2207 309 2184 384 2115 387 C 2046 389 2020 309 2045 250"/>
+    <!-- r -->
+    <path data-l="10" data-s="0" stroke-width="5" d="M 2270 300 C 2268 345 2269 390 2271 418 C 2274 429 2282 424 2285 414 C 2292 383 2302 358 2320 349 C 2337 341 2350 349 2354 367"/>
+    <!-- i (stem; dot pops after) -->
+    <path data-l="11" data-s="0" stroke-width="5" d="M 2465 300 C 2463 345 2464 390 2466 418"/>
+    <!-- g: bowl + descender -->
+    <path data-l="12" data-s="0" stroke-width="5" d="M 2544 330 C 2559 299 2641 299 2658 335 C 2674 369 2656 414 2604 417 C 2552 419 2527 379 2544 330"/>
+    <path data-l="12" data-s="1" stroke-width="5" d="M 2652 398 C 2664 455 2657 503 2617 526 C 2582 545 2548 533 2553 511 C 2557 494 2578 492 2588 504"/>
+    <!-- i (stem; dot pops after) -->
+    <path data-l="13" data-s="0" stroke-width="5" d="M 2769 300 C 2767 345 2768 390 2770 418"/>
+    <!-- n -->
+    <path data-l="14" data-s="0" stroke-width="5" d="M 2852 300 C 2850 345 2851 390 2853 418 C 2856 429 2864 424 2867 414 C 2877 370 2892 333 2917 323 C 2945 312 2965 328 2969 360 C 2972 386 2971 403 2971 418"/>
+    <!-- a: bowl + stem -->
+    <path data-l="15" data-s="0" stroke-width="5" d="M 3028 332 C 3041 303 3113 301 3129 334 C 3144 364 3129 411 3084 415 C 3039 419 3014 380 3028 332"/>
+    <path data-l="15" data-s="1" stroke-width="5" d="M 3129 340 C 3133 370 3133 395 3135 418"/>
+    <!-- l: up and back down with a foot -->
+    <path data-l="16" data-s="0" stroke-width="5" d="M 3252 413 C 3238 358 3236 278 3252 224 C 3265 184 3305 179 3312 217 C 3318 251 3302 277 3284 283 C 3270 287 3262 299 3263 329 C 3264 364 3266 394 3270 416 C 3273 429 3284 426 3292 418"/>
+  </g>
+  <!-- the two i-dots, traced as pen taps -->
+  <circle class="dot" data-dot="11" cx="2463" cy="236" r="34" fill="#2d1f17" opacity="0"
+          style="transition:opacity .12s ease-in"/>
+  <circle class="dot" data-dot="13" cx="2767" cy="236" r="34" fill="#2d1f17" opacity="0"
+          style="transition:opacity .12s ease-in"/>
+  <!-- pen nib: leads the stroke currently being drawn -->
+  <circle id="nibHalo" cx="0" cy="0" r="17" fill="rgba(45,31,23,.18)" opacity="0"/>
+  <circle id="nib" cx="0" cy="0" r="8" fill="#2d1f17" opacity="0"/>
+</svg>
+<div class="controls">
+  <button id="replay">Replay</button>
+  <label>speed
+    <select id="speed">
+      <option value="0.6">0.6×</option>
+      <option value="1" selected>1×</option>
+      <option value="1.5">1.5×</option>
+      <option value="2">2×</option>
+    </select>
+  </label>
+</div>
+<p class="note">Trace study — letter by letter, one word at a time, like a pen writing. <code>?freeze=2.2</code> holds one
+frame for screenshots; <code>?guide=1</code> lays the real Aghja wordmark under the strokes (dev aid). Reduced motion = finished wordmark.</p>
+<script>
+"use strict";
+const svg = document.getElementById("wordmark");
+const params = new URLSearchParams(location.search);
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const INK_SPEED = 2400;      // viewBox units per second — the pen's hand speed
+const LETTER_GAP = 0.095;    // pen lift between letters (s)
+const WORD_GAP = 0.55;       // longer lift between the two words (s)
+const START_PAUSE = 0.4;
+const DOT_POP = 0.13;        // i-dot tap (s)
+
+// ordered draw units: one stroke path each, dots scheduled after their letter
+const paths = [...svg.querySelectorAll("path[data-l]")];
+paths.sort((a, b) => (+a.dataset.l - +b.dataset.l) || (+a.dataset.s - +b.dataset.s));
+const dots = [...svg.querySelectorAll("circle[data-dot]")];
+
+// pre-measure every stroke
+const units = [];
+paths.forEach(p => {
+  const len = p.getTotalLength();
+  const prev = units[units.length - 1];
+  const letterGap = !prev ? START_PAUSE
+    : (prev.p.dataset.l === p.dataset.l ? 0.02 : (prev.p.dataset.l === "8" ? WORD_GAP : LETTER_GAP));
+  const dur = Math.min(0.5, Math.max(0.2, len / INK_SPEED));
+  const start = (prev ? prev.end : 0) + letterGap;
+  units.push({ p, len, start, dur, end: start + dur });
+});
+// simpler dot scheduling: a dot pops right after the LAST stroke of its letter
+const letterEnds = {};
+units.forEach(u => { letterEnds[u.p.dataset.l] = u.end; });
+const dotEvents = dots.map(d => ({ d, t: letterEnds[d.dataset.dot] + 0.05 }));
+
+const total = Math.max(...units.map(u => u.end), ...dotEvents.map(e => e.t)) + 0.55; // + settle
+const FINISH = total - 0.55;
+
+let speed = 1, t0 = null, raf = null, running = false;
+
+function paintAt(t) {
+  let nibX = null, nibY = null;
+  for (const u of units) {
+    const p = Math.min(1, Math.max(0, (t - u.start) / u.dur));
+    const off = u.len * (1 - p);
+    u.p.style.strokeDasharray = u.len;
+    u.p.style.strokeDashoffset = off;
+    if (p > 0 && p < 1) {
+      const pt = u.p.getPointAtLength(u.len * p);
+      nibX = pt.x; nibY = pt.y;
+    }
+  }
+  for (const e of dotEvents) {
+    e.d.style.opacity = t >= e.t ? 1 : 0;
+  }
+  const nib = document.getElementById("nib"), halo = document.getElementById("nibHalo");
+  if (nibX !== null) {
+    nib.setAttribute("cx", nibX); nib.setAttribute("cy", nibY); nib.setAttribute("opacity", 1);
+    halo.setAttribute("cx", nibX); halo.setAttribute("cy", nibY); halo.setAttribute("opacity", 1);
+  } else {
+    nib.setAttribute("opacity", 0); halo.setAttribute("opacity", 0);
+  }
+  const done = t >= FINISH;
+  svg.classList.toggle("settled", done);
+  return done;
+}
+
+function frame(now) {
+  if (t0 === null) t0 = now;
+  const t = (now - t0) / 1000 * speed;
+  if (paintAt(t) || t >= total) { running = false; return; }
+  raf = requestAnimationFrame(frame);
+}
+function play() {
+  if (raf) cancelAnimationFrame(raf);
+  t0 = null; running = true;
+  raf = requestAnimationFrame(frame);
+}
+document.getElementById("replay").addEventListener("click", play);
+document.getElementById("speed").addEventListener("change", e => { speed = +e.target.value; play(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { if (raf) cancelAnimationFrame(raf); raf = null; }
+  else if (running) play();
+});
+
+if (params.has("freeze")) {
+  // dev tool first: a deterministic frame for screenshots, regardless of
+  // headless environments that force prefers-reduced-motion
+  paintAt(parseFloat(params.get("freeze")) || 0);
+  if (params.has("guide")) {
+    const NS = "http://www.w3.org/2000/svg";
+    const g1 = document.createElementNS(NS, "image");
+    g1.setAttribute("href", "file:///tmp/guide_nonograms.png");
+    g1.setAttribute("width", "4400"); g1.setAttribute("height", "840");
+    g1.setAttribute("opacity", "0.35"); g1.style.pointerEvents = "none";
+    const g2 = document.createElementNS(NS, "image");
+    g2.setAttribute("href", "file:///tmp/guide_original.png");
+    g2.setAttribute("x", "1900"); g2.setAttribute("width", "3200"); g2.setAttribute("height", "840");
+    g2.setAttribute("opacity", "0.35"); g2.style.pointerEvents = "none";
+    svg.insertBefore(g2, svg.firstChild);
+    svg.insertBefore(g1, svg.firstChild);
+  }
+} else if (REDUCED) {
+  paintAt(total);            // finished wordmark, instantly
+} else {
+  play();
+}
+</script>
+</body>
+</html>
