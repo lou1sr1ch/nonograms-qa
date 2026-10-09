@@ -26,6 +26,9 @@
   #nameInput { width:180px; }
   canvas { display:block; touch-action:none; background:#0b0916; border:1px solid var(--line);
            border-radius:10px; margin:6px 0 12px; }
+  #boardRow { display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; }
+  #srcCol { display:none; flex-direction:column; gap:6px; max-width:300px; }
+  #srcCol img { width:100%; border:1px solid var(--line); border-radius:10px; display:block; }
   .panel { background:var(--card); border:1px solid var(--line); border-radius:12px;
            padding:14px 16px; margin-bottom:14px; max-width:780px; }
   .panel h2 { font-size:15px; margin:0 0 8px; }
@@ -56,14 +59,15 @@
 </head>
 <body>
 <h1>Puzzle editor</h1>
-<p class="sub">The retired in-app editor, recreated as a standalone drafting station — now with the two things the
-old one had: a <b>Values / Art</b> switch and real color. <b style="color:var(--ink)">Values</b> mode edits the
-solution itself (which cells are filled — the clues follow it). <b style="color:var(--ink)">Art</b> mode paints
-colors and never touches the solution: color a <i>filled</i> cell to set its picture color, color an
-<i>empty</i> cell to set a soft accent that only appears on the win reveal. The <b>brush</b> switch chooses how
-painting acts: <b style="color:var(--ink)">Drag</b> paints every cell the pointer crosses (with gap-filling);
-<b style="color:var(--ink)">Tap</b> changes only the cell you click, so fixing one cell in the middle never
-disturbs its neighbors. Classify runs the same solver engine as the fleet checker. Everything autosaves.</p>
+<p class="sub">The retired in-app editor, recreated as a standalone drafting station. <b style="color:var(--ink)">Values</b>
+mode edits the solution itself (which cells are filled — the clues follow); the art rides along underneath at
+full strength on filled cells and 40% on empty ones. <b style="color:var(--ink)">Art</b> mode paints colors and
+never touches the solution: color a <i>filled</i> cell to set its picture color, an <i>empty</i> cell to set an accent
+that appears on the win reveal — everything at full strength. The <b>brush</b> switch: <b style="color:var(--ink)">Drag</b>
+paints every cell the pointer crosses (with gap-filling), <b style="color:var(--ink)">Tap</b> changes only the cell you
+click. A <b>source image</b> can sit beside the grid and be pixelified — each cell&rsquo;s area of the image averaged into
+that cell&rsquo;s color — or held over the grid (the peek button, or the Space key) to compare against the win screen.
+Classify runs the same solver engine as the fleet checker. Everything autosaves.</p>
 
 <div class="bar">
   <label>name <input type="text" id="nameInput" placeholder="untitled" maxlength="30"></label>
@@ -91,7 +95,7 @@ disturbs its neighbors. Classify runs the same solver engine as the fleet checke
     <button id="modeValBtn" class="on">Values</button>
     <button id="modeArtBtn">Art</button>
   </span>
-  <span class="hint" id="modeHint">editing the solution — filled cells drive the clues</span>
+  <span class="hint" id="modeHint">editing the solution — filled cells drive the clues · art shows underneath (full / 40%)</span>
   <span style="width:10px"></span>
   <span class="seg" title="how painting acts">
     <button id="brushDragBtn" class="on">Drag</button>
@@ -114,8 +118,24 @@ disturbs its neighbors. Classify runs the same solver engine as the fleet checke
   <span class="hint">filled cell = picture color · empty cell = accent (win reveal only) · Clear color resets the cell to default</span>
 </div>
 
-<canvas id="board"></canvas>
-<div id="selftest"></div>
+<div class="bar" id="sourceBar">
+  <button id="uploadBtn">Upload image…</button>
+  <input type="file" id="fileInput" accept="image/*" style="display:none;">
+  <button id="pixelifyBtn" disabled>Pixelify into art</button>
+  <button id="peekBtn" disabled title="hold to see the source image laid over the grid (or hold the Space key)">Hold: source over grid</button>
+  <span class="hint" id="srcHint">attach a source image to compare &amp; pixelify — library puzzles with a known source load it automatically</span>
+</div>
+
+<div id="boardRow">
+  <div>
+    <canvas id="board"></canvas>
+    <div id="selftest"></div>
+  </div>
+  <div id="srcCol">
+    <img id="srcImg" alt="source image">
+    <div class="hint">the source — what the finished puzzle should evoke</div>
+  </div>
+</div>
 
 <div class="panel">
   <h2>Classification</h2>
@@ -154,7 +174,8 @@ disturbs its neighbors. Classify runs the same solver engine as the fleet checke
     <select id="fleetSel"><option value="">pick from the library…</option></select>
     <button id="fleetLoadBtn">Load copy</button>
     <span class="hint">loads an editable copy, colors included; the seed itself is never touched from here.
-    The scorpion restage waits under "Restages".</span>
+    The scorpion restage waits under "Restages", its source image attached. Puzzles with a known source
+    (Restages / Drafts / Candidates) show it beside the grid.</span>
   </div>
 </div>
 
@@ -176,6 +197,9 @@ let artTool = "#e63946";  // art mode: a hex color, or "clear"
 let mirror = false;
 let undoStack = [];       // snapshots of {cells, art}
 let lastGivenCells = null;
+let sourceImg = null;     // HTMLImageElement | null — the reference image (peek + pixelify)
+let sourceName = "";
+let peeking = false;      // true while the source image is laid over the grid
 const LS_KEY = "noqa.editor.autosave";
 
 const DEFAULT_SWATCHES = ["#e63946","#f4a261","#e9c46a","#2a9d8f","#43aa8b","#577590",
@@ -404,6 +428,24 @@ function computeGeo() {
   return { rowHints, colHints, topRuns, leftRuns, cell,
            left: leftRuns * 16 + 8, top: topRuns * 15 + 8 };
 }
+// how strongly an empty cell's color shows: values mode = the 40% "background
+// art" rule he asked for; art mode = full-strength preview. Filled cells are
+// always 100%.
+function cellAlpha(filled, hasColor) {
+  if (!hasColor) return 0;
+  if (mode === "art") return 1;
+  return filled ? 1 : 0.40;
+}
+// where the source image sits relative to the cell grid (cell units, contain
+// fit — the whole image visible, centered, letterboxed). Shared by the peek
+// overlay and pixelify so what he compares IS what gets sampled.
+function sourceCellRect() {
+  if (!sourceImg || !sourceImg.naturalWidth) return null;
+  const iw = sourceImg.naturalWidth, ih = sourceImg.naturalHeight;
+  const s = Math.min(W / iw, H / ih);
+  const w = iw * s, h = ih * s;
+  return { x: (W - w) / 2, y: (H - h) / 2, w, h };
+}
 function render() {
   geo = computeGeo();
   const dpr = window.devicePixelRatio || 1;
@@ -430,21 +472,16 @@ function render() {
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const px = geo.left + x * geo.cell, py = geo.top + y * geo.cell;
     const color = art[y][x];
-    if (cells[y][x]) {
+    const filled = cells[y][x];
+    if (filled) {
+      cx.globalAlpha = 1;
       cx.fillStyle = color || INK;
       cx.fillRect(px + 1, py + 1, geo.cell - 2, geo.cell - 2);
     } else if (color) {
-      // win-reveal accent preview: the color, softly, under diagonal stripes —
-      // distinct from a solid filled cell at a glance
-      cx.globalAlpha = 0.30;
+      cx.globalAlpha = cellAlpha(false, true);
       cx.fillStyle = color;
       cx.fillRect(px + 1, py + 1, geo.cell - 2, geo.cell - 2);
       cx.globalAlpha = 1;
-      cx.strokeStyle = color; cx.lineWidth = 1;
-      cx.beginPath();
-      cx.moveTo(px + 3, py + geo.cell - 3); cx.lineTo(px + geo.cell - 3, py + 3);
-      cx.stroke();
-      cx.lineWidth = 1;
     }
     cx.strokeStyle = GRID; cx.strokeRect(px + 0.5, py + 0.5, geo.cell, geo.cell);
   }
@@ -463,6 +500,119 @@ function render() {
   cx.strokeStyle = "#3d3658";
   for (let x = 5; x < W; x += 5) { cx.beginPath(); cx.moveTo(geo.left + x * geo.cell + 0.5, geo.top); cx.lineTo(geo.left + x * geo.cell + 0.5, geo.top + H * geo.cell); cx.stroke(); }
   for (let y = 5; y < H; y += 5) { cx.beginPath(); cx.moveTo(geo.left, geo.top + y * geo.cell + 0.5); cx.lineTo(geo.left + W * geo.cell, geo.top + y * geo.cell + 0.5); cx.stroke(); }
+  // peek: the source image laid over the whole grid, faint cell lines on top so
+  // he can map image regions to cells — the win-screen comparison view
+  if (peeking) {
+    const r = sourceCellRect();
+    if (r) {
+      cx.fillStyle = PAPER;
+      cx.fillRect(geo.left, geo.top, W * geo.cell, H * geo.cell);
+      cx.drawImage(sourceImg, geo.left + r.x * geo.cell, geo.top + r.y * geo.cell, r.w * geo.cell, r.h * geo.cell);
+      cx.strokeStyle = "rgba(232,228,242,0.20)";
+      for (let x = 0; x <= W; x++) { cx.beginPath(); cx.moveTo(geo.left + x * geo.cell + 0.5, geo.top); cx.lineTo(geo.left + x * geo.cell + 0.5, geo.top + H * geo.cell); cx.stroke(); }
+      for (let y = 0; y <= H; y++) { cx.beginPath(); cx.moveTo(geo.left, geo.top + y * geo.cell + 0.5); cx.lineTo(geo.left + W * geo.cell, geo.top + y * geo.cell + 0.5); cx.stroke(); }
+    }
+  }
+}
+
+// ---- source image: attach / upload / pixelify / peek ----
+function setSourceImage(img, name) {
+  sourceImg = img || null;
+  sourceName = name || "";
+  const has = !!img;
+  document.getElementById("pixelifyBtn").disabled = !has;
+  document.getElementById("peekBtn").disabled = !has;
+  document.getElementById("srcCol").style.display = has ? "flex" : "none";
+  const el = document.getElementById("srcImg");
+  if (has) el.src = img.src; else el.removeAttribute("src");
+  document.getElementById("srcHint").innerHTML = has
+    ? "source: <b style='color:var(--ink)'>" + (sourceName || "attached") + "</b> — Pixelify averages each cell&rsquo;s area of the image into that cell&rsquo;s color · hold the button (or the Space key) to lay the source over the grid"
+    : "attach a source image to compare &amp; pixelify — library puzzles with a known source load it automatically";
+  if (peeking && !has) peeking = false;
+  render();
+}
+document.getElementById("uploadBtn").addEventListener("click", () => document.getElementById("fileInput").click());
+document.getElementById("fileInput").addEventListener("change", e => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    const im = new Image();
+    im.onload = () => setSourceImage(im, f.name);
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+  e.target.value = "";
+});
+function avgColor(data, iw, ih, fx0, fy0, fx1, fy1) {
+  // the average color of an image-pixel rectangle; "" would need alpha, which
+  // photos don't carry, so every covered cell gets a color
+  const x0 = Math.max(0, Math.floor(fx0)), y0 = Math.max(0, Math.floor(fy0));
+  const x1 = Math.min(iw, Math.ceil(fx1)), y1 = Math.min(ih, Math.ceil(fy1));
+  let r = 0, g = 0, b = 0, n = 0;
+  for (let yy = y0; yy < y1; yy++) for (let xx = x0; xx < x1; xx++) {
+    const i = (yy * iw + xx) * 4;
+    r += data[i]; g += data[i + 1]; b += data[i + 2]; n++;
+  }
+  if (!n) return "";
+  const h = v => Math.round(v / n).toString(16).padStart(2, "0");
+  return "#" + h(r) + h(g) + h(b);
+}
+function pixelify() {
+  if (!sourceImg || !sourceImg.naturalWidth) return;
+  const r = sourceCellRect();
+  if (!r) return;
+  undoStack.push(snapshot());
+  if (undoStack.length > 120) undoStack.shift();
+  const iw = sourceImg.naturalWidth, ih = sourceImg.naturalHeight;
+  const off = document.createElement("canvas");
+  off.width = iw; off.height = ih;
+  const octx = off.getContext("2d", { willReadFrequently: true });
+  octx.drawImage(sourceImg, 0, 0);
+  let data;
+  try { data = octx.getImageData(0, 0, iw, ih).data; }
+  catch (err) {
+    const box = document.getElementById("statusBox");
+    box.className = "status multi"; box.textContent = "pixelify failed: the image's pixels are unreadable in this browser.";
+    return;
+  }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    // the cell's rect in cell units → intersect with the image's rect → image pixels
+    const ix0 = Math.max(r.x, x), iy0 = Math.max(r.y, y);
+    const ix1 = Math.min(r.x + r.w, x + 1), iy1 = Math.min(r.y + r.h, y + 1);
+    if (ix1 <= ix0 || iy1 <= iy0) { art[y][x] = ""; continue; }
+    const sx0 = (ix0 - r.x) / r.w * iw, sy0 = (iy0 - r.y) / r.h * ih;
+    const sx1 = (ix1 - r.x) / r.w * iw, sy1 = (iy1 - r.y) / r.h * ih;
+    art[y][x] = avgColor(data, iw, ih, sx0, sy0, sx1, sy1);
+  }
+  setMode("art"); // full-strength preview of what just landed
+  buildPalette(art.flat().filter(Boolean));
+  autosave(); render(); resetStatus();
+}
+document.getElementById("pixelifyBtn").addEventListener("click", pixelify);
+// peek: hold the button (touch or mouse) or the Space key — release to return
+function setPeek(v) {
+  if (!sourceImg) v = false;
+  if (peeking === v) return;
+  peeking = v;
+  render();
+}
+{
+  const pb = document.getElementById("peekBtn");
+  pb.addEventListener("pointerdown", e => { e.preventDefault(); setPeek(true); });
+  pb.addEventListener("pointerup", () => setPeek(false));
+  pb.addEventListener("pointerleave", () => setPeek(false));
+  pb.addEventListener("pointercancel", () => setPeek(false));
+  pb.addEventListener("touchstart", e => { e.preventDefault(); setPeek(true); }, { passive: false });
+  pb.addEventListener("touchend", () => setPeek(false));
+  pb.addEventListener("touchcancel", () => setPeek(false));
+  const formTarget = t => t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT");
+  window.addEventListener("keydown", e => {
+    if (e.code === "Space" && !formTarget(e.target)) { e.preventDefault(); setPeek(true); }
+  });
+  window.addEventListener("keyup", e => {
+    if (e.code === "Space") setPeek(false);
+  });
 }
 
 // ---- drawing ----
@@ -497,19 +647,8 @@ function applyCell(x, y) {
   }
   return touched;
 }
-cv.addEventListener("pointerdown", e => {
-  e.preventDefault();
-  cv.setPointerCapture(e.pointerId);
-  if (!strokeChanged) { undoStack.push(snapshot()); if (undoStack.length > 120) undoStack.shift(); }
-  drawing = true; strokeChanged = true;
-  const c = cellFromEvent(e);
-  if (c) { applyCell(c[0], c[1]); lastCell = c; render(); }
-});
-cv.addEventListener("pointermove", e => {
-  if (!drawing) return;
-  const c = cellFromEvent(e);
-  if (!c) return;
-  if (brush === "tap") return; // tap brush: only the clicked cell changes
+function paintMove(c) {
+  // shared by the pointermove and touchmove paths (drag brush only)
   if (lastCell) {
     // interpolate the segment so fast drags leave no gaps
     let [x0, y0] = lastCell; const [x1, y1] = c;
@@ -526,6 +665,24 @@ cv.addEventListener("pointermove", e => {
   applyCell(c[0], c[1]);
   lastCell = c;
   render();
+}
+function strokeStart(c) {
+  if (drawing) return; // a co-fired touch/pointer pair must not double-stroke
+  if (!strokeChanged) { undoStack.push(snapshot()); if (undoStack.length > 120) undoStack.shift(); }
+  drawing = true; strokeChanged = true;
+  if (c) { applyCell(c[0], c[1]); lastCell = c; render(); }
+}
+cv.addEventListener("pointerdown", e => {
+  e.preventDefault();
+  try { cv.setPointerCapture(e.pointerId); } catch {}
+  strokeStart(cellFromEvent(e));
+});
+cv.addEventListener("pointermove", e => {
+  if (!drawing) return;
+  if (brush === "tap") return; // tap brush: only the clicked cell changes
+  const c = cellFromEvent(e);
+  if (!c) return;
+  paintMove(c);
 });
 function endStroke() {
   if (drawing && strokeChanged) { autosave(); resetStatus(); }
@@ -533,6 +690,27 @@ function endStroke() {
 }
 cv.addEventListener("pointerup", endStroke);
 cv.addEventListener("pointercancel", endStroke);
+// iOS Safari can cancel the pointer stream mid-drag (the stroke dies after the
+// first cell — reads exactly like "tap only"); these legacy touch handlers are
+// the safety net. applyCell is idempotent, so a double-fired event is harmless.
+cv.addEventListener("touchstart", e => {
+  e.preventDefault();
+  if (drawing) return;
+  const t = e.touches[0];
+  strokeStart(t ? cellFromEvent(t) : null);
+}, { passive: false });
+cv.addEventListener("touchmove", e => {
+  if (!drawing) return;
+  if (brush === "tap") return;
+  e.preventDefault();
+  const t = e.touches[0];
+  if (!t) return;
+  const c = cellFromEvent(t);
+  if (!c) return;
+  paintMove(c);
+}, { passive: false });
+cv.addEventListener("touchend", endStroke);
+cv.addEventListener("touchcancel", endStroke);
 
 // ---- toolbar ----
 document.getElementById("newBtn").addEventListener("click", () => setSize(W, H));
@@ -553,8 +731,9 @@ function setMode(m) {
   document.getElementById("valuesBar").style.display = m === "values" ? "" : "none";
   document.getElementById("artBar").style.display = m === "art" ? "" : "none";
   document.getElementById("modeHint").textContent = m === "values"
-    ? "editing the solution — filled cells drive the clues"
-    : "painting colors — never touches the solution";
+    ? "editing the solution — filled cells drive the clues · art shows underneath (full / 40%)"
+    : "painting colors — never touches the solution · everything full strength";
+  render();
 }
 modeValBtn.addEventListener("click", () => setMode("values"));
 modeArtBtn.addEventListener("click", () => setMode("art"));
@@ -677,6 +856,7 @@ document.getElementById("importBtn").addEventListener("click", () => {
     }
     if (d.name) document.getElementById("nameInput").value = d.name;
     undoStack = []; lastGivenCells = null;
+    setSourceImage(null);
     if (Array.isArray(d.givens) && d.givens.length) lastGivenCells = d.givens.map(([ry, rx]) => [rx, ry]); // 0-based [row, col]
     buildPalette(art.flat().filter(Boolean));
     autosave(); render(); resetStatus();
@@ -714,6 +894,12 @@ document.getElementById("fleetLoadBtn").addEventListener("click", () => {
   }
   document.getElementById("nameInput").value = p.n + " (copy)";
   buildPalette(art.flat().filter(Boolean));
+  if (p.img) {
+    const im = new Image();
+    im.onload = () => setSourceImage(im, p.n);
+    im.onerror = () => setSourceImage(null);
+    im.src = p.img;
+  } else setSourceImage(null);
   autosave(); render(); resetStatus();
 });
 
@@ -747,6 +933,21 @@ function autosave() {
   if (!location.search.includes("selftest=1")) return;
   const out = [];
   const ok = (name, cond) => out.push((cond ? "PASS " : "FAIL ") + name);
+  const finish = () => {
+    const fails = out.filter(l => l.startsWith("FAIL")).length;
+    const el = document.getElementById("selftest");
+    el.className = fails ? "bad" : "ok";
+    el.textContent = "SELFTEST " + (fails ? "FAIL " : "PASS ") + (out.length - fails) + "/" + out.length + "\n" + out.join("\n");
+    setMode("values"); setBrush("drag"); tool = "ink";
+    inkBtn.classList.add("on"); eraseBtn.classList.remove("on");
+    // leave no trace: the test's autosaves must not shape his next real session
+    try { localStorage.removeItem(LS_KEY); } catch {}
+    W = 15; H = 10; cells = blank(W, H); art = blankArt(W, H);
+    document.getElementById("nameInput").value = "";
+    document.getElementById("cw").value = W; document.getElementById("ch").value = H;
+    setSourceImage(null);
+    syncPreset(); render(); resetStatus();
+  };
   try {
     const sc = FLEET.find(q => q.id === "restage-0062");
     ok("library has restage-0062", !!sc);
@@ -792,23 +993,75 @@ function autosave() {
     ok("export has colors grid", Array.isArray(draft.colors) && draft.colors.length === H);
     ok("export colors match art", draft.colors.flat().filter(Boolean).length === art.flat().filter(Boolean).length);
     ok("export truth matches cells", draft.truth.flat().filter(Boolean).length === 67);
-    const fails = out.filter(l => l.startsWith("FAIL")).length;
-    const el = document.getElementById("selftest");
-    el.className = fails ? "bad" : "ok";
-    el.textContent = "SELFTEST " + (fails ? "FAIL " : "PASS ") + (out.length - fails) + "/" + out.length + "\n" + out.join("\n");
+    // ---- round 22: the 40% background-art render rule ----
+    setMode("values");
+    ok("values: filled art full strength", cellAlpha(true, true) === 1);
+    ok("values: false-value art at 40%", cellAlpha(false, true) === 0.40);
+    setMode("art");
+    ok("art: everything 100%", cellAlpha(true, true) === 1 && cellAlpha(false, true) === 1);
+    // ---- round 22: drag vs tap through the REAL event path (his "both act
+    // like tap" bug — pointer events plus the touch fallback must both paint) ----
+    setMode("values"); tool = "ink";
+    function synthPoint(type, px, py) {
+      const r = cv.getBoundingClientRect();
+      cv.dispatchEvent(new PointerEvent(type, {
+        clientX: r.left + geo.left + px * geo.cell + geo.cell / 2,
+        clientY: r.top + geo.top + py * geo.cell + geo.cell / 2,
+        pointerId: 7, buttons: 1, bubbles: true, cancelable: true
+      }));
+    }
+    cells = blank(W, H); art = blankArt(W, H); render();
+    setBrush("drag");
+    synthPoint("pointerdown", 1, 5); synthPoint("pointermove", 8, 5); synthPoint("pointerup", 8, 5);
+    let row5 = 0; for (let x = 0; x < W; x++) if (cells[5][x]) row5++;
+    ok("drag paints the whole path (" + row5 + " cells)", row5 >= 7);
+    cells = blank(W, H); art = blankArt(W, H); render();
+    setBrush("tap");
+    synthPoint("pointerdown", 1, 5); synthPoint("pointermove", 8, 5); synthPoint("pointerup", 8, 5);
+    row5 = 0; for (let x = 0; x < W; x++) if (cells[5][x]) row5++;
+    ok("tap paints only the clicked cell (" + row5 + ")", row5 === 1);
+    setBrush("drag");
+    // the touch fallback path must work too (this is the iOS net)
+    cells = blank(W, H); art = blankArt(W, H); render();
+    const r2 = cv.getBoundingClientRect();
+    const tXY = px => ({ clientX: r2.left + geo.left + px * geo.cell + geo.cell / 2,
+                         clientY: r2.top + geo.top + 5 * geo.cell + geo.cell / 2 });
+    const mkTouch = (type, px) => {
+      const t = tXY(px);
+      const touch = new Touch({ identifier: 9, target: cv, clientX: t.clientX, clientY: t.clientY });
+      cv.dispatchEvent(new TouchEvent(type, { touches: type === "touchend" ? [] : [touch],
+        changedTouches: [touch], bubbles: true, cancelable: true }));
+    };
+    mkTouch("touchstart", 1); mkTouch("touchmove", 8); mkTouch("touchend", 8);
+    let rowT = 0; for (let x = 0; x < W; x++) if (cells[5][x]) rowT++;
+    ok("touch fallback paints the path (" + rowT + " cells)", rowT >= 7);
+    // ---- round 22: pixelify on a synthetic 2x2-quadrant image (async tail) ----
+    const off = document.createElement("canvas");
+    off.width = 2; off.height = 2;
+    const oc2 = off.getContext("2d");
+    const px = (x, y, c) => { oc2.fillStyle = c; oc2.fillRect(x, y, 1, 1); };
+    px(0, 0, "#ff0000"); px(1, 0, "#0000ff"); px(0, 1, "#00ff00"); px(1, 1, "#ffffff");
+    const im = new Image();
+    im.onload = () => {
+      try {
+        setSize(4, 4);
+        setSourceImage(im, "synthetic quadrants");
+        pixelify();
+        ok("pixelify lands the quadrant colors", art[0][0] === "#ff0000" && art[0][3] === "#0000ff" && art[3][0] === "#00ff00");
+        ok("pixelify covers every cell", art.flat().filter(Boolean).length === 16);
+        ok("pixelify leaves the solution alone", cells.flat().filter(Boolean).length === 0);
+        ok("scorpion ships a source image", !!sc.img && typeof sc.img === "string");
+        ok("candidates ship source images", FLEET.filter(q => q.id.startsWith("cand-")).every(q => !!q.img));
+        ok("drafts ship source images", FLEET.filter(q => q.id.startsWith("draft-")).every(q => !!q.img));
+      } catch (err2) { out.push("ERROR " + err2.message); }
+      finish();
+    };
+    im.onerror = () => { out.push("ERROR synthetic image failed to load"); finish(); };
+    im.src = off.toDataURL();
   } catch (err) {
-    const el = document.getElementById("selftest");
-    el.className = "bad";
-    el.textContent = "SELFTEST ERROR " + err.message + "\n" + out.join("\n");
+    out.push("SELFTEST ERROR " + err.message);
+    finish();
   }
-  setMode("values"); setBrush("drag"); tool = "ink";
-  inkBtn.classList.add("on"); eraseBtn.classList.remove("on");
-  // leave no trace: the test's autosaves must not shape his next real session
-  try { localStorage.removeItem(LS_KEY); } catch {}
-  W = 15; H = 10; cells = blank(W, H); art = blankArt(W, H);
-  document.getElementById("nameInput").value = "";
-  document.getElementById("cw").value = W; document.getElementById("ch").value = H;
-  syncPreset(); render(); resetStatus();
 })();
 
 window.addEventListener("resize", render);
