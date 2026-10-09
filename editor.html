@@ -27,8 +27,12 @@
   canvas { display:block; touch-action:none; background:#0b0916; border:1px solid var(--line);
            border-radius:10px; margin:6px 0 12px; }
   #boardRow { display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; }
-  #srcCol { display:none; flex-direction:column; gap:6px; max-width:300px; }
+  #srcCol { display:none; flex-direction:column; gap:6px; width:min(460px, 34vw); max-width:460px; }
   #srcCol img { width:100%; border:1px solid var(--line); border-radius:10px; display:block; }
+  /* the painting controls pin to the top of the window so browser zoom (or a
+     small window) can never push mode/brush/palette/peek out of reach */
+  #stickWrap { position:sticky; top:0; z-index:20; background:var(--bg);
+               margin:0 -16px; padding:2px 16px 8px; }
   .panel { background:var(--card); border:1px solid var(--line); border-radius:12px;
            padding:14px 16px; margin-bottom:14px; max-width:780px; }
   .panel h2 { font-size:15px; margin:0 0 8px; }
@@ -59,7 +63,7 @@
 </head>
 <body>
 <h1>Puzzle editor</h1>
-<p class="sub">The retired in-app editor, recreated as a standalone drafting station. <b style="color:var(--ink)">Values</b>
+<details class="sub"><summary style="cursor:pointer; color:var(--dim)">what each mode does — tap to open</summary><p style="margin:6px 0 0">The retired in-app editor, recreated as a standalone drafting station. <b style="color:var(--ink)">Values</b>
 mode edits the solution itself (which cells are filled — the clues follow); the art rides along underneath at
 full strength on filled cells and 40% on empty ones. <b style="color:var(--ink)">Art</b> mode paints colors and
 never touches the solution: color a <i>filled</i> cell to set its picture color, an <i>empty</i> cell to set an accent
@@ -67,8 +71,9 @@ that appears on the win reveal — everything at full strength. The <b>brush</b>
 paints every cell the pointer crosses (with gap-filling), <b style="color:var(--ink)">Tap</b> changes only the cell you
 click. A <b>source image</b> can sit beside the grid and be pixelified — each cell&rsquo;s area of the image averaged into
 that cell&rsquo;s color — or held over the grid (the peek button, or the Space key) to compare against the win screen.
-Classify runs the same solver engine as the fleet checker. Everything autosaves.</p>
+Classify runs the same solver engine as the fleet checker. Everything autosaves.</p></details>
 
+<div id="stickWrap">
 <div class="bar">
   <label>name <input type="text" id="nameInput" placeholder="untitled" maxlength="30"></label>
   <label>size
@@ -124,6 +129,7 @@ Classify runs the same solver engine as the fleet checker. Everything autosaves.
   <button id="pixelifyBtn" disabled>Pixelify into art</button>
   <button id="peekBtn" disabled title="hold to see the source image laid over the grid (or hold the Space key)">Hold: source over grid</button>
   <span class="hint" id="srcHint">attach a source image to compare &amp; pixelify — library puzzles with a known source load it automatically</span>
+</div>
 </div>
 
 <div id="boardRow">
@@ -423,10 +429,21 @@ function computeGeo() {
   const colHints = Array.from({length: W}, (_, x) => deriveHints(cells.map(r => r[x])));
   const topRuns = Math.max(1, ...rowHints.map(hh => hh.length === 1 && hh[0] === 0 ? 0 : hh.length));
   const leftRuns = Math.max(1, ...colHints.map(hh => hh.length === 1 && hh[0] === 0 ? 0 : hh.length));
-  const maxBoard = Math.min(window.innerWidth - 40, 620);
-  const cell = Math.max(10, Math.floor(Math.min((maxBoard - 8) / W, 520 / H, 30)));
-  return { rowHints, colHints, topRuns, leftRuns, cell,
-           left: leftRuns * 16 + 8, top: topRuns * 15 + 8 };
+  // Fill the Mac window (this editor is a desktop tool — no mobile fitting).
+  // Width: the board takes what's left after the source column's share.
+  // Height: everything between the pinned control bars and a small status
+  // cushion. Recomputed on every render + window resize, so browser zoom
+  // re-fits the board instead of growing the page past the buttons.
+  const side = (sourceImg && document.getElementById("srcCol").style.display !== "none")
+    ? Math.min(460, Math.round(window.innerWidth * 0.34)) : 0;
+  const availW = Math.max(280, window.innerWidth - side - 72);
+  const availH = Math.max(220, window.innerHeight - cv.offsetTop - 64);
+  const cell = Math.max(10, Math.floor(Math.min((availW - 8) / W, availH / H, 46)));
+  const runW = Math.max(14, Math.round(cell * 0.45));  // row-clue slot width
+  const runH = Math.max(13, Math.round(cell * 0.42));  // column-clue slot height
+  return { rowHints, colHints, topRuns, leftRuns, cell, runW, runH,
+           font: Math.max(10, Math.round(cell * 0.32)),
+           left: leftRuns * runW + 8, top: topRuns * runH + 8 };
 }
 // how strongly an empty cell's color shows: values mode = the 40% "background
 // art" rule he asked for; art mode = full-strength preview. Filled cells are
@@ -456,17 +473,17 @@ function render() {
   cx.clearRect(0, 0, bw, bh);
   cx.fillStyle = PAPER; cx.fillRect(0, 0, bw, bh);
   // clues
-  cx.fillStyle = CLUE; cx.font = "10px ui-monospace, Menlo, monospace";
+  cx.fillStyle = CLUE; cx.font = geo.font + "px ui-monospace, Menlo, monospace";
   cx.textAlign = "center"; cx.textBaseline = "middle";
   cells.forEach((row, y) => {
     const hints = geo.rowHints[y];
     const run = (hints.length === 1 && hints[0] === 0) ? [] : hints;
-    run.forEach((v, i) => cx.fillText(v, geo.left - (run.length - i) * 16 + 8, geo.top + y * geo.cell + geo.cell / 2));
+    run.forEach((v, i) => cx.fillText(v, geo.left - (run.length - i) * geo.runW + geo.runW / 2, geo.top + y * geo.cell + geo.cell / 2));
   });
   for (let x = 0; x < W; x++) {
     const hints = geo.colHints[x];
     const run = (hints.length === 1 && hints[0] === 0) ? [] : hints;
-    run.forEach((v, i) => cx.fillText(v, geo.left + x * geo.cell + geo.cell / 2, geo.top - (run.length - i) * 15 + 6));
+    run.forEach((v, i) => cx.fillText(v, geo.left + x * geo.cell + geo.cell / 2, geo.top - (run.length - i) * geo.runH + Math.round(geo.runH * 0.4)));
   }
   // cells
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
