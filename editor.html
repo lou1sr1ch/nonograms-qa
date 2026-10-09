@@ -40,18 +40,30 @@
   textarea { width:100%; min-height:88px; font-family:ui-monospace, Menlo, monospace; }
   .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px; }
   .hint { color:var(--dim); font-size:12.5px; }
-  .givenCell::after { content:""; position:absolute; inset:2px; border:2px solid #fff;
-                      border-radius:50%; }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .seg button { border:0; border-radius:0; }
+  .seg button + button { border-left:1px solid var(--line); }
+  .swatch { width:26px; height:26px; border-radius:7px; border:2px solid var(--line);
+            cursor:pointer; padding:0; }
+  .swatch.on { border-color:#fff; }
+  input[type=color] { width:34px; height:30px; border:1px solid var(--line); border-radius:8px;
+                      background:#262140; padding:2px; cursor:pointer; }
+  #selftest { font-family:ui-monospace, Menlo, monospace; font-size:12px; white-space:pre;
+              margin:10px 0; padding:8px 10px; border-radius:8px; display:none; }
+  #selftest.ok { display:block; background:#14301f; border:1px solid var(--good); color:var(--good); }
+  #selftest.bad { display:block; background:#331418; border:1px solid var(--bad); color:var(--bad); }
 </style>
 </head>
 <body>
 <h1>Puzzle editor</h1>
-<p class="sub">The retired in-app editor, recreated as a standalone drafting station. Draw a grid, watch the
-clues compute live, and classify with the same solver engine as the fleet checker (a faithful port of
-<code>solvability_check.py</code>, the Phase 2 baseline). A draft is shippable when it classifies
-<b style="color:var(--good)">CLEAN</b> (unique + line-solvable from empty) or
-<b style="color:var(--warn)">NEEDS-GUESSING</b> with a givens draft of 3 or fewer filled cells. Everything
-autosaves in this browser.</p>
+<p class="sub">The retired in-app editor, recreated as a standalone drafting station — now with the two things the
+old one had: a <b>Values / Art</b> switch and real color. <b style="color:var(--ink)">Values</b> mode edits the
+solution itself (which cells are filled — the clues follow it). <b style="color:var(--ink)">Art</b> mode paints
+colors and never touches the solution: color a <i>filled</i> cell to set its picture color, color an
+<i>empty</i> cell to set a soft accent that only appears on the win reveal. The <b>brush</b> switch chooses how
+painting acts: <b style="color:var(--ink)">Drag</b> paints every cell the pointer crosses (with gap-filling);
+<b style="color:var(--ink)">Tap</b> changes only the cell you click, so fixing one cell in the middle never
+disturbs its neighbors. Classify runs the same solver engine as the fleet checker. Everything autosaves.</p>
 
 <div class="bar">
   <label>name <input type="text" id="nameInput" placeholder="untitled" maxlength="30"></label>
@@ -68,15 +80,42 @@ autosaves in this browser.</p>
   <label>w <input type="number" id="cw" min="4" max="25" value="15"></label>
   <label>h <input type="number" id="ch" min="4" max="25" value="10"></label>
   <button id="newBtn">+ New</button>
-  <button id="inkBtn" class="on">Ink</button>
-  <button id="eraseBtn">Erase</button>
-  <button id="mirrorBtn" title="mirror horizontally">Mirror: off</button>
   <button id="undoBtn">Undo</button>
   <button id="clearBtn">Clear</button>
+  <button id="mirrorBtn" title="mirror horizontally">Mirror: off</button>
   <button id="classifyBtn" style="background:var(--accent); color:#14102a; font-weight:600;">Classify</button>
 </div>
 
+<div class="bar">
+  <span class="seg" title="what you're editing">
+    <button id="modeValBtn" class="on">Values</button>
+    <button id="modeArtBtn">Art</button>
+  </span>
+  <span class="hint" id="modeHint">editing the solution — filled cells drive the clues</span>
+  <span style="width:10px"></span>
+  <span class="seg" title="how painting acts">
+    <button id="brushDragBtn" class="on">Drag</button>
+    <button id="brushTapBtn">Tap</button>
+  </span>
+  <span class="hint">drag paints the pointer's path · tap changes only the clicked cell</span>
+</div>
+
+<div class="bar" id="valuesBar">
+  <button id="inkBtn" class="on">Ink</button>
+  <button id="eraseBtn">Erase</button>
+  <span class="hint">ink fills a cell (part of the solution) · erase empties it and drops its color</span>
+</div>
+
+<div class="bar" id="artBar" style="display:none;">
+  <span class="hint">color</span>
+  <span id="palette" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;"></span>
+  <input type="color" id="customColor" value="#e63946" title="custom color">
+  <button id="artClearBtn">Clear color</button>
+  <span class="hint">filled cell = picture color · empty cell = accent (win reveal only) · Clear color resets the cell to default</span>
+</div>
+
 <canvas id="board"></canvas>
+<div id="selftest"></div>
 
 <div class="panel">
   <h2>Classification</h2>
@@ -84,8 +123,8 @@ autosaves in this browser.</p>
   givens). NEEDS-GUESSING = unique but pure line-logic stalls; the givens draft rings the cells to pre-reveal
   so the seeded puzzle line-solves, greedy-minimal per the 2026-08-29 drafter. Fleet cap: 3 givens, filled
   cells only — a draft over 3 or with an empty cell means nudge the art. NON-UNIQUE = more than one filling
-  satisfies the clues, which breaks the exact-match win check. Classification runs on demand; big sparse
-  boards can take a few seconds.</div>
+  satisfies the clues, which breaks the exact-match win check. Colors never affect classification — they ride
+  on top of the solution. Classification runs on demand; big sparse boards can take a few seconds.</div>
   <div class="status" id="statusBox">not classified yet</div>
   <div id="givenList" class="hint" style="margin-top:6px;"></div>
 </div>
@@ -93,7 +132,9 @@ autosaves in this browser.</p>
 <div class="panel">
   <h2>Export draft</h2>
   <div class="hint">Seed-shaped JSON (the record an <code>_apply_edits</code> script would write) plus a text
-  dump. Paste either back into Import to continue later.</div>
+  dump. <code>truth</code> is the solution; <code>colors</code> carries the art — hex on filled cells (the
+  picture) and on empty cells (win-reveal accents), "" where uncolored. Paste either back into Import to
+  continue later.</div>
   <div class="row">
     <button id="exportBtn">Generate export</button>
     <button id="copyBtn" disabled>Copy to clipboard</button>
@@ -112,7 +153,8 @@ autosaves in this browser.</p>
   <div class="row">
     <select id="fleetSel"><option value="">pick from the library…</option></select>
     <button id="fleetLoadBtn">Load copy</button>
-    <span class="hint">loads an editable copy; the seed itself is never touched from here</span>
+    <span class="hint">loads an editable copy, colors included; the seed itself is never touched from here.
+    The scorpion restage waits under "Restages".</span>
   </div>
 </div>
 
@@ -124,18 +166,29 @@ const FLEET = LIBRARY;
 
 // ---- state ----
 let W = 15, H = 10;
-let cells = [];           // cells[y][x] = bool
-let tool = "ink";
+let cells = [];           // cells[y][x] = bool — the solution (F values)
+let art = [];             // art[y][x] = "" or "#rrggbb" — picture color on filled cells,
+                          // win-reveal accent on empty cells; never affects the clues
+let mode = "values";      // "values" | "art"
+let brush = "drag";       // "drag" paints the pointer path · "tap" changes only the clicked cell
+let tool = "ink";         // values mode: "ink" | "erase"
+let artTool = "#e63946";  // art mode: a hex color, or "clear"
 let mirror = false;
-let undoStack = [];
+let undoStack = [];       // snapshots of {cells, art}
 let lastGivenCells = null;
 const LS_KEY = "noqa.editor.autosave";
 
+const DEFAULT_SWATCHES = ["#e63946","#f4a261","#e9c46a","#2a9d8f","#43aa8b","#577590",
+                          "#1358f3","#8f7bff","#b5179e","#f72585","#8d6e63","#f8f9fa"];
+
 function blank(w, h) { return Array.from({length: h}, () => Array(w).fill(false)); }
+function blankArt(w, h) { return Array.from({length: h}, () => Array(w).fill("")); }
+function snapshot() { return JSON.stringify({ c: cells, a: art }); }
 function setSize(w, h) {
   W = Math.max(4, Math.min(25, w | 0));
   H = Math.max(4, Math.min(25, h | 0));
   cells = blank(W, H);
+  art = blankArt(W, H);
   undoStack = []; lastGivenCells = null;
   document.getElementById("cw").value = W;
   document.getElementById("ch").value = H;
@@ -376,7 +429,23 @@ function render() {
   // cells
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const px = geo.left + x * geo.cell, py = geo.top + y * geo.cell;
-    if (cells[y][x]) { cx.fillStyle = INK; cx.fillRect(px + 1, py + 1, geo.cell - 2, geo.cell - 2); }
+    const color = art[y][x];
+    if (cells[y][x]) {
+      cx.fillStyle = color || INK;
+      cx.fillRect(px + 1, py + 1, geo.cell - 2, geo.cell - 2);
+    } else if (color) {
+      // win-reveal accent preview: the color, softly, under diagonal stripes —
+      // distinct from a solid filled cell at a glance
+      cx.globalAlpha = 0.30;
+      cx.fillStyle = color;
+      cx.fillRect(px + 1, py + 1, geo.cell - 2, geo.cell - 2);
+      cx.globalAlpha = 1;
+      cx.strokeStyle = color; cx.lineWidth = 1;
+      cx.beginPath();
+      cx.moveTo(px + 3, py + geo.cell - 3); cx.lineTo(px + geo.cell - 3, py + 3);
+      cx.stroke();
+      cx.lineWidth = 1;
+    }
     cx.strokeStyle = GRID; cx.strokeRect(px + 0.5, py + 0.5, geo.cell, geo.cell);
   }
   // givens rings
@@ -406,16 +475,32 @@ function cellFromEvent(e) {
   return [x, y];
 }
 function applyCell(x, y) {
-  const v = tool === "ink";
+  // one cell, per the active mode + tool. Never touches the other grid except
+  // where the old editor did: values-erase drops the cell's color with it.
   let touched = false;
-  cells[y][x] = v; touched = true;
-  if (mirror) { cells[y][W - 1 - x] = v; touched = true; }
+  if (mode === "values") {
+    const v = tool === "ink";
+    if (cells[y][x] !== v) { cells[y][x] = v; touched = true; }
+    if (!v && art[y][x]) { art[y][x] = ""; touched = true; }
+    if (mirror) {
+      const mx = W - 1 - x;
+      if (cells[y][mx] !== v) { cells[y][mx] = v; touched = true; }
+      if (!v && art[y][mx]) { art[y][mx] = ""; touched = true; }
+    }
+  } else {
+    const v = artTool === "clear" ? "" : artTool;
+    if (art[y][x] !== v) { art[y][x] = v; touched = true; }
+    if (mirror) {
+      const mx = W - 1 - x;
+      if (art[y][mx] !== v) { art[y][mx] = v; touched = true; }
+    }
+  }
   return touched;
 }
 cv.addEventListener("pointerdown", e => {
   e.preventDefault();
   cv.setPointerCapture(e.pointerId);
-  if (!strokeChanged) { undoStack.push(JSON.stringify(cells)); if (undoStack.length > 120) undoStack.shift(); }
+  if (!strokeChanged) { undoStack.push(snapshot()); if (undoStack.length > 120) undoStack.shift(); }
   drawing = true; strokeChanged = true;
   const c = cellFromEvent(e);
   if (c) { applyCell(c[0], c[1]); lastCell = c; render(); }
@@ -424,6 +509,7 @@ cv.addEventListener("pointermove", e => {
   if (!drawing) return;
   const c = cellFromEvent(e);
   if (!c) return;
+  if (brush === "tap") return; // tap brush: only the clicked cell changes
   if (lastCell) {
     // interpolate the segment so fast drags leave no gaps
     let [x0, y0] = lastCell; const [x1, y1] = c;
@@ -457,9 +543,73 @@ document.getElementById("sizePreset").addEventListener("change", e => {
 });
 document.getElementById("cw").addEventListener("change", e => setSize(+e.target.value, H));
 document.getElementById("ch").addEventListener("change", e => setSize(W, +e.target.value));
+
+// mode switch: Values edits the solution, Art paints colors on top of it
+const modeValBtn = document.getElementById("modeValBtn"), modeArtBtn = document.getElementById("modeArtBtn");
+function setMode(m) {
+  mode = m;
+  modeValBtn.classList.toggle("on", m === "values");
+  modeArtBtn.classList.toggle("on", m === "art");
+  document.getElementById("valuesBar").style.display = m === "values" ? "" : "none";
+  document.getElementById("artBar").style.display = m === "art" ? "" : "none";
+  document.getElementById("modeHint").textContent = m === "values"
+    ? "editing the solution — filled cells drive the clues"
+    : "painting colors — never touches the solution";
+}
+modeValBtn.addEventListener("click", () => setMode("values"));
+modeArtBtn.addEventListener("click", () => setMode("art"));
+
+// brush switch: Drag paints the pointer's path, Tap changes only the clicked cell
+const brushDragBtn = document.getElementById("brushDragBtn"), brushTapBtn = document.getElementById("brushTapBtn");
+function setBrush(b) {
+  brush = b;
+  brushDragBtn.classList.toggle("on", b === "drag");
+  brushTapBtn.classList.toggle("on", b === "tap");
+}
+brushDragBtn.addEventListener("click", () => setBrush("drag"));
+brushTapBtn.addEventListener("click", () => setBrush("tap"));
+
 const inkBtn = document.getElementById("inkBtn"), eraseBtn = document.getElementById("eraseBtn");
 inkBtn.addEventListener("click", () => { tool = "ink"; inkBtn.classList.add("on"); eraseBtn.classList.remove("on"); });
 eraseBtn.addEventListener("click", () => { tool = "erase"; eraseBtn.classList.add("on"); inkBtn.classList.remove("on"); });
+
+// art palette: default swatches + the loaded puzzle's own colors up front
+const paletteEl = document.getElementById("palette");
+function buildPalette(extraColors) {
+  const colors = [];
+  for (const c of (extraColors || [])) if (c && !colors.includes(c)) colors.push(c);
+  for (const c of DEFAULT_SWATCHES) if (!colors.includes(c)) colors.push(c);
+  paletteEl.textContent = "";
+  for (const c of colors.slice(0, 24)) {
+    const b = document.createElement("button");
+    b.className = "swatch" + (c === artTool ? " on" : "");
+    b.style.background = c;
+    b.title = c;
+    b.addEventListener("click", () => {
+      artTool = c;
+      document.getElementById("artClearBtn").classList.remove("on");
+      paletteEl.querySelectorAll(".swatch").forEach(s => s.classList.toggle("on", s.style.background === hexToRgbStyle(c)));
+    });
+    paletteEl.appendChild(b);
+  }
+}
+function hexToRgbStyle(hex) {
+  // canvas swatch buttons store style.background as rgb(); compare through the same conversion
+  const n = parseInt(hex.slice(1), 16);
+  return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
+}
+document.getElementById("customColor").addEventListener("input", e => {
+  artTool = e.target.value;
+  document.getElementById("artClearBtn").classList.remove("on");
+  paletteEl.querySelectorAll(".swatch").forEach(s => s.classList.remove("on"));
+});
+const artClearBtn = document.getElementById("artClearBtn");
+artClearBtn.addEventListener("click", () => {
+  artTool = "clear";
+  artClearBtn.classList.add("on");
+  paletteEl.querySelectorAll(".swatch").forEach(s => s.classList.remove("on"));
+});
+
 const mirrorBtn = document.getElementById("mirrorBtn");
 mirrorBtn.addEventListener("click", () => {
   mirror = !mirror;
@@ -468,11 +618,16 @@ mirrorBtn.addEventListener("click", () => {
 });
 document.getElementById("undoBtn").addEventListener("click", () => {
   const prev = undoStack.pop();
-  if (prev) { cells = JSON.parse(prev); autosave(); render(); resetStatus(); }
+  if (prev) {
+    const s = JSON.parse(prev);
+    cells = s.c; art = s.a;
+    autosave(); render(); resetStatus();
+  }
 });
 document.getElementById("clearBtn").addEventListener("click", () => {
-  undoStack.push(JSON.stringify(cells));
-  cells = blank(W, H); autosave(); render(); resetStatus();
+  undoStack.push(snapshot());
+  cells = blank(W, H); art = blankArt(W, H);
+  autosave(); render(); resetStatus();
 });
 document.getElementById("classifyBtn").addEventListener("click", classify);
 document.getElementById("nameInput").addEventListener("input", autosave);
@@ -482,7 +637,7 @@ let lastExport = "";
 document.getElementById("exportBtn").addEventListener("click", () => {
   const name = document.getElementById("nameInput").value.trim() || "untitled";
   const truth = cells.map(r => r.map(Boolean));
-  const colors = cells.map(r => r.map(v => v ? "" : ""));
+  const colors = art.map(r => r.slice()); // "" = uncolored; filled cells default to ink, empty cells render nothing
   const givens = lastGivenCells ? lastGivenCells.map(([x, y]) => [y, x]) : []; // seed: 0-based [row,col], filled cells only per the checker
   const draft = {
     id: "00XX", name, width: W, height: H, truth, colors,
@@ -510,13 +665,20 @@ document.getElementById("importBtn").addEventListener("click", () => {
     if (!d.truth || !d.truth.length) throw new Error("no truth grid");
     const h = d.height || d.truth.length, w = d.width || d.truth[0].length;
     setSize(w, h);
-    cells = blank(W, H);
     for (let y = 0; y < Math.min(H, d.truth.length); y++)
       for (let x = 0; x < Math.min(W, d.truth[y].length); x++)
         cells[y][x] = !!d.truth[y][x];
+    const dc = d.colors;
+    if (Array.isArray(dc)) {
+      for (let y = 0; y < Math.min(H, dc.length); y++)
+        if (Array.isArray(dc[y]))
+          for (let x = 0; x < Math.min(W, dc[y].length); x++)
+            art[y][x] = typeof dc[y][x] === "string" ? dc[y][x] : "";
+    }
     if (d.name) document.getElementById("nameInput").value = d.name;
     undoStack = []; lastGivenCells = null;
     if (Array.isArray(d.givens) && d.givens.length) lastGivenCells = d.givens.map(([ry, rx]) => [rx, ry]); // 0-based [row, col]
+    buildPalette(art.flat().filter(Boolean));
     autosave(); render(); resetStatus();
     msg.textContent = "imported " + W + "x" + H;
   } catch (err) { msg.textContent = "import failed: " + err.message; }
@@ -546,9 +708,12 @@ document.getElementById("fleetLoadBtn").addEventListener("click", () => {
   const p = FLEET.find(q => q.id === fleetSel.value);
   if (!p) return;
   setSize(p.w, p.h);
-  cells = blank(W, H);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) cells[y][x] = !!p.t[y][x];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    cells[y][x] = !!p.t[y][x];
+    art[y][x] = (p.c && p.c[y] && typeof p.c[y][x] === "string") ? p.c[y][x] : "";
+  }
   document.getElementById("nameInput").value = p.n + " (copy)";
+  buildPalette(art.flat().filter(Boolean));
   autosave(); render(); resetStatus();
 });
 
@@ -559,7 +724,7 @@ function autosave() {
   saveTimer = setTimeout(() => {
     try {
       localStorage.setItem(LS_KEY, JSON.stringify({
-        w: W, h: H, cells, name: document.getElementById("nameInput").value
+        w: W, h: H, cells, art, name: document.getElementById("nameInput").value
       }));
     } catch {}
   }, 250);
@@ -569,13 +734,85 @@ function autosave() {
     const s = JSON.parse(localStorage.getItem(LS_KEY) || "null");
     if (s && s.cells) {
       W = s.w; H = s.h; cells = s.cells;
+      art = (s.art && s.art.length === s.cells.length) ? s.art : blankArt(W, H);
       document.getElementById("nameInput").value = s.name || "";
       document.getElementById("cw").value = W; document.getElementById("ch").value = H;
       syncPreset();
-    } else cells = blank(W, H);
-  } catch { cells = blank(W, H); }
+    } else { cells = blank(W, H); art = blankArt(W, H); }
+  } catch { cells = blank(W, H); art = blankArt(W, H); }
 })();
+
+// ---- selftest (?selftest=1 — headless verification hook, runs only with the flag) ----
+(function selftest() {
+  if (!location.search.includes("selftest=1")) return;
+  const out = [];
+  const ok = (name, cond) => out.push((cond ? "PASS " : "FAIL ") + name);
+  try {
+    const sc = FLEET.find(q => q.id === "restage-0062");
+    ok("library has restage-0062", !!sc);
+    ok("scorpion fills = 67", sc && sc.t.flat().reduce((a, b) => a + b, 0) === 67);
+    ok("scorpion has colors", sc && sc.c.flat().filter(Boolean).length === 67);
+    // simulate the fleet-load path
+    setSize(sc.w, sc.h);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      cells[y][x] = !!sc.t[y][x];
+      art[y][x] = (sc.c && sc.c[y]) ? sc.c[y][x] : "";
+    }
+    ok("loaded truth sum", cells.flat().filter(Boolean).length === 67);
+    ok("loaded art count", art.flat().filter(Boolean).length === 67);
+    // tap brush + art mode paint an accent on an empty cell
+    setMode("art"); setBrush("tap");
+    let ex = -1, ey = -1;
+    outer: for (let y = 0; y < H; y++) for (let x = 0; x < W; x++)
+      if (!cells[y][x]) { ex = x; ey = y; break outer; }
+    const before = cells.flat().filter(Boolean).length;
+    undoStack.push(snapshot());
+    applyCell(ex, ey);
+    ok("art paint leaves solution untouched", cells.flat().filter(Boolean).length === before);
+    ok("art paint sets accent", art[ey][ex] === artTool);
+    // values erase drops the color with the cell
+    setMode("values"); tool = "erase";
+    let fx = -1, fy = -1;
+    outer2: for (let y = 0; y < H; y++) for (let x = 0; x < W; x++)
+      if (cells[y][x]) { fx = x; fy = y; break outer2; }
+    applyCell(fx, fy);
+    ok("values erase clears cell", cells[fy][fx] === false);
+    ok("values erase drops color", art[fy][fx] === "");
+    // undo restores both grids
+    const s = JSON.parse(undoStack.pop());
+    cells = s.c; art = s.a;
+    ok("undo restores accent", art[ey][ex] === "");
+    ok("undo restores cell", cells[fy][fx] === true);
+    // export carries colors
+    setMode("values");
+    lastGivenCells = null;
+    document.getElementById("exportBtn").click();
+    const j = lastExport.slice(lastExport.indexOf("{"), lastExport.lastIndexOf("}") + 1);
+    const draft = JSON.parse(j);
+    ok("export has colors grid", Array.isArray(draft.colors) && draft.colors.length === H);
+    ok("export colors match art", draft.colors.flat().filter(Boolean).length === art.flat().filter(Boolean).length);
+    ok("export truth matches cells", draft.truth.flat().filter(Boolean).length === 67);
+    const fails = out.filter(l => l.startsWith("FAIL")).length;
+    const el = document.getElementById("selftest");
+    el.className = fails ? "bad" : "ok";
+    el.textContent = "SELFTEST " + (fails ? "FAIL " : "PASS ") + (out.length - fails) + "/" + out.length + "\n" + out.join("\n");
+  } catch (err) {
+    const el = document.getElementById("selftest");
+    el.className = "bad";
+    el.textContent = "SELFTEST ERROR " + err.message + "\n" + out.join("\n");
+  }
+  setMode("values"); setBrush("drag"); tool = "ink";
+  inkBtn.classList.add("on"); eraseBtn.classList.remove("on");
+  // leave no trace: the test's autosaves must not shape his next real session
+  try { localStorage.removeItem(LS_KEY); } catch {}
+  W = 15; H = 10; cells = blank(W, H); art = blankArt(W, H);
+  document.getElementById("nameInput").value = "";
+  document.getElementById("cw").value = W; document.getElementById("ch").value = H;
+  syncPreset(); render(); resetStatus();
+})();
+
 window.addEventListener("resize", render);
+buildPalette([]);
 render();
 </script>
 </body>
