@@ -3,32 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Logo intro — trace study</title>
+<title>Logo intro — true-trace study</title>
 <!--
-  LOGO INTRO TRACE STUDY (round 23)
-  His deferred ideal, from the doctrine: "logo ballpoint-trace animation
-  (letter by letter, one word at a time, like a pen writing)". The shipped
-  hero is a clip wipe; this page is the pen-trace candidate for his eyeball.
+  LOGO INTRO TRUE-TRACE STUDY (round 24, v2)
+  His round-24 corrections to the v1 trace study:
+    1. "like a pen" was a metaphor for the DRAWING ORDER/DIRECTION only — the
+       finished frame must be the REAL wordmark, not handwritten-looking
+       strokes. The QA build's wordmark IS Aghja (index.html hero-title,
+       style.css --font-logo), so the v1 letterforms looking "veryyy different"
+       meant something WAS wrong: v1's guide renders silently fell back to a
+       system font, and the hand-traced centerlines described THAT font.
+    2. Remove the pen-nib cursor dot entirely.
+    3. Letters appear at FULL font weight as they're drawn (the revealed part
+       is the true filled glyph, never a hairline that thickens).
+    4. Background work is a separate task — not touched here.
 
-  Methodology (recorded since 2026-08-26 in style.css's hero-write comment):
-  "the real thing needs the wordmark vectorized to single-stroke SVG paths
-  animated by stroke-dashoffset." That is exactly what this page is: one
-  centerline path per pen stroke, drawn in order by shrinking each path's
-  dash gap, with a pen-nib dot leading the current stroke.
-
-  Coordinates: hand-traced over the Aghja wordmark at font-size 220 (guides
-  rendered headless, /tmp/guide_nonograms.png + /tmp/guide_original.png,
-  shown under ?guide=1). The fills are NOT exact Aghja silhouettes — this
-  study answers the trace FEEL only; the production pass extracts the exact
-  glyph outlines from fonts/Aghja.otf (fonttools) for the fill layer while
-  these centerlines drive the trace.
-
-  Engineering per the Visual/animation doctrine: transform/opacity-class
-  motion only, rAF paused when hidden, prefers-reduced-motion = the finished
-  wordmark instantly, ?freeze=<seconds> renders one deterministic frame for
-  sim screenshots.
+  Construction:
+    - Exact glyph outlines extracted from fonts/Aghja.otf with fonttools
+      (11 unique glyphs for "Nonograms Original"; no ligatures in the font;
+      advances/positions measured live with canvas so spacing and kerning
+      match the browser's own layout of the wordmark).
+    - The pen is a MASK: each glyph is filled with its true outline, clipped
+      by a mask holding a wide round-capped "ink window" that advances along
+      a hand-authored centerline (order/direction = pen path; window width
+      90 font units vs Aghja's ~60-unit stems, so revealed ink is full weight).
+    - The i-dots tap: a circle in the mask grows at the dot after the stem.
+    - At finish every mask is removed — the final frame is the unmasked,
+      mathematically exact wordmark. Speed/gaps unchanged from v1 (approved).
+  Dev aids: ?freeze=<s> deterministic frame; ?guide=1 ghosts the live-rendered
+  Aghja wordmark underneath. Reduced motion = finished wordmark.
 -->
 <style>
+  @font-face { font-family: "Aghja"; src: url("fonts/Aghja.otf") format("opentype"); font-weight: 500; }
   :root { --espresso:#2d1f17; --foam:#faf3e6; --oat:#f1e7d3; --steam:#cfc4b0; }
   * { box-sizing:border-box; }
   body { margin:0; min-height:100vh; display:flex; flex-direction:column;
@@ -37,14 +43,7 @@
          font:14px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
          color:var(--espresso); }
   svg { width:min(1150px, 94vw); height:auto; display:block; }
-  #wordmark path { fill:none; stroke:var(--espresso);
-         stroke-linecap:round; stroke-linejoin:round;
-         transition:stroke-width .7s cubic-bezier(.33,1,.68,1); }
-  #wordmark.settled path { stroke-width:6.4; }
-  #wordmark.settled .dot { opacity:1; }
-  .note code { background:rgba(45,31,23,.08); border-radius:5px; padding:1px 5px; }
-  .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-         justify-content:center; }
+  .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
   button { background:var(--espresso); color:var(--foam); border:0;
          border-radius:9px; padding:8px 16px; font-size:13.5px; cursor:pointer; }
   button:active { transform:translateY(1px); }
@@ -52,64 +51,12 @@
   select { border:1px solid var(--steam); border-radius:8px; padding:6px 9px;
          background:var(--foam); color:var(--espresso); font-size:13px; }
   .note { font-size:12px; color:#8a7663; max-width:70ch; text-align:center; margin:0; }
+  .note code { background:rgba(45,31,23,.08); border-radius:5px; padding:1px 5px; }
+  #guide text { font-family:"Aghja", serif; font-weight:500; }
 </style>
 </head>
 <body>
-<svg id="wordmark" viewBox="0 0 3450 760" role="img" aria-label="Nonograms Original — traced logo study">
-  <!-- ============ NONOGRAMS (baseline y=420, x-top 297, cap-top 187) ============ -->
-  <g id="w1">
-    <!-- N: left stem, then diagonal + right stem -->
-    <path data-l="0" data-s="0" stroke-width="5" d="M 150 200 C 146 280 147 350 151 416"/>
-    <path data-l="0" data-s="1" stroke-width="5" d="M 160 208 C 206 252 244 330 270 414 C 283 348 291 268 296 204"/>
-    <!-- o -->
-    <path data-l="1" data-s="0" stroke-width="5" d="M 340 330 C 356 299 444 299 461 335 C 477 369 459 414 405 417 C 351 419 325 379 340 330"/>
-    <!-- n -->
-    <path data-l="2" data-s="0" stroke-width="5" d="M 512 300 C 510 345 511 385 513 416 C 516 427 524 422 527 412 C 538 368 554 330 580 317 C 609 302 639 312 645 346 C 650 376 647 400 645 417"/>
-    <!-- o -->
-    <path data-l="3" data-s="0" stroke-width="5" d="M 677 330 C 693 299 781 299 798 335 C 814 369 796 414 742 417 C 688 419 662 379 677 330"/>
-    <!-- g: bowl + descender loop -->
-    <path data-l="4" data-s="0" stroke-width="5" d="M 840 330 C 856 299 938 299 955 335 C 971 369 953 414 901 417 C 849 419 824 379 840 330"/>
-    <path data-l="4" data-s="1" stroke-width="5" d="M 949 398 C 961 450 954 496 914 519 C 879 538 846 526 851 504 C 855 487 876 485 886 497"/>
-    <!-- r -->
-    <path data-l="5" data-s="0" stroke-width="5" d="M 1008 305 C 1006 350 1007 390 1009 416 C 1012 427 1020 422 1023 412 C 1030 383 1041 358 1059 349 C 1076 341 1089 349 1093 367"/>
-    <!-- a: bowl + right stem -->
-    <path data-l="6" data-s="0" stroke-width="5" d="M 1130 332 C 1143 303 1215 301 1231 334 C 1246 364 1231 411 1186 415 C 1141 419 1116 380 1130 332"/>
-    <path data-l="6" data-s="1" stroke-width="5" d="M 1231 340 C 1235 370 1235 395 1237 417"/>
-    <!-- m -->
-    <path data-l="7" data-s="0" stroke-width="5" d="M 1305 305 C 1303 350 1304 390 1306 416 C 1309 427 1317 422 1320 412 C 1330 370 1345 333 1370 323 C 1398 312 1418 328 1422 360 C 1425 386 1424 403 1424 416 C 1427 427 1435 422 1438 412 C 1448 370 1463 333 1488 323 C 1516 312 1536 328 1540 360 C 1543 386 1542 403 1542 416"/>
-    <!-- s -->
-    <path data-l="8" data-s="0" stroke-width="5" d="M 1695 318 C 1668 294 1612 294 1587 324 C 1567 349 1582 371 1617 377 C 1662 384 1695 391 1697 414 C 1699 437 1651 446 1610 434 C 1587 427 1571 417 1563 404"/>
-  </g>
-  <!-- ============ ORIGINAL (shifted +1900; baseline y=424, cap-top 192) ============ -->
-  <g id="w2">
-    <!-- O -->
-    <path data-l="9" data-s="0" stroke-width="5" d="M 2045 250 C 2070 194 2158 194 2184 254 C 2207 309 2184 384 2115 387 C 2046 389 2020 309 2045 250"/>
-    <!-- r -->
-    <path data-l="10" data-s="0" stroke-width="5" d="M 2270 300 C 2268 345 2269 390 2271 418 C 2274 429 2282 424 2285 414 C 2292 383 2302 358 2320 349 C 2337 341 2350 349 2354 367"/>
-    <!-- i (stem; dot pops after) -->
-    <path data-l="11" data-s="0" stroke-width="5" d="M 2465 300 C 2463 345 2464 390 2466 418"/>
-    <!-- g: bowl + descender -->
-    <path data-l="12" data-s="0" stroke-width="5" d="M 2544 330 C 2559 299 2641 299 2658 335 C 2674 369 2656 414 2604 417 C 2552 419 2527 379 2544 330"/>
-    <path data-l="12" data-s="1" stroke-width="5" d="M 2652 398 C 2664 455 2657 503 2617 526 C 2582 545 2548 533 2553 511 C 2557 494 2578 492 2588 504"/>
-    <!-- i (stem; dot pops after) -->
-    <path data-l="13" data-s="0" stroke-width="5" d="M 2769 300 C 2767 345 2768 390 2770 418"/>
-    <!-- n -->
-    <path data-l="14" data-s="0" stroke-width="5" d="M 2852 300 C 2850 345 2851 390 2853 418 C 2856 429 2864 424 2867 414 C 2877 370 2892 333 2917 323 C 2945 312 2965 328 2969 360 C 2972 386 2971 403 2971 418"/>
-    <!-- a: bowl + stem -->
-    <path data-l="15" data-s="0" stroke-width="5" d="M 3028 332 C 3041 303 3113 301 3129 334 C 3144 364 3129 411 3084 415 C 3039 419 3014 380 3028 332"/>
-    <path data-l="15" data-s="1" stroke-width="5" d="M 3129 340 C 3133 370 3133 395 3135 418"/>
-    <!-- l: up and back down with a foot -->
-    <path data-l="16" data-s="0" stroke-width="5" d="M 3252 413 C 3238 358 3236 278 3252 224 C 3265 184 3305 179 3312 217 C 3318 251 3302 277 3284 283 C 3270 287 3262 299 3263 329 C 3264 364 3266 394 3270 416 C 3273 429 3284 426 3292 418"/>
-  </g>
-  <!-- the two i-dots, traced as pen taps -->
-  <circle class="dot" data-dot="11" cx="2463" cy="236" r="34" fill="#2d1f17" opacity="0"
-          style="transition:opacity .12s ease-in"/>
-  <circle class="dot" data-dot="13" cx="2767" cy="236" r="34" fill="#2d1f17" opacity="0"
-          style="transition:opacity .12s ease-in"/>
-  <!-- pen nib: leads the stroke currently being drawn -->
-  <circle id="nibHalo" cx="0" cy="0" r="17" fill="rgba(45,31,23,.18)" opacity="0"/>
-  <circle id="nib" cx="0" cy="0" r="8" fill="#2d1f17" opacity="0"/>
-</svg>
+<svg id="wm" role="img" aria-label="Nonograms Original — true-trace logo study"></svg>
 <div class="controls">
   <button id="replay">Replay</button>
   <label>speed
@@ -121,72 +68,152 @@
     </select>
   </label>
 </div>
-<p class="note">Trace study — letter by letter, one word at a time, like a pen writing. <code>?freeze=2.2</code> holds one
-frame for screenshots; <code>?guide=1</code> lays the real Aghja wordmark under the strokes (dev aid). Reduced motion = finished wordmark.</p>
+<p class="note">True-trace v2 — the real Aghja wordmark, written letter by letter, one word at a time.
+Full font weight from the first visible pixel; no pen cursor. <code>?freeze=2.2</code> holds one frame;
+<code>?guide=1</code> ghosts the live-rendered wordmark underneath (dev aid). Reduced motion = finished wordmark.</p>
 <script>
 "use strict";
-const svg = document.getElementById("wordmark");
+const GLYPHS = {"N": {"adv": 500, "d": "M70 0C86 0 100 14 100 30V370C100 436 154 490 220 490C286 490 340 436 340 370V30C340 14 354 0 370 0C386 0 400 14 400 30V370C400 470 320 550 220 550C174 550 132 532 100 504V510C100 526 86 540 70 540C54 540 40 526 40 510V30C40 14 54 0 70 0Z"}, "O": {"adv": 500, "d": "M20 270C20 130 101 0 220 0C339 0 420 130 420 270C420 410 339 540 220 540C101 540 20 410 20 270ZM80 270C80 394 151 480 220 480C289 480 360 394 360 270C360 146 289 60 220 60C151 60 80 146 80 270Z"}, "a": {"adv": 420, "d": "M290 290C285 290 281 289 277 287C250 308 216 320 180 320C91 320 20 249 20 160C20 71 91 0 180 0C210 0 237 8 261 22C264 9 276 0 290 0C306 0 320 14 320 30V260C320 276 306 290 290 290ZM180 260C212 260 242 244 260 220V100C242 76 212 60 180 60C125 60 80 105 80 160C80 215 125 260 180 260Z"}, "g": {"adv": 420, "d": "M260 180V100C241 76 212 60 180 60C125 60 80 105 80 160C80 215 125 260 180 260C224 260 260 224 260 180ZM70 -226C70 -234 73 -241 79 -247C107 -275 142 -290 180 -290C258 -290 320 -228 320 -150V180C320 258 258 320 180 320C91 320 20 249 20 160C20 71 91 0 180 0C209 0 237 8 260 22V-150C260 -194 224 -230 180 -230C158 -230 139 -223 121 -205C115 -199 108 -196 100 -196C84 -196 70 -210 70 -226Z"}, "i": {"adv": 230, "d": "M70 440C70 423 83 410 100 410C117 410 130 423 130 440C130 457 117 470 100 470C83 470 70 457 70 440ZM110 320C94 320 80 306 80 290V30C80 14 94 0 110 0C126 0 140 14 140 30V290C140 306 126 320 110 320Z"}, "l": {"adv": 300, "d": "M220 30C220 46 206 60 190 60C152 60 120 92 120 130V410C120 448 152 480 190 480C206 480 220 494 220 510C220 526 206 540 190 540C118 540 60 482 60 410V130C60 58 118 0 190 0C206 0 220 14 220 30Z"}, "m": {"adv": 640, "d": "M70 0C86 0 100 14 100 30V170C100 219 141 260 190 260C228 260 260 228 260 190V30C260 14 274 0 290 0C306 0 320 14 320 30V170C320 219 361 260 410 260C448 260 480 228 480 190V30C480 14 494 0 510 0C526 0 540 14 540 30V190C540 262 482 320 410 320C364 320 323 299 295 266C271 299 233 320 190 320C156 320 125 309 100 290C100 306 86 320 70 320C54 320 40 306 40 290V30C40 14 54 0 70 0Z"}, "n": {"adv": 420, "d": "M70 0C86 0 100 14 100 30V170C100 219 141 260 190 260C228 260 260 228 260 190V30C260 14 274 0 290 0C306 0 320 14 320 30V190C320 262 262 320 190 320C156 320 125 309 100 290C100 306 86 320 70 320C54 320 40 306 40 290V30C40 14 54 0 70 0Z"}, "o": {"adv": 420, "d": "M20 160C20 71 91 0 180 0C269 0 340 71 340 160C340 249 269 320 180 320C91 320 20 249 20 160ZM80 160C80 215 125 260 180 260C235 260 280 215 280 160C280 105 235 60 180 60C125 60 80 105 80 160Z"}, "r": {"adv": 410, "d": "M310 30C310 34 309 39 307 43C290 78 280 118 280 160C280 202 290 242 307 277C309 281 310 286 310 290C310 305 298 320 280 320H70C54 320 40 306 40 290V30C40 14 54 0 70 0C86 0 100 14 100 30V260H236C226 230 220 195 220 160C220 108 232 60 253 17C258 6 269 0 280 0C298 0 310 15 310 30Z"}, "s": {"adv": 490, "d": "M150 50C150 12 218 0 250 0C339 0 410 71 410 160C410 249 339 320 250 320C241 320 232 315 227 309L7 49C2 43 0 37 0 30C0 14 13 0 30 0C39 0 47 4 53 11L263 259C311 253 350 211 350 160C350 105 305 60 250 60C229 60 211 65 196 75C191 78 186 80 180 80C165 80 150 67 150 50Z"}};
+const LINES = {"N": ["M 70 22 C 68 150 68 380 70 512", "M 78 500 C 150 516 205 512 245 492 C 315 455 368 370 368 210 C 368 130 368 60 368 24"], "O": ["M 372 270 C 372 358 304 425 220 425 C 136 425 68 358 68 270 C 68 182 136 115 220 115 C 304 115 372 182 372 270 Z"], "o": ["M 298 160 C 298 224 245 276 180 276 C 115 276 62 224 62 160 C 62 96 115 44 180 44 C 245 44 298 96 298 160 Z"], "n": ["M 70 20 C 68 120 68 220 70 290", "M 78 288 C 120 302 175 304 215 300 C 262 295 288 275 288 235 C 289 160 289 80 288 22"], "g": ["M 298 160 C 298 224 245 276 180 276 C 115 276 62 224 62 160 C 62 96 115 44 180 44 C 245 44 298 96 298 160 Z", "M 300 92 C 304 -10 303 -110 290 -175 C 272 -232 208 -258 138 -248"], "r": ["M 70 20 C 68 120 68 220 70 290", "M 78 290 C 140 310 220 308 266 292 C 286 252 292 205 295 155 C 298 105 297 55 294 20"], "a": ["M 272 160 C 272 218 222 264 160 264 C 98 264 48 218 48 160 C 48 102 98 56 160 56 C 222 56 272 102 272 160 Z", "M 316 288 C 318 200 318 90 316 22"], "m": ["M 70 20 C 68 130 68 230 70 290", "M 78 288 C 115 302 170 304 205 300 C 250 295 288 278 288 238 C 289 165 289 80 288 22", "M 296 288 C 335 302 400 304 445 300 C 490 294 508 274 508 235 C 509 160 509 75 508 20"], "s": ["M 242 298 C 318 290 398 238 404 163 C 410 82 348 14 262 13 C 182 12 124 56 128 112 C 131 156 182 176 252 186 C 326 196 380 220 382 257 C 384 295 310 317 235 312 C 172 308 132 288 130 256 C 128 230 152 216 178 224"], "i": ["M 100 22 L 100 290"], "l": ["M 132 16 C 134 140 135 300 137 415 C 139 478 168 515 205 510 C 232 506 244 482 237 458"]};
+const TAPS = {"i": {"x": 100, "y": 440, "r": 78}};
+const WORDS = ["Nonograms", "Original"];
+const STR = WORDS.join(" ");
+const FS = 220, S = FS / 1000;            // Aghja is 1000 units/em
+const LS = 2 * FS / 64;                   // app letter-spacing 2px at 64px, scaled
+const INK_SPEED = 2400;                   // font units per second (pen hand speed)
+const LETTER_GAP = 0.095, WORD_GAP = 0.55, START_PAUSE = 0.4, LINE_GAP = 0.02;
+const TAP_DELAY = 0.05, DOT_POP = 0.13;
+const BASE = 260;                         // baseline y in the viewBox
+const NS = "http://www.w3.org/2000/svg";
+
+const svg = document.getElementById("wm");
 const params = new URLSearchParams(location.search);
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const INK_SPEED = 2400;      // viewBox units per second — the pen's hand speed
-const LETTER_GAP = 0.095;    // pen lift between letters (s)
-const WORD_GAP = 0.55;       // longer lift between the two words (s)
-const START_PAUSE = 0.4;
-const DOT_POP = 0.13;        // i-dot tap (s)
-
-// ordered draw units: one stroke path each, dots scheduled after their letter
-const paths = [...svg.querySelectorAll("path[data-l]")];
-paths.sort((a, b) => (+a.dataset.l - +b.dataset.l) || (+a.dataset.s - +b.dataset.s));
-const dots = [...svg.querySelectorAll("circle[data-dot]")];
-
-// pre-measure every stroke
-const units = [];
-paths.forEach(p => {
-  const len = p.getTotalLength();
-  const prev = units[units.length - 1];
-  const letterGap = !prev ? START_PAUSE
-    : (prev.p.dataset.l === p.dataset.l ? 0.02 : (prev.p.dataset.l === "8" ? WORD_GAP : LETTER_GAP));
-  const dur = Math.min(0.5, Math.max(0.2, len / INK_SPEED));
-  const start = (prev ? prev.end : 0) + letterGap;
-  units.push({ p, len, start, dur, end: start + dur });
-});
-// simpler dot scheduling: a dot pops right after the LAST stroke of its letter
-const letterEnds = {};
-units.forEach(u => { letterEnds[u.p.dataset.l] = u.end; });
-const dotEvents = dots.map(d => ({ d, t: letterEnds[d.dataset.dot] + 0.05 }));
-
-const total = Math.max(...units.map(u => u.end), ...dotEvents.map(e => e.t)) + 0.55; // + settle
-const FINISH = total - 0.55;
-
 let speed = 1, t0 = null, raf = null, running = false;
+let units = [], taps = [], instances = [], masks = [], total = 0, FINISH = 0;
 
-function paintAt(t) {
-  let nibX = null, nibY = null;
-  for (const u of units) {
-    const p = Math.min(1, Math.max(0, (t - u.start) / u.dur));
-    const off = u.len * (1 - p);
-    u.p.style.strokeDasharray = u.len;
-    u.p.style.strokeDashoffset = off;
-    if (p > 0 && p < 1) {
-      const pt = u.p.getPointAtLength(u.len * p);
-      nibX = pt.x; nibY = pt.y;
+function el(tag) { return document.createElementNS(NS, tag); }
+
+function build() {
+  const ctx = document.createElement("canvas").getContext("2d");
+  ctx.font = "500 " + FS + "px Aghja";
+  ctx.letterSpacing = LS + "px";
+  const cum = [0];
+  for (let i = 1; i <= STR.length; i++) cum.push(ctx.measureText(STR.slice(0, i)).width);
+  const totalW = cum[STR.length];
+  svg.setAttribute("viewBox", "0 0 " + Math.ceil(totalW + 100) + " 340");
+
+  const defs = el("defs");
+  const gGuide = el("g");
+  gGuide.setAttribute("id", "guide");
+  gGuide.setAttribute("opacity", params.has("guide") ? "0.35" : "0");
+  const gGlyph = el("g");
+  svg.appendChild(defs);
+  svg.appendChild(gGuide);
+  svg.appendChild(gGlyph);
+
+  let prev = null, wordIdx = 0;
+  for (let i = 0; i < STR.length; i++) {
+    const ch = STR[i];
+    if (ch === " ") { wordIdx++; continue; }
+    const px = 50 + cum[i];
+    const inst = el("path");
+    inst.setAttribute("d", GLYPHS[ch].d);
+    inst.setAttribute("transform", "translate(" + px + " " + BASE + ") scale(" + S + ",-" + S + ")");
+    inst.style.fill = "var(--espresso)";
+    gGlyph.appendChild(inst);
+    instances.push(inst);
+
+    const mask = el("mask");
+    const mid = "m" + i;
+    // mask content shares the referencing glyph's LOCAL font-unit frame
+    // (userSpaceOnUse = the path's own coordinate system, transform included
+    // by the renderer when compositing) — no inner transform allowed.
+    mask.setAttribute("id", mid);
+    mask.setAttribute("maskUnits", "userSpaceOnUse");
+    mask.setAttribute("x", "-200"); mask.setAttribute("y", "-400");
+    mask.setAttribute("width", GLYPHS[ch].adv + 400); mask.setAttribute("height", "1200");
+    const mg = el("g");
+    mask.appendChild(mg);
+    defs.appendChild(mask);
+    inst.setAttribute("mask", "url(#" + mid + ")");
+    masks.push("url(#" + mid + ")");
+
+    for (const d of LINES[ch] || []) {
+      const w = el("path");
+      w.setAttribute("d", d);
+      w.setAttribute("class", "win");
+      w.setAttribute("stroke", "#fff");
+      w.setAttribute("stroke-width", "90");
+      w.setAttribute("fill", "none");
+      w.setAttribute("stroke-linecap", "round");
+      w.setAttribute("stroke-linejoin", "round");
+      mg.appendChild(w);
+    }
+    let tapCircle = null;
+    if (TAPS[ch]) {
+      tapCircle = el("circle");  // font-unit coords: local frame, like the lines
+      tapCircle.setAttribute("cx", TAPS[ch].x);
+      tapCircle.setAttribute("cy", TAPS[ch].y);
+      tapCircle.setAttribute("r", "0");
+      tapCircle.setAttribute("fill", "#fff");
+      mg.appendChild(tapCircle);
+    }
+
+    const wins = [...mg.querySelectorAll(".win")].map(p => {
+      const len = p.getTotalLength();
+      p.style.strokeDasharray = len;
+      p.style.strokeDashoffset = len;
+      return { p, len };
+    });
+    for (const w of wins) {
+      let gap;
+      if (!prev) gap = START_PAUSE;
+      else if (prev.word !== wordIdx) gap = WORD_GAP;
+      else if (prev.ch !== ch) gap = LETTER_GAP;
+      else gap = LINE_GAP;
+      const dur = Math.min(0.5, Math.max(0.2, w.len / INK_SPEED));
+      const start = prev ? prev.end + gap : gap;
+      const u = { p: w.p, len: w.len, start, dur, end: start + dur, ch, word: wordIdx };
+      units.push(u);
+      prev = u;
+    }
+    if (tapCircle) {
+      taps.push({ c: tapCircle, t: prev.end + TAP_DELAY, r: TAPS[ch].r });
     }
   }
-  for (const e of dotEvents) {
-    e.d.style.opacity = t >= e.t ? 1 : 0;
-  }
-  const nib = document.getElementById("nib"), halo = document.getElementById("nibHalo");
-  if (nibX !== null) {
-    nib.setAttribute("cx", nibX); nib.setAttribute("cy", nibY); nib.setAttribute("opacity", 1);
-    halo.setAttribute("cx", nibX); halo.setAttribute("cy", nibY); halo.setAttribute("opacity", 1);
-  } else {
-    nib.setAttribute("opacity", 0); halo.setAttribute("opacity", 0);
-  }
-  const done = t >= FINISH;
-  svg.classList.toggle("settled", done);
-  return done;
+
+  WORDS.forEach((w, wi) => {
+    const t = el("text");
+    t.setAttribute("x", wi === 0 ? 50 : 50 + cum[WORDS[0].length + 1]);
+    t.setAttribute("y", BASE);
+    t.setAttribute("font-size", FS);
+    t.setAttribute("letter-spacing", LS);
+    t.style.fill = "var(--espresso)";
+    t.textContent = w;
+    gGuide.appendChild(t);
+  });
+
+  total = Math.max(...units.map(u => u.end), ...taps.map(t => t.t + DOT_POP), 0) + 0.25;
+  FINISH = total - 0.25;
 }
 
+function paintAt(t) {
+  for (const u of units) {
+    const p = Math.min(1, Math.max(0, (t - u.start) / u.dur));
+    u.p.style.strokeDashoffset = u.len * (1 - p);
+  }
+  for (const tp of taps) {
+    const p = Math.min(1, Math.max(0, (t - tp.t) / DOT_POP));
+    tp.c.setAttribute("r", tp.r * p);
+  }
+  const done = t >= FINISH;
+  if (done) for (const inst of instances) inst.removeAttribute("mask");
+  return done;
+}
+function unfinish() {
+  for (let i = 0; i < instances.length; i++) instances[i].setAttribute("mask", masks[i]);
+}
 function frame(now) {
   if (t0 === null) t0 = now;
   const t = (now - t0) / 1000 * speed;
@@ -195,6 +222,7 @@ function frame(now) {
 }
 function play() {
   if (raf) cancelAnimationFrame(raf);
+  unfinish();
   t0 = null; running = true;
   raf = requestAnimationFrame(frame);
 }
@@ -205,28 +233,19 @@ document.addEventListener("visibilitychange", () => {
   else if (running) play();
 });
 
-if (params.has("freeze")) {
-  // dev tool first: a deterministic frame for screenshots, regardless of
-  // headless environments that force prefers-reduced-motion
-  paintAt(parseFloat(params.get("freeze")) || 0);
-  if (params.has("guide")) {
-    const NS = "http://www.w3.org/2000/svg";
-    const g1 = document.createElementNS(NS, "image");
-    g1.setAttribute("href", "file:///tmp/guide_nonograms.png");
-    g1.setAttribute("width", "4400"); g1.setAttribute("height", "840");
-    g1.setAttribute("opacity", "0.35"); g1.style.pointerEvents = "none";
-    const g2 = document.createElementNS(NS, "image");
-    g2.setAttribute("href", "file:///tmp/guide_original.png");
-    g2.setAttribute("x", "1900"); g2.setAttribute("width", "3200"); g2.setAttribute("height", "840");
-    g2.setAttribute("opacity", "0.35"); g2.style.pointerEvents = "none";
-    svg.insertBefore(g2, svg.firstChild);
-    svg.insertBefore(g1, svg.firstChild);
+// fonts.ready is NOT enough: nothing in the initial DOM uses Aghja (the only
+// Aghja text is created inside build), so Chrome never downloads the font and
+// canvas would measure a silent fallback — positions must wait for fonts.load.
+document.fonts.load("500 " + FS + "px Aghja").then(() => {
+  build();
+  if (params.has("freeze")) {
+    paintAt(parseFloat(params.get("freeze")) || 0);
+  } else if (REDUCED) {
+    paintAt(total);
+  } else {
+    play();
   }
-} else if (REDUCED) {
-  paintAt(total);            // finished wordmark, instantly
-} else {
-  play();
-}
+});
 </script>
 </body>
 </html>
