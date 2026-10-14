@@ -5,39 +5,56 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Logo intro — true-trace study</title>
 <!--
-  LOGO INTRO TRUE-TRACE STUDY (round 25, v3)
-  His round-25 corrections to the v2 study:
-    1. "the trace is different from the background stencil... parts of the
-       background shining through" — v2 laid the dark glyphs with canvas-
-       measured widths while the gray guide used SVG <text>: two layout
-       engines that drift apart (trailing letter-spacing, fallback fonts).
-       v3 derives every glyph's x from the guide text's OWN DOM
-       (getStartPositionOfChar), so dark layer and guide coincide BY
-       CONSTRUCTION. At finish the masks drop and the dark wordmark IS the
-       guide, pixel for pixel.
-    2. "on the app, the letters connect like cursive, and the words are
-       stacked on on the other" — two fixes:
-         a. STACKED: the guide is two <text> lines centered on one axis,
-            replicating the app hero (index.html:103 hero-title — two
-            inline-block spans wrapping on phone width inside a centered
-            flex column, style.css:824-846: 64px / weight 500 /
-            letter-spacing 2px).
-         b. CONNECTED: v2 traced the font's DEFAULT glyphs; the app shapes
-            the word with calt contextual alternates (Aghja's cursive
-            joins). v3 uses the 13 SHAPED forms extracted via harfbuzz
-            (aghyja_shaped.json), so the finished frame is the true
-            connected wordmark. calt is why 'n' in "Nonograms" is n.VI_
-            but n._I_ in "Original", and why i's advance differs per line.
-         ROOT CAUSE of complaint 1 ("background shining through"): Blink
-       does NOT apply Aghja's calt by default (spec says contextual
-       alternates default on; this font's don't in Chrome), so the v3
-       guide <text> rendered the DISCONNECTED default forms while the dark
-       layer used the calt-shaped outlines — connected swashes overhung
-       the stencil at every join and the gray shone through in the gaps.
-       Fix: font-feature-settings:"calt" 1 on the guide text pins the
-       browser to the same 13 shaped forms, so guide and trace coincide
-       by construction. (Verified: without it, getStartPositionOfChar
-       even returns the no-calt advances — a 10-unit drift on 'a'.)
+  LOGO INTRO TRUE-TRACE STUDY (round 26, v4)
+  Round-26 corrections to the v3 study (his letter + 4 screenshots):
+    0. META: "are you giving yourself simulated visual feedback? u should
+       be" — every fix below was verified with headless-Chrome frame
+       captures (?freeze=<t> filmstrips) and a numeric per-form coverage
+       tool (aghyja_lines.json vs aghyja_shaped.json), not by eyeballing
+       finished frames.
+    1. "the bottom bit of 'originals' is cutoff" — the viewBox bottomed
+       at y=490 but the g descender reaches y~564 (BASE2 499.8 + 290
+       font units * 0.22 scale). viewBox is now "0 100 W 480".
+    2. "the fake version that shipped has the two words aligned on the
+       left margin, ur draft has them centered" — the guide texts now
+       use text-anchor:"start" at x=MARGIN, so both lines share a left
+       margin exactly like the app hero's wrapped spans.
+    3. "when the 2nd n begins, it is traced in the wrong order... gap"
+       (destructive) + "divots where letters begin and end" — every
+       form's pen path was re-authored as ONE continuous stroke in
+       handwriting order (entry -> body -> exit, with retraces where a
+       real pen would backtrack), instead of the v3 paths that drew
+       entry connectors after bodies or jumped between disconnected
+       points (n.VI_'s connector used to end at the stem TOP while the
+       stem stroke started at its BOTTOM -> the mid-letter gap).
+    4. "the g's lower margin looks constructed separately... snaps to
+       correct at the end" — root cause: the g's descender + s's
+       terminal were never covered by the trace windows, so they
+       popped in when the masks dropped at FINISH. Because windows are
+       cumulative and masks only drop at the very end, coverage must
+       hold at EVERY instant, not just the finished frame (v3's <=3.6%
+       finish-only metric hid this). Re-authored paths are coverage-
+       verified to ~0.00% of outline pixels per form (s worst at
+       0.08%), so nothing can snap.
+  Carried from round 25 (v3), still load-bearing:
+    5. "the trace is different from the background stencil... parts of
+       the background shining through" — v2 laid the dark glyphs with
+       canvas-measured widths while the gray guide used SVG <text>:
+       two layout engines that drift apart. v3 derives every glyph's x
+       from the guide text's OWN DOM (getStartPositionOfChar), so dark
+       layer and guide coincide BY CONSTRUCTION. At finish the masks
+       drop and the dark wordmark IS the guide, pixel for pixel.
+    6. calt pinning: #guide text { font-feature-settings:"calt" 1 } —
+       Blink does NOT apply Aghja's calt by default; without the pin,
+       getStartPositionOfChar returns no-calt advances and the guide
+       renders disconnected forms while the dark layer uses the 13
+       calt-shaped outlines. The pin makes browser and dark layer use
+       the same 13 shaped forms (n.VI_ vs n._I_ etc.).
+    7. "on the app, the letters connect like cursive, and the words are
+       stacked" — the guide is two <text> lines with the font's 1.09
+       line height, replicating the app hero (index.html hero-title —
+       two inline-block spans at 64px / weight 500 / letter-spacing
+       2px, stacked and left-aligned on phone width).
 
   Construction:
     - Guide = two SVG <text> elements (Aghja 500, FS=220, letter-spacing
@@ -45,10 +62,11 @@
     - Each character occurrence's pen origin is read from the guide's DOM;
       the dark instance is the shaped outline placed at that origin.
     - The pen is a MASK: the instance is clipped by its shaped centerline
-      (aghyja_lines.json, 13 forms, coverage-verified to <=3.6% of the
-      outline pixels outside the 105-unit brush window) drawn as a wide
-      round-capped stroke animated via stroke-dashoffset. Full weight from
-      the first visible pixel; i-dots pop as mask circles.
+      (aghyja_lines.json, 13 forms, re-authored round 26 as continuous
+      handwriting strokes and coverage-verified to ~0.00% of outline
+      pixels outside the 105-unit brush window at every instant) drawn
+      as a wide round-capped stroke animated via stroke-dashoffset. Full
+      weight from the first visible pixel; i-dots pop as mask circles.
     - Speed/gaps unchanged from v1/v2 (approved): INK_SPEED 2400,
       LETTER_GAP 0.095, WORD_GAP 0.55, START_PAUSE 0.4.
   Dev aids: ?freeze=<s> deterministic frame; ?guide=1 ghosts the guide at
@@ -89,10 +107,13 @@
     </select>
   </label>
 </div>
-<p class="note">True-trace v3 — the app's real connected wordmark, stacked like the hero,
-written letter by letter. The stencil is pinned to the font's connected letterforms
-(the same shaping the app uses), and glyph positions are read from the stencil's own text,
-so the finished trace covers it exactly. <code>?freeze=2.2</code> holds one frame;
+<p class="note">True-trace v4 — the app's real connected wordmark, stacked and
+left-aligned like the hero, written letter by letter in pen order. The stencil is
+pinned to the font's connected letterforms (the same shaping the app uses), glyph
+positions are read from the stencil's own text, and every stroke was re-authored
+this round as one continuous pen path, so the trace follows handwriting order with
+no mid-letter jumps — and the finished trace covers the stencil exactly, descenders
+included. <code>?freeze=2.2</code> holds one frame;
 <code>?guide=1</code> ghosts the guide underneath (dev aid). Reduced motion = finished wordmark.</p>
 <script>
 "use strict";
@@ -101,7 +122,7 @@ const OUTLINES = {"N.I_":"M70 0C86 0 100 14 100 30V370C100 436 154 490 220 490C2
 // Per character occurrence in drawing order: which shaped form + its advance.
 const OCC = [{"word":"Nonograms","name":"N.I_","adv":500},{"word":"Nonograms","name":"o._IV","adv":420},{"word":"Nonograms","name":"n.VI_","adv":420},{"word":"Nonograms","name":"o._IV","adv":420},{"word":"Nonograms","name":"g.VI_","adv":420},{"word":"Nonograms","name":"r._I_","adv":410},{"word":"Nonograms","name":"a._I_","adv":420},{"word":"Nonograms","name":"m._I_","adv":640},{"word":"Nonograms","name":"s._I","adv":490},{"word":"Original","name":"O.I_","adv":500},{"word":"Original","name":"r._I_","adv":410},{"word":"Original","name":"i._I_","adv":280},{"word":"Original","name":"g._I_","adv":420},{"word":"Original","name":"i._I_","adv":280},{"word":"Original","name":"n._I_","adv":420},{"word":"Original","name":"a._I_","adv":420},{"word":"Original","name":"l._I","adv":300}];
 // Hand-authored pen centerlines per shaped form (font-unit local frame).
-const LINES = {"N.I_":["M 70 12 L 70 548","M 100 385 C 106 412, 118 442, 134 462 C 152 482, 172 498, 192 509 C 206 516, 220 520, 234 519 C 262 514, 292 506, 310 492 C 321 482, 323 475, 323 468 C 330 458, 338 452, 345 448 C 352 442, 356 436, 356 430 C 359 423, 362 416, 364 409 C 366 402, 368 395, 368 388 C 370 370, 370 250, 370 132 C 370 118, 370 108, 370 100","M 366 58 C 386 82, 406 98, 424 102 C 442 105, 456 96, 463 80 C 470 64, 472 46, 465 30 C 459 17, 453 10, 455 7"],"O.I_":["M 220 33 C 95 33, 60 155, 60 265 C 60 382, 108 497, 220 497 C 332 497, 380 382, 380 265 C 380 155, 345 33, 220 33","M 338 48 C 372 20, 425 20, 448 34"],"a._I_":["M 175 30 C 80 30, 32 85, 32 150 C 32 218, 75 272, 175 272 C 275 272, 320 218, 320 150 C 320 85, 270 30, 175 30","M 380 55 L 380 235","M 12 26 C 40 12, 80 14, 100 25","M 330 26 C 358 12, 400 15, 424 30"],"g.VI_":["M 8 278 C 70 270, 150 271, 210 276","M 175 32 C 85 32, 32 90, 32 150 C 32 215, 72 268, 175 268 C 278 268, 318 215, 318 150 C 318 90, 265 32, 175 32","M 300 72 C 330 46, 330 18, 330 -12 L 330 -160 C 330 -214, 284 -242, 232 -242 C 192 -242, 154 -232, 136 -220","M 348 26 C 375 12, 415 15, 432 30"],"g._I_":["M 12 26 C 42 12, 82 14, 102 25","M 175 32 C 85 32, 32 90, 32 150 C 32 215, 72 268, 175 268 C 278 268, 318 215, 318 150 C 318 90, 265 32, 175 32","M 300 72 C 330 46, 330 16, 330 -14 L 330 -165 C 330 -220, 284 -244, 230 -244 C 190 -244, 152 -234, 136 -222","M 345 26 C 372 12, 412 15, 428 30"],"i._I_":["M 115 25 L 115 262","M 12 26 C 42 14, 82 15, 104 26","M 178 26 C 208 13, 268 15, 306 30"],"l._I":["M 100 25 L 100 380 C 100 440, 130 478, 172 488","M 12 26 C 42 14, 82 15, 104 26","M 150 26 C 180 13, 228 15, 258 30"],"m._I_":["M -18 76 C -34 70, -46 58, -44 42 C -42 26, -28 16, -6 12 C 18 8, 44 8, 60 14 C 74 40, 70 120, 71 200 C 74 230, 82 246, 100 254 C 124 261, 152 263, 178 272 C 198 280, 214 290, 224 296 C 236 300, 246 298, 256 290 C 268 280, 278 268, 285 254 C 287 240, 287 200, 287 150 C 287 90, 287 30, 287 16 C 287 8, 289 3, 293 3 C 297 3, 299 8, 299 16 C 298 90, 298 180, 299 222 C 301 238, 310 250, 328 256 C 352 262, 378 268, 398 280 C 414 289, 428 296, 442 297 C 456 297, 468 290, 478 278 C 490 264, 500 252, 505 240 C 507 200, 507 100, 507 18 C 522 12, 552 8, 585 8 C 610 9, 626 16, 631 30 C 635 44, 628 58, 612 68 C 602 74, 592 77, 586 78"],"n.VI_":["M 10 288 C 45 276, 85 276, 112 284","M 85 15 L 85 232 C 85 264, 100 282, 132 290 C 165 298, 250 296, 272 262 C 290 232, 282 140, 285 58 C 288 22, 340 12, 382 20 C 398 25, 410 30, 416 36"],"n._I_":["M 12 26 C 42 12, 82 15, 104 26","M 85 15 L 85 230 C 85 262, 98 280, 128 288 C 160 298, 212 298, 244 274 C 270 252, 288 160, 300 58 C 303 20, 358 10, 402 18 C 422 23, 442 29, 454 35"],"o._IV":["M 12 26 C 42 12, 82 14, 102 25","M 172 32 C 82 32, 32 90, 32 150 C 32 214, 72 268, 172 268 C 272 268, 318 214, 318 150 C 318 90, 262 32, 172 32","M 250 262 C 300 276, 360 275, 412 283"],"r._I_":["M 12 26 C 42 12, 82 14, 102 25","M 85 15 L 85 232 C 85 262, 100 276, 132 278 C 180 281, 240 280, 288 276","M 268 245 C 278 190, 272 110, 275 55 C 278 20, 320 10, 360 18 C 372 22, 380 27, 386 32"],"s._I":["M -52 45 C -44 64, -24 76, 0 82 C 26 92, 52 112, 68 124 C 88 142, 104 162, 120 182 C 136 202, 150 222, 164 242 C 176 260, 188 278, 202 294 C 216 308, 236 316, 258 316 C 282 315, 302 304, 316 288 C 330 272, 342 258, 352 244 C 364 230, 372 214, 377 198 C 381 184, 382 168, 380 154 C 378 140, 374 126, 368 112 C 366 108, 363 94, 362 82 C 361 70, 368 62, 374 60 C 366 52, 360 44, 354 40 C 348 32, 336 24, 324 18 C 310 12, 292 7, 272 5 C 255 3, 232 5, 210 10 C 192 14, 176 17, 164 26 C 154 36, 151 48, 155 62 C 160 76, 172 86, 185 91 C 188 92, 189 92, 190 92","M 46 22 C 62 38, 82 56, 100 74 C 116 92, 130 112, 144 132 C 158 152, 172 172, 188 192 C 204 212, 222 230, 242 246 C 254 256, 264 262, 272 264"]};
+const LINES = {"N.I_":["M 70 -45 L 70 522 C 70 538, 76 548, 88 542 C 98 536, 106 528, 112 518 C 122 500, 128 482, 134 462 C 152 482, 172 498, 192 509 C 206 516, 220 520, 234 519 C 262 514, 292 506, 310 492 C 321 482, 323 475, 323 468 C 330 458, 338 452, 345 448 C 352 442, 356 436, 356 430 C 359 423, 362 416, 364 409 C 366 402, 368 395, 368 388 C 370 370, 370 250, 370 132 C 370 118, 370 108, 370 100 C 369 84, 367 70, 366 58 C 386 82, 406 98, 424 102 C 442 105, 456 96, 463 80 C 470 64, 472 46, 465 30 C 459 17, 453 10, 455 7 C 462 12, 470 12, 480 8"],"O.I_":["M 205 28 C 110 26, 60 140, 60 265 C 60 382, 108 497, 220 497 C 332 497, 380 382, 380 265 C 380 140, 330 28, 235 30 C 262 40, 300 42, 338 48 C 372 20, 425 20, 448 34 C 466 44, 484 46, 504 40"],"a._I_":["M -45 32 C -10 10, 50 8, 95 20 C 118 27, 146 30, 168 31 C 85 32, 32 90, 32 150 C 32 218, 75 272, 175 272 C 275 272, 317 218, 317 150 C 315 85, 267 30, 190 32 C 235 38, 285 44, 330 52 C 352 56, 368 56, 380 58 L 380 288 C 380 300, 378 304, 375 295 C 371 200, 370 150, 371 100 C 372 70, 373 52, 376 42 C 392 32, 408 28, 424 30 C 448 32, 470 36, 492 34"],"g.VI_":["M -45 289 C 40 278, 130 276, 205 281 C 248 283, 275 286, 292 293 C 300 238, 301 155, 295 95 C 294 76, 278 58, 246 50 C 198 42, 138 48, 94 62 C 54 80, 42 112, 38 155 C 36 212, 48 258, 68 283 C 105 264, 170 254, 225 250 C 258 248, 282 252, 292 264 C 298 220, 297 160, 293 105 C 290 45, 290 0, 290 -60 C 289 -135, 278 -205, 232 -248 C 200 -272, 152 -278, 116 -260 C 92 -248, 74 -236, 66 -226","M 305 28 C 335 14, 378 12, 405 22 C 422 28, 436 30, 452 28"],"g._I_":["M -45 30 C -5 12, 55 8, 100 18 C 130 24, 158 26, 178 24 C 118 44, 68 82, 40 130 C 18 170, 12 215, 20 255 C 32 294, 68 300, 118 302 C 172 304, 232 300, 262 288 C 292 262, 300 225, 299 190 C 296 134, 291 76, 282 48 C 266 36, 244 34, 224 42 C 182 40, 128 48, 86 62 C 50 80, 40 112, 38 155 C 36 212, 48 258, 68 283 C 105 264, 170 254, 225 250 C 258 248, 282 252, 292 264 C 298 220, 297 160, 293 105 C 290 45, 290 0, 290 -60 C 289 -135, 278 -205, 232 -248 C 200 -272, 152 -278, 116 -260 C 92 -248, 74 -236, 66 -222","M 305 28 C 335 14, 378 12, 405 22 C 422 28, 436 30, 452 28"],"i._I_":["M -45 38 C -8 26, 56 22, 98 28 C 110 31, 114 34, 115 42 L 115 310 C 115 320, 113 328, 111 316 C 109 260, 108 170, 109 90 C 110 55, 111 38, 114 30 C 132 20, 152 16, 172 20 C 212 14, 262 16, 306 30 C 328 36, 350 38, 372 34"],"l._I":["M -52 52 C -22 38, 36 30, 92 22 C 99 20, 101 24, 101 34 L 101 360 C 101 425, 112 478, 142 502 C 162 520, 184 522, 196 508 C 204 494, 200 474, 186 458 C 158 434, 134 420, 126 390 C 122 372, 121 360, 122 348 C 116 300, 108 200, 105 90 C 104 55, 104 40, 108 32 C 130 20, 152 16, 176 18 C 204 15, 232 18, 258 28 C 272 33, 284 34, 296 31"],"m._I_":["M -72 62 C -56 72, -36 78, -18 76 C -34 70, -46 58, -44 42 C -42 26, -28 16, -6 12 C 18 8, 44 8, 60 14 C 74 40, 70 120, 71 200 C 74 230, 82 246, 100 254 C 124 261, 152 263, 178 272 C 198 280, 214 290, 224 296 C 236 300, 246 298, 256 290 C 268 280, 278 268, 285 254 C 287 240, 287 200, 287 150 C 287 90, 287 30, 287 16 C 287 8, 289 3, 293 3 C 297 3, 299 8, 299 16 C 298 90, 298 180, 299 222 C 301 238, 310 250, 328 256 C 352 262, 378 268, 398 280 C 414 289, 428 296, 442 297 C 456 297, 468 290, 478 278 C 490 264, 500 252, 505 240 C 507 200, 507 100, 507 18 C 522 12, 552 8, 585 8 C 610 9, 626 16, 631 30 C 635 44, 628 58, 612 68 C 602 74, 592 77, 586 78 C 596 77, 608 73, 622 68"],"n.VI_":["M -45 292 C -5 280, 55 276, 98 281 C 96 290, 88 294, 80 288 C 74 270, 72 220, 71 150 C 70 90, 70 40, 71 20 C 71 8, 75 6, 78 14 C 84 60, 86 150, 86 230 C 87 262, 100 280, 132 288 C 165 296, 250 294, 272 262 C 290 232, 282 140, 285 58 C 288 30, 340 20, 382 26 C 398 25, 410 30, 416 36 C 428 40, 440 44, 454 42"],"n._I_":["M -45 46 C -10 32, 50 28, 95 30 C 104 33, 100 24, 92 17 C 88 14, 86 15, 86 20 L 86 288 C 88 296, 94 300, 104 300 C 140 303, 200 302, 232 292 C 256 284, 272 268, 282 250 C 292 232, 290 160, 294 90 C 296 50, 302 26, 322 20 C 344 14, 374 12, 404 18 C 424 23, 442 29, 454 35 C 466 39, 478 42, 492 40"],"o._IV":["M -45 30 C -15 12, 40 8, 82 16 C 108 21, 142 28, 166 31 C 82 32, 32 90, 32 150 C 32 214, 72 268, 172 268 C 272 268, 318 214, 318 150 C 318 90, 262 32, 186 32 C 208 90, 218 170, 214 235 C 216 258, 232 270, 258 274 C 300 279, 355 278, 412 283 C 432 286, 452 288, 472 286"],"r._I_":["M -45 60 C -8 50, 52 46, 96 40 C 104 38, 98 26, 90 19 C 86 15, 85 16, 85 20 L 85 288 C 90 300, 100 304, 116 305 C 160 309, 215 307, 250 300 C 272 294, 284 282, 288 266 C 290 246, 285 220, 281 190 C 278 150, 277 105, 279 62 C 281 30, 315 16, 352 20 C 368 23, 380 28, 388 33 C 400 37, 414 40, 430 40","M 230 250 C 215 215, 202 175, 200 138 C 199 108, 208 82, 228 68"],"s._I":["M -95 50 C -78 52, -62 48, -52 45 C -44 64, -24 76, 0 82 C 26 92, 52 112, 68 124 C 88 142, 104 162, 120 182 C 136 202, 150 222, 164 242 C 176 260, 188 278, 202 294 C 216 308, 236 316, 258 316 C 282 315, 302 304, 316 288 C 330 272, 342 258, 352 244 C 364 230, 372 214, 377 198 C 381 184, 382 168, 380 154 C 378 140, 374 126, 368 112 C 366 108, 363 94, 362 82 C 361 70, 368 62, 374 60 C 366 52, 360 44, 354 40 C 348 32, 336 24, 324 18 C 310 12, 292 7, 272 5 C 255 3, 232 5, 210 10 C 192 14, 176 17, 164 26 C 154 36, 151 48, 155 62 C 160 76, 172 86, 185 91 C 188 92, 189 92, 190 92","M 46 22 C 62 38, 82 56, 100 74 C 116 92, 130 112, 144 132 C 158 152, 172 172, 188 192 C 204 212, 222 230, 242 246 C 254 256, 264 262, 272 264 C 292 268, 316 274, 345 282"]};
 // i-dot taps: form -> flat [x, y, r, ...] triples in font-unit local frame.
 const TAPS = {"i._I_":[112,430,48]};
 const FS = 220, S = FS / 1000;            // Aghja is 1000 units/em
@@ -132,15 +153,15 @@ function build() {
   svg.appendChild(gGuide);
   svg.appendChild(gGlyph);
 
-  // The guide: two centered lines, replicating the app hero's wrapped spans.
-  const cx = MARGIN + 470;                // provisional; viewBox set after measuring
+  // The guide: two left-aligned lines sharing one margin, replicating
+  // the app hero's stacked, left-aligned wrapped spans.
   const texts = ["Nonograms", "Original"].map((w, wi) => {
     const t = el("text");
-    t.setAttribute("x", cx);
+    t.setAttribute("x", MARGIN);
     t.setAttribute("y", wi === 0 ? BASE1 : BASE2);
     t.setAttribute("font-size", FS);
     t.setAttribute("letter-spacing", LS);
-    t.setAttribute("text-anchor", "middle");
+    t.setAttribute("text-anchor", "start");
     t.style.fill = "var(--espresso)";
     t.textContent = w;
     gGuide.appendChild(t);
@@ -148,14 +169,14 @@ function build() {
   });
   svg.getBoundingClientRect();            // force layout so char positions exist
 
-  // Word widths -> final center + viewBox (guide stays exactly as measured:
-  // instances derive from these very text nodes, so they always coincide).
+  // Word widths -> viewBox (guide stays exactly as measured: instances
+  // derive from these very text nodes, so they always coincide). The
+  // box tops at y=100 (caps start ~119) and runs 480 tall so the g
+  // descender (bottom ~564) is never clipped.
   const w1 = texts[0].getComputedTextLength();
   const w2 = texts[1].getComputedTextLength();
   const W = Math.max(w1, w2) + MARGIN * 2;
-  texts[0].setAttribute("x", W / 2);
-  texts[1].setAttribute("x", W / 2);
-  svg.setAttribute("viewBox", "0 110 " + Math.ceil(W) + " 380");
+  svg.setAttribute("viewBox", "0 100 " + Math.ceil(W) + " 480");
 
   // Per occurrence: pen origin from the guide's own DOM. Every instance is
   // placed at the exact origin the guide renderer used for that character.
