@@ -29,10 +29,11 @@
   #boardRow { display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; }
   #srcCol { display:none; flex-direction:column; gap:6px; width:min(460px, 34vw); max-width:460px; }
   #srcCol img { width:100%; border:1px solid var(--line); border-radius:10px; display:block; }
-  /* the painting controls pin to the top of the window so browser zoom (or a
-     small window) can never push mode/brush/palette/peek out of reach */
-  #stickWrap { position:sticky; top:0; z-index:20; background:var(--bg);
-               margin:0 -16px; padding:2px 16px 8px; }
+  /* round 27: the control bars live in a column of stacked squared blocks to the
+     RIGHT of the work frame + source image (his "ton of empty space" ask). No
+     sticky pin needed — the column is always beside the work. */
+  #toolCol { display:flex; flex-direction:column; gap:10px; width:308px; flex:0 0 308px; }
+  #toolCol .bar { margin-bottom:0; }
   .panel { background:var(--card); border:1px solid var(--line); border-radius:12px;
            padding:14px 16px; margin-bottom:14px; max-width:780px; }
   .panel h2 { font-size:15px; margin:0 0 8px; }
@@ -67,70 +68,12 @@
 mode edits the solution itself (which cells are filled — the clues follow); the art rides along underneath at
 full strength on filled cells and 40% on empty ones. <b style="color:var(--ink)">Art</b> mode paints colors and
 never touches the solution: color a <i>filled</i> cell to set its picture color, an <i>empty</i> cell to set an accent
-that appears on the win reveal — everything at full strength. The <b>brush</b> switch: <b style="color:var(--ink)">Drag</b>
-paints every cell the pointer crosses (with gap-filling), <b style="color:var(--ink)">Tap</b> changes only the cell you
-click. A <b>source image</b> can sit beside the grid and be pixelified — each cell&rsquo;s area of the image averaged into
-that cell&rsquo;s color — or held over the grid (the peek button, or the Space key) to compare against the win screen.
-Classify runs the same solver engine as the fleet checker. Everything autosaves.</p></details>
-
-<div id="stickWrap">
-<div class="bar">
-  <label>name <input type="text" id="nameInput" placeholder="untitled" maxlength="30"></label>
-  <label>size
-    <select id="sizePreset">
-      <option value="10x10">10 x 10</option>
-      <option value="15x10" selected>15 x 10</option>
-      <option value="15x15">15 x 15</option>
-      <option value="15x20">15 x 20 (portrait)</option>
-      <option value="20x15">20 x 15 (landscape)</option>
-      <option value="custom">custom</option>
-    </select>
-  </label>
-  <label>w <input type="number" id="cw" min="4" max="25" value="15"></label>
-  <label>h <input type="number" id="ch" min="4" max="25" value="10"></label>
-  <button id="newBtn">+ New</button>
-  <button id="undoBtn">Undo</button>
-  <button id="clearBtn">Clear</button>
-  <button id="mirrorBtn" title="mirror horizontally">Mirror: off</button>
-  <button id="classifyBtn" style="background:var(--accent); color:#14102a; font-weight:600;">Classify</button>
-</div>
-
-<div class="bar">
-  <span class="seg" title="what you're editing">
-    <button id="modeValBtn" class="on">Values</button>
-    <button id="modeArtBtn">Art</button>
-  </span>
-  <span class="hint" id="modeHint">editing the solution — filled cells drive the clues · art shows underneath (full / 40%)</span>
-  <span style="width:10px"></span>
-  <span class="seg" title="how painting acts">
-    <button id="brushDragBtn" class="on">Drag</button>
-    <button id="brushTapBtn">Tap</button>
-  </span>
-  <span class="hint">drag paints the pointer's path · tap changes only the clicked cell</span>
-</div>
-
-<div class="bar" id="valuesBar">
-  <button id="inkBtn" class="on">Ink</button>
-  <button id="eraseBtn">Erase</button>
-  <span class="hint">ink fills a cell (part of the solution) · erase empties it and drops its color</span>
-</div>
-
-<div class="bar" id="artBar" style="display:none;">
-  <span class="hint">color</span>
-  <span id="palette" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;"></span>
-  <input type="color" id="customColor" value="#e63946" title="custom color">
-  <button id="artClearBtn">Clear color</button>
-  <span class="hint">filled cell = picture color · empty cell = accent (win reveal only) · Clear color resets the cell to default</span>
-</div>
-
-<div class="bar" id="sourceBar">
-  <button id="uploadBtn">Upload image…</button>
-  <input type="file" id="fileInput" accept="image/*" style="display:none;">
-  <button id="pixelifyBtn" disabled>Pixelify into art</button>
-  <button id="peekBtn" disabled title="hold to see the source image laid over the grid (or hold the Space key)">Hold: source over grid</button>
-  <span class="hint" id="srcHint">attach a source image to compare &amp; pixelify — library puzzles with a known source load it automatically</span>
-</div>
-</div>
+that appears on the win reveal — everything at full strength. <b style="color:var(--ink)">Painting:</b> left-click
+inks/paints — click and hold to drag a line across cells (gap-filled) · <b style="color:var(--ink)">right-click</b> erases
+the same way (click one cell or drag a whole line; in Art mode it clears the color) · hold <b style="color:var(--ink)">Z</b>
+and click a cell to pick up its color (eyedropper). A <b>source image</b> can sit beside the grid and be pixelified — each
+cell&rsquo;s area of the image averaged into that cell&rsquo;s color — or held over the grid (the peek button, or the Space key)
+to compare against the win screen. Classify runs the same solver engine as the fleet checker. Everything autosaves.</p></details>
 
 <div id="boardRow">
   <div>
@@ -140,6 +83,59 @@ Classify runs the same solver engine as the fleet checker. Everything autosaves.
   <div id="srcCol">
     <img id="srcImg" alt="source image">
     <div class="hint">the source — what the finished puzzle should evoke</div>
+  </div>
+  <div id="toolCol">
+    <div class="bar">
+      <label>name <input type="text" id="nameInput" placeholder="untitled" maxlength="30"></label>
+      <label>size
+        <select id="sizePreset">
+          <option value="10x10">10 x 10</option>
+          <option value="15x10" selected>15 x 10</option>
+          <option value="15x15">15 x 15</option>
+          <option value="15x20">15 x 20 (portrait)</option>
+          <option value="20x15">20 x 15 (landscape)</option>
+          <option value="custom">custom</option>
+        </select>
+      </label>
+      <label>w <input type="number" id="cw" min="4" max="25" value="15"></label>
+      <label>h <input type="number" id="ch" min="4" max="25" value="10"></label>
+      <button id="newBtn">+ New</button>
+      <button id="undoBtn">Undo</button>
+      <button id="clearBtn">Clear</button>
+      <button id="mirrorBtn" title="mirror horizontally">Mirror: off</button>
+      <button id="classifyBtn" style="background:var(--accent); color:#14102a; font-weight:600;">Classify</button>
+    </div>
+
+    <div class="bar">
+      <span class="seg" title="what you're editing">
+        <button id="modeValBtn" class="on">Values</button>
+        <button id="modeArtBtn">Art</button>
+      </span>
+      <span class="hint" id="modeHint">editing the solution — filled cells drive the clues · art shows underneath (full / 40%)</span>
+      <span class="hint">left-click paints (click-hold to drag a line) · right-click erases · hold Z + click a cell to pick its color</span>
+    </div>
+
+    <div class="bar" id="valuesBar">
+      <button id="inkBtn" class="on">Ink</button>
+      <button id="eraseBtn">Erase</button>
+      <span class="hint">ink fills a cell (part of the solution) · erase empties it and drops its color · right-click always erases</span>
+    </div>
+
+    <div class="bar" id="artBar" style="display:none;">
+      <span class="hint">color</span>
+      <span id="palette" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;"></span>
+      <input type="color" id="customColor" value="#e63946" title="custom color">
+      <button id="artClearBtn">Clear color</button>
+      <span class="hint">filled cell = picture color · empty cell = accent (win reveal only) · Clear color resets the cell · hold Z + click a cell to pick its color</span>
+    </div>
+
+    <div class="bar" id="sourceBar">
+      <button id="uploadBtn">Upload image…</button>
+      <input type="file" id="fileInput" accept="image/*" style="display:none;">
+      <button id="pixelifyBtn" disabled>Pixelify into art</button>
+      <button id="peekBtn" disabled title="hold to see the source image laid over the grid (or hold the Space key)">Hold: source over grid</button>
+      <span class="hint" id="srcHint">attach a source image to compare &amp; pixelify — library puzzles with a known source load it automatically</span>
+    </div>
   </div>
 </div>
 
@@ -197,10 +193,10 @@ let cells = [];           // cells[y][x] = bool — the solution (F values)
 let art = [];             // art[y][x] = "" or "#rrggbb" — picture color on filled cells,
                           // win-reveal accent on empty cells; never affects the clues
 let mode = "values";      // "values" | "art"
-let brush = "drag";       // "drag" paints the pointer path · "tap" changes only the clicked cell
 let tool = "ink";         // values mode: "ink" | "erase"
 let artTool = "#e63946";  // art mode: a hex color, or "clear"
 let mirror = false;
+let eyeDrop = false;      // true while Z is held — clicks pick a cell's color instead of painting
 let undoStack = [];       // snapshots of {cells, art}
 let lastGivenCells = null;
 let sourceImg = null;     // HTMLImageElement | null — the reference image (peek + pixelify)
@@ -430,15 +426,30 @@ function computeGeo() {
   const topRuns = Math.max(1, ...rowHints.map(hh => hh.length === 1 && hh[0] === 0 ? 0 : hh.length));
   const leftRuns = Math.max(1, ...colHints.map(hh => hh.length === 1 && hh[0] === 0 ? 0 : hh.length));
   // Fill the Mac window (this editor is a desktop tool — no mobile fitting).
-  // Width: the board takes what's left after the source column's share.
-  // Height: everything between the pinned control bars and a small status
-  // cushion. Recomputed on every render + window resize, so browser zoom
-  // re-fits the board instead of growing the page past the buttons.
+  // Width: the board takes what's left after the source image column AND the
+  // stacked tool blocks on the right (round 27 layout — no more pinned top bar).
+  // Height: everything between the page top and a small status cushion.
+  // Recomputed on every render + window resize, so browser zoom re-fits the
+  // board instead of growing the page past the buttons.
   const side = (sourceImg && document.getElementById("srcCol").style.display !== "none")
     ? Math.min(460, Math.round(window.innerWidth * 0.34)) : 0;
-  const availW = Math.max(280, window.innerWidth - side - 72);
+  const toolW = 308 + 16;  // #toolCol width + its gap in #boardRow
+  const availW = Math.max(280, window.innerWidth - side - toolW - 72);
   const availH = Math.max(220, window.innerHeight - cv.offsetTop - 64);
-  const cell = Math.max(10, Math.floor(Math.min((availW - 8) / W, availH / H, 46)));
+  // cell size: normally window-fit under a 46px cap; but with a source image
+  // attached the grid UPSCALES to the source's rendered height (his ask: "the
+  // grid is smaller than the source image, i'd like it to be the same size"),
+  // so the 46 cap comes off and the source's display height becomes the bound.
+  const cell0 = Math.max(10, Math.floor(Math.min((availW - 8) / W, availH / H, 46)));
+  let cell = cell0;
+  if (sourceImg && sourceImg.naturalWidth && side) {
+    const imgH = side * sourceImg.naturalHeight / sourceImg.naturalWidth;
+    for (let pass = 0; pass < 2; pass++) { // band depends on cell — converge
+      const runH0 = Math.max(13, Math.round(cell * 0.42));
+      const bandH = topRuns * runH0 + 8;
+      cell = Math.max(10, Math.floor(Math.min((availW - 8) / W, availH / H, (imgH - bandH) / H)));
+    }
+  }
   const runW = Math.max(14, Math.round(cell * 0.45));  // row-clue slot width
   const runH = Math.max(13, Math.round(cell * 0.42));  // column-clue slot height
   return { rowHints, colHints, topRuns, leftRuns, cell, runW, runH,
@@ -626,14 +637,17 @@ function setPeek(v) {
   const formTarget = t => t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT");
   window.addEventListener("keydown", e => {
     if (e.code === "Space" && !formTarget(e.target)) { e.preventDefault(); setPeek(true); }
+    if (e.code === "KeyZ" && !formTarget(e.target) && !eyeDrop) { eyeDrop = true; cv.style.cursor = "crosshair"; }
   });
   window.addEventListener("keyup", e => {
     if (e.code === "Space") setPeek(false);
+    if (e.code === "KeyZ" && eyeDrop) { eyeDrop = false; cv.style.cursor = ""; }
   });
+  window.addEventListener("blur", () => { eyeDrop = false; cv.style.cursor = ""; });
 }
 
 // ---- drawing ----
-let drawing = false, strokeChanged = false, lastCell = null;
+let drawing = false, strokeChanged = false, lastCell = null, strokeErase = false;
 function cellFromEvent(e) {
   const r = cv.getBoundingClientRect();
   const x = Math.floor((e.clientX - r.left - geo.left) / geo.cell);
@@ -641,12 +655,26 @@ function cellFromEvent(e) {
   if (x < 0 || y < 0 || x >= W || y >= H) return null;
   return [x, y];
 }
-function applyCell(x, y) {
-  // one cell, per the active mode + tool. Never touches the other grid except
-  // where the old editor did: values-erase drops the cell's color with it.
+function pickColor(c) {
+  // the eyedropper (Z held): sample the clicked cell's color — its art color
+  // if it has one, else the ink tone of a filled cell. Becomes artTool and
+  // highlights the matching swatch, exactly like clicking that swatch; the
+  // click never paints.
+  const [x, y] = c;
+  const col = art[y][x] || (cells[y][x] ? INK : "");
+  if (!col) return;
+  artTool = col;
+  document.getElementById("artClearBtn").classList.remove("on");
+  paletteEl.querySelectorAll(".swatch").forEach(s => s.classList.toggle("on", s.style.background === hexToRgbStyle(col)));
+  document.getElementById("customColor").value = col;
+}
+function applyCell(x, y, erase) {
+  // one cell, per the active mode + tool. erase (a right-button stroke) is the
+  // opposite of painting in either mode: values → clear the cell and drop its
+  // color with it (the old erase-tool semantics); art → clear the color.
   let touched = false;
   if (mode === "values") {
-    const v = tool === "ink";
+    const v = erase ? false : (tool === "ink");
     if (cells[y][x] !== v) { cells[y][x] = v; touched = true; }
     if (!v && art[y][x]) { art[y][x] = ""; touched = true; }
     if (mirror) {
@@ -655,7 +683,7 @@ function applyCell(x, y) {
       if (!v && art[y][mx]) { art[y][mx] = ""; touched = true; }
     }
   } else {
-    const v = artTool === "clear" ? "" : artTool;
+    const v = erase ? "" : (artTool === "clear" ? "" : artTool);
     if (art[y][x] !== v) { art[y][x] = v; touched = true; }
     if (mirror) {
       const mx = W - 1 - x;
@@ -665,7 +693,7 @@ function applyCell(x, y) {
   return touched;
 }
 function paintMove(c) {
-  // shared by the pointermove and touchmove paths (drag brush only)
+  // shared by the pointermove and touchmove paths
   if (lastCell) {
     // interpolate the segment so fast drags leave no gaps
     let [x0, y0] = lastCell; const [x1, y1] = c;
@@ -676,34 +704,37 @@ function paintMove(c) {
       const e2 = 2 * err;
       if (e2 > -dy) { err -= dy; x0 += sx; }
       if (e2 < dx) { err += dx; y0 += sy; }
-      applyCell(x0, y0);
+      applyCell(x0, y0, strokeErase);
     }
   }
-  applyCell(c[0], c[1]);
+  applyCell(c[0], c[1], strokeErase);
   lastCell = c;
   render();
 }
-function strokeStart(c) {
+function strokeStart(c, erase) {
   if (drawing) return; // a co-fired touch/pointer pair must not double-stroke
   if (!strokeChanged) { undoStack.push(snapshot()); if (undoStack.length > 120) undoStack.shift(); }
-  drawing = true; strokeChanged = true;
-  if (c) { applyCell(c[0], c[1]); lastCell = c; render(); }
+  drawing = true; strokeChanged = true; strokeErase = !!erase;
+  if (c) { applyCell(c[0], c[1], strokeErase); lastCell = c; render(); }
 }
+cv.addEventListener("contextmenu", e => e.preventDefault()); // right-click erases here — no browser menu
 cv.addEventListener("pointerdown", e => {
   e.preventDefault();
+  if (e.button !== 0 && e.button !== 2) return; // left paints, right erases, middle ignored
   try { cv.setPointerCapture(e.pointerId); } catch {}
-  strokeStart(cellFromEvent(e));
+  const c = cellFromEvent(e);
+  if (eyeDrop && e.button === 0) { if (c) pickColor(c); return; }
+  strokeStart(c, e.button === 2);
 });
 cv.addEventListener("pointermove", e => {
   if (!drawing) return;
-  if (brush === "tap") return; // tap brush: only the clicked cell changes
   const c = cellFromEvent(e);
   if (!c) return;
   paintMove(c);
 });
 function endStroke() {
   if (drawing && strokeChanged) { autosave(); resetStatus(); }
-  drawing = false; strokeChanged = false; lastCell = null;
+  drawing = false; strokeChanged = false; lastCell = null; strokeErase = false;
 }
 cv.addEventListener("pointerup", endStroke);
 cv.addEventListener("pointercancel", endStroke);
@@ -714,11 +745,10 @@ cv.addEventListener("touchstart", e => {
   e.preventDefault();
   if (drawing) return;
   const t = e.touches[0];
-  strokeStart(t ? cellFromEvent(t) : null);
+  strokeStart(t ? cellFromEvent(t) : null, false);
 }, { passive: false });
 cv.addEventListener("touchmove", e => {
   if (!drawing) return;
-  if (brush === "tap") return;
   e.preventDefault();
   const t = e.touches[0];
   if (!t) return;
@@ -754,16 +784,6 @@ function setMode(m) {
 }
 modeValBtn.addEventListener("click", () => setMode("values"));
 modeArtBtn.addEventListener("click", () => setMode("art"));
-
-// brush switch: Drag paints the pointer's path, Tap changes only the clicked cell
-const brushDragBtn = document.getElementById("brushDragBtn"), brushTapBtn = document.getElementById("brushTapBtn");
-function setBrush(b) {
-  brush = b;
-  brushDragBtn.classList.toggle("on", b === "drag");
-  brushTapBtn.classList.toggle("on", b === "tap");
-}
-brushDragBtn.addEventListener("click", () => setBrush("drag"));
-brushTapBtn.addEventListener("click", () => setBrush("tap"));
 
 const inkBtn = document.getElementById("inkBtn"), eraseBtn = document.getElementById("eraseBtn");
 inkBtn.addEventListener("click", () => { tool = "ink"; inkBtn.classList.add("on"); eraseBtn.classList.remove("on"); });
@@ -955,7 +975,7 @@ function autosave() {
     const el = document.getElementById("selftest");
     el.className = fails ? "bad" : "ok";
     el.textContent = "SELFTEST " + (fails ? "FAIL " : "PASS ") + (out.length - fails) + "/" + out.length + "\n" + out.join("\n");
-    setMode("values"); setBrush("drag"); tool = "ink";
+    setMode("values"); tool = "ink";
     inkBtn.classList.add("on"); eraseBtn.classList.remove("on");
     // leave no trace: the test's autosaves must not shape his next real session
     try { localStorage.removeItem(LS_KEY); } catch {}
@@ -978,8 +998,8 @@ function autosave() {
     }
     ok("loaded truth sum", cells.flat().filter(Boolean).length === 67);
     ok("loaded art count", art.flat().filter(Boolean).length === 67);
-    // tap brush + art mode paint an accent on an empty cell
-    setMode("art"); setBrush("tap");
+    // art paint on an empty cell leaves the solution untouched
+    setMode("art");
     let ex = -1, ey = -1;
     outer: for (let y = 0; y < H; y++) for (let x = 0; x < W; x++)
       if (!cells[y][x]) { ex = x; ey = y; break outer; }
@@ -1016,28 +1036,37 @@ function autosave() {
     ok("values: false-value art at 40%", cellAlpha(false, true) === 0.40);
     setMode("art");
     ok("art: everything 100%", cellAlpha(true, true) === 1 && cellAlpha(false, true) === 1);
-    // ---- round 22: drag vs tap through the REAL event path (his "both act
-    // like tap" bug — pointer events plus the touch fallback must both paint) ----
+    // ---- round 27: the ONE-gesture paint path through the REAL event path
+    // (his asks: no drag/tap dichotomy — click paints a cell, click-hold paints
+    // the whole path; right-click erases click or drag; Z+click picks a color) ----
     setMode("values"); tool = "ink";
-    function synthPoint(type, px, py) {
+    function synthPoint(type, px, py, btn) {
       const r = cv.getBoundingClientRect();
       cv.dispatchEvent(new PointerEvent(type, {
         clientX: r.left + geo.left + px * geo.cell + geo.cell / 2,
         clientY: r.top + geo.top + py * geo.cell + geo.cell / 2,
-        pointerId: 7, buttons: 1, bubbles: true, cancelable: true
+        pointerId: 7, buttons: btn || 1, button: btn === 2 ? 2 : 0, bubbles: true, cancelable: true
       }));
     }
     cells = blank(W, H); art = blankArt(W, H); render();
-    setBrush("drag");
     synthPoint("pointerdown", 1, 5); synthPoint("pointermove", 8, 5); synthPoint("pointerup", 8, 5);
     let row5 = 0; for (let x = 0; x < W; x++) if (cells[5][x]) row5++;
-    ok("drag paints the whole path (" + row5 + " cells)", row5 >= 7);
-    cells = blank(W, H); art = blankArt(W, H); render();
-    setBrush("tap");
-    synthPoint("pointerdown", 1, 5); synthPoint("pointermove", 8, 5); synthPoint("pointerup", 8, 5);
-    row5 = 0; for (let x = 0; x < W; x++) if (cells[5][x]) row5++;
-    ok("tap paints only the clicked cell (" + row5 + ")", row5 === 1);
-    setBrush("drag");
+    ok("click-hold paints the whole path (" + row5 + " cells)", row5 >= 7);
+    synthPoint("pointerdown", 4, 5, 2); synthPoint("pointerup", 4, 5, 2);
+    ok("right-click erases one cell", cells[5][4] === false && cells[5][5] === true);
+    synthPoint("pointerdown", 6, 5, 2); synthPoint("pointermove", 8, 5, 2); synthPoint("pointerup", 8, 5, 2);
+    ok("right-click drag erases the path", !cells[5][6] && !cells[5][7] && !cells[5][8] && cells[5][5]);
+    setMode("art"); artTool = "#00ff00";
+    undoStack.push(snapshot());
+    applyCell(2, 2);
+    setMode("values");
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyZ", bubbles: true }));
+    ok("Z held arms the eyedropper", eyeDrop === true);
+    synthPoint("pointerdown", 2, 2); synthPoint("pointerup", 2, 2);
+    ok("Z+click picks the cell's color", artTool === "#00ff00");
+    ok("Z+click paints nothing", cells[2][2] === false);
+    window.dispatchEvent(new KeyboardEvent("keyup", { code: "KeyZ", bubbles: true }));
+    ok("Z released disarms the eyedropper", eyeDrop === false);
     // the touch fallback path must work too (this is the iOS net)
     cells = blank(W, H); art = blankArt(W, H); render();
     const r2 = cv.getBoundingClientRect();
@@ -1063,6 +1092,7 @@ function autosave() {
       try {
         setSize(4, 4);
         setSourceImage(im, "synthetic quadrants");
+        ok("grid upscales past the old 46px cap with a source attached (" + geo.cell + "px)", geo.cell > 46);
         pixelify();
         ok("pixelify lands the quadrant colors", art[0][0] === "#ff0000" && art[0][3] === "#0000ff" && art[3][0] === "#00ff00");
         ok("pixelify covers every cell", art.flat().filter(Boolean).length === 16);
