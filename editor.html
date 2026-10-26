@@ -71,7 +71,9 @@ never touches the solution: color a <i>filled</i> cell to set its picture color,
 that appears on the win reveal — everything at full strength. <b style="color:var(--ink)">Painting:</b> left-click
 inks/paints — click and hold to drag a line across cells (gap-filled) · <b style="color:var(--ink)">right-click</b> erases
 the same way (click one cell or drag a whole line; in Art mode it clears the color) · hold <b style="color:var(--ink)">Z</b>
-and click a cell to pick up its color (eyedropper). A <b>source image</b> can sit beside the grid and be pixelified — each
+and click nearly anything — a grid cell, the <b>source image</b> itself, a palette swatch — to pick up that exact color as
+your paint: you&rsquo;ll jump into Art mode holding it, and the color gets its own swatch up front so it&rsquo;s one click away
+later. A <b>source image</b> can sit beside the grid and be pixelified — each
 cell&rsquo;s area of the image averaged into that cell&rsquo;s color — or held over the grid (the peek button, or the Space key)
 to compare against the win screen. Classify runs the same solver engine as the fleet checker. Everything autosaves.</p></details>
 
@@ -202,6 +204,7 @@ let lastGivenCells = null;
 let sourceImg = null;     // HTMLImageElement | null — the reference image (peek + pixelify)
 let sourceName = "";
 let peeking = false;      // true while the source image is laid over the grid
+let sourceCanvas = null, sourceCanvasKey = null;  // round 30: natural-size copy for the eyedropper
 const LS_KEY = "noqa.editor.autosave";
 
 const DEFAULT_SWATCHES = ["#e63946","#f4a261","#e9c46a","#2a9d8f","#43aa8b","#577590",
@@ -557,7 +560,38 @@ function setSourceImage(img, name) {
     ? "source: <b style='color:var(--ink)'>" + (sourceName || "attached") + "</b> — Pixelify averages each cell&rsquo;s area of the image into that cell&rsquo;s color · hold the button (or the Space key) to lay the source over the grid"
     : "attach a source image to compare &amp; pixelify — library puzzles with a known source load it automatically";
   if (peeking && !has) peeking = false;
+  sourceCanvas = null; sourceCanvasKey = null;   // the sample cache dies with the image
   render();
+}
+// round 30: a natural-size, willReadFrequently copy of the source image, built
+// lazily on the first eyedropper sample and cached until the image changes.
+function srcCanvas() {
+  if (!sourceImg || !sourceImg.naturalWidth) return null;
+  if (sourceCanvas && sourceCanvasKey === sourceImg.src) return sourceCanvas;
+  try {
+    const off = document.createElement("canvas");
+    off.width = sourceImg.naturalWidth; off.height = sourceImg.naturalHeight;
+    off.getContext("2d", { willReadFrequently: true }).drawImage(sourceImg, 0, 0);
+    sourceCanvas = off; sourceCanvasKey = sourceImg.src;
+    return off;
+  } catch { return null; }
+}
+// the color under a screen point on the displayed source image, in #rrggbb
+// ("" when the page can't read the image's pixels — e.g. a cross-origin file)
+function srcSampleAt(clientX, clientY) {
+  const off = srcCanvas();
+  if (!off) return "";
+  const r = document.getElementById("srcImg").getBoundingClientRect();
+  if (!r.width || !r.height) return "";
+  const nx = Math.round((clientX - r.left) / r.width * sourceImg.naturalWidth);
+  const ny = Math.round((clientY - r.top) / r.height * sourceImg.naturalHeight);
+  if (nx < 0 || ny < 0 || nx >= off.width || ny >= off.height) return "";
+  let d;
+  try { d = off.getContext("2d").getImageData(nx, ny, 1, 1).data; }
+  catch { return ""; }
+  if (!d[3]) return "";                      // transparent pixel — nothing to pick
+  const h = v => v.toString(16).padStart(2, "0");
+  return "#" + h(d[0]) + h(d[1]) + h(d[2]);
 }
 document.getElementById("uploadBtn").addEventListener("click", () => document.getElementById("fileInput").click());
 document.getElementById("fileInput").addEventListener("change", e => {
@@ -614,7 +648,7 @@ function pixelify() {
     art[y][x] = avgColor(data, iw, ih, sx0, sy0, sx1, sy1);
   }
   setMode("art"); // full-strength preview of what just landed
-  buildPalette(art.flat().filter(Boolean));
+  rebuildPalette(art.flat().filter(Boolean));
   autosave(); render(); resetStatus();
 }
 document.getElementById("pixelifyBtn").addEventListener("click", pixelify);
@@ -637,13 +671,13 @@ function setPeek(v) {
   const formTarget = t => t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT");
   window.addEventListener("keydown", e => {
     if (e.code === "Space" && !formTarget(e.target)) { e.preventDefault(); setPeek(true); }
-    if (e.code === "KeyZ" && !formTarget(e.target) && !eyeDrop) { eyeDrop = true; cv.style.cursor = "crosshair"; }
+    if (e.code === "KeyZ" && !formTarget(e.target) && !eyeDrop) { eyeDrop = true; document.body.style.cursor = "crosshair"; }
   });
   window.addEventListener("keyup", e => {
     if (e.code === "Space") setPeek(false);
-    if (e.code === "KeyZ" && eyeDrop) { eyeDrop = false; cv.style.cursor = ""; }
+    if (e.code === "KeyZ" && eyeDrop) { eyeDrop = false; document.body.style.cursor = ""; }
   });
-  window.addEventListener("blur", () => { eyeDrop = false; cv.style.cursor = ""; });
+  window.addEventListener("blur", () => { eyeDrop = false; document.body.style.cursor = ""; });
 }
 
 // ---- drawing ----
@@ -656,18 +690,50 @@ function cellFromEvent(e) {
   return [x, y];
 }
 function pickColor(c) {
-  // the eyedropper (Z held): sample the clicked cell's color — its art color
-  // if it has one, else the ink tone of a filled cell. Becomes artTool and
-  // highlights the matching swatch, exactly like clicking that swatch; the
-  // click never paints.
+  // the eyedropper (Z held) on the grid: sample the clicked cell's color —
+  // its art color if it has one, else the ink tone of a filled cell.
   const [x, y] = c;
-  const col = art[y][x] || (cells[y][x] ? INK : "");
+  adoptColor(art[y][x] || (cells[y][x] ? INK : ""));
+}
+// round 30: one shared "make this the paintable color" core — used by grid
+// picks, source-image picks, and swatch picks alike. The picked color lands
+// in a real front swatch (his "an actual space that can be used" ask) and
+// the editor jumps to Art mode so the color paints immediately (his "you
+// can't immediately paint with that color" ask).
+const pickedColors = [];
+let lastPaletteExtras = [];
+function adoptColor(col) {
   if (!col) return;
   artTool = col;
-  document.getElementById("artClearBtn").classList.remove("on");
-  paletteEl.querySelectorAll(".swatch").forEach(s => s.classList.toggle("on", s.style.background === hexToRgbStyle(col)));
+  const i = pickedColors.indexOf(col);
+  if (i > 0) pickedColors.splice(i, 1);
+  if (i !== 0) pickedColors.unshift(col);
+  if (pickedColors.length > 6) pickedColors.length = 6;
+  rebuildPalette(lastPaletteExtras);
   document.getElementById("customColor").value = col;
+  document.getElementById("artClearBtn").classList.remove("on");
+  if (mode !== "art") setMode("art");
 }
+// round 30: the eyedropper reaches the whole page, not just the grid — the
+// source image is the headline (sample its actual pixels), palette swatches
+// work too. Clicks anywhere else fall through to their normal handlers, and
+// the grid path stays in the canvas listener below.
+document.addEventListener("pointerdown", e => {
+  if (!eyeDrop || e.button !== 0) return;
+  if (e.target === document.getElementById("srcImg")) {
+    e.preventDefault();
+    const col = srcSampleAt(e.clientX, e.clientY);
+    if (!col) {
+      const box = document.getElementById("statusBox");
+      box.className = "status multi";
+      box.textContent = "eyedropper can't read this image's pixels in this browser (try uploading it instead).";
+    }
+    adoptColor(col);
+    return;
+  }
+  const sw = e.target.closest && e.target.closest(".swatch");
+  if (sw) { e.preventDefault(); adoptColor(sw.title); }
+}, true);
 function applyCell(x, y, erase) {
   // one cell, per the active mode + tool. erase (a right-button stroke) is the
   // opposite of painting in either mode: values → clear the cell and drop its
@@ -789,7 +855,9 @@ const inkBtn = document.getElementById("inkBtn"), eraseBtn = document.getElement
 inkBtn.addEventListener("click", () => { tool = "ink"; inkBtn.classList.add("on"); eraseBtn.classList.remove("on"); });
 eraseBtn.addEventListener("click", () => { tool = "erase"; eraseBtn.classList.add("on"); inkBtn.classList.remove("on"); });
 
-// art palette: default swatches + the loaded puzzle's own colors up front
+// art palette: picked colors up front, then the loaded puzzle's own colors,
+// then the defaults. rebuildPalette is the single entry — it remembers the
+// extras so an eyedropper pick can re-prepend itself without losing them.
 const paletteEl = document.getElementById("palette");
 function buildPalette(extraColors) {
   const colors = [];
@@ -808,6 +876,10 @@ function buildPalette(extraColors) {
     });
     paletteEl.appendChild(b);
   }
+}
+function rebuildPalette(extras) {
+  lastPaletteExtras = extras || [];
+  buildPalette([...pickedColors, ...lastPaletteExtras]);
 }
 function hexToRgbStyle(hex) {
   // canvas swatch buttons store style.background as rgb(); compare through the same conversion
@@ -930,7 +1002,7 @@ document.getElementById("fleetLoadBtn").addEventListener("click", () => {
     art[y][x] = (p.c && p.c[y] && typeof p.c[y][x] === "string") ? p.c[y][x] : "";
   }
   document.getElementById("nameInput").value = p.n + " (copy)";
-  buildPalette(art.flat().filter(Boolean));
+  rebuildPalette(art.flat().filter(Boolean));
   if (p.img) {
     const im = new Image();
     im.onload = () => setSourceImage(im, p.n);
@@ -1067,8 +1139,10 @@ function autosave() {
     ok("Z+click paints nothing", cells[2][2] === false);
     window.dispatchEvent(new KeyboardEvent("keyup", { code: "KeyZ", bubbles: true }));
     ok("Z released disarms the eyedropper", eyeDrop === false);
-    // the touch fallback path must work too (this is the iOS net)
+    // the touch fallback path must work too (this is the iOS net) — the round-30
+    // pick above intentionally lands in Art mode, so restore the values tools
     cells = blank(W, H); art = blankArt(W, H); render();
+    setMode("values"); tool = "ink";
     const r2 = cv.getBoundingClientRect();
     const tXY = px => ({ clientX: r2.left + geo.left + px * geo.cell + geo.cell / 2,
                          clientY: r2.top + geo.top + 5 * geo.cell + geo.cell / 2 });
@@ -1100,6 +1174,22 @@ function autosave() {
         ok("scorpion ships a source image", !!sc.img && typeof sc.img === "string");
         ok("candidates ship source images", FLEET.filter(q => q.id.startsWith("cand-")).every(q => !!q.img));
         ok("drafts ship source images", FLEET.filter(q => q.id.startsWith("draft-")).every(q => !!q.img));
+        // ---- round 30: the eyedropper reaches the whole page ----
+        setMode("values"); artTool = "#e63946";
+        window.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyZ", bubbles: true }));
+        const sr = document.getElementById("srcImg").getBoundingClientRect();
+        // (0.2 x 0.2 lands mid-quadrant; 0.25 would sit exactly on the 2px boundary)
+        document.getElementById("srcImg").dispatchEvent(new PointerEvent("pointerdown",
+          { clientX: sr.left + sr.width * 0.2, clientY: sr.top + sr.height * 0.2,
+            button: 0, bubbles: true, cancelable: true }));
+        ok("Z+click on the source image picks its pixel", artTool === "#ff0000");
+        ok("a source pick jumps into Art mode", mode === "art");
+        const sw = paletteEl.querySelector(".swatch");
+        sw.dispatchEvent(new PointerEvent("pointerdown", { clientX: 1, clientY: 1, button: 0, bubbles: true, cancelable: true }));
+        ok("Z+click a swatch adopts it", artTool === sw.title);
+        ok("a picked color lands its own front swatch",
+           !!paletteEl.querySelector('.swatch[title="' + artTool + '"]'));
+        window.dispatchEvent(new KeyboardEvent("keyup", { code: "KeyZ", bubbles: true }));
       } catch (err2) { out.push("ERROR " + err2.message); }
       finish();
     };
@@ -1112,7 +1202,7 @@ function autosave() {
 })();
 
 window.addEventListener("resize", render);
-buildPalette([]);
+rebuildPalette([]);
 render();
 </script>
 </body>
