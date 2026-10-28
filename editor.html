@@ -84,7 +84,7 @@ to compare against the win screen. Classify runs the same solver engine as the f
   </div>
   <div id="srcCol">
     <img id="srcImg" alt="source image">
-    <div class="hint">the source — what the finished puzzle should evoke</div>
+    <div class="hint" id="srcColHint">the source — what the finished puzzle should evoke</div>
   </div>
   <div id="toolCol">
     <div class="bar">
@@ -205,6 +205,7 @@ let sourceImg = null;     // HTMLImageElement | null — the reference image (pe
 let sourceName = "";
 let peeking = false;      // true while the source image is laid over the grid
 let sourceCanvas = null, sourceCanvasKey = null;  // round 30: natural-size copy for the eyedropper
+let sourceReadable = false;  // round 31: can the page read the image's pixels at all?
 const LS_KEY = "noqa.editor.autosave";
 
 const DEFAULT_SWATCHES = ["#e63946","#f4a261","#e9c46a","#2a9d8f","#43aa8b","#577590",
@@ -547,6 +548,25 @@ function render() {
 }
 
 // ---- source image: attach / upload / pixelify / peek ----
+// round 31: the browser can legally hand us an image it then refuses to let
+// us READ — pages opened as files (file://) taint every canvas the image
+// touches. Probe at attach time and flag it WHERE HE LOOKS (the caption
+// under the source image), not only as one status-box line after a dead
+// eyedropper pick — his round-31 report was exactly this failure, one quiet
+// line below the fold. Pixelify dies to the same wall, so it shares the flag.
+function probeReadable(img) {
+  try {
+    const t = document.createElement("canvas");
+    t.width = t.height = 1;
+    const c = t.getContext("2d");
+    c.drawImage(img, 0, 0, 1, 1);
+    c.getImageData(0, 0, 1, 1);
+    return true;
+  } catch { return false; }
+}
+const UNREADABLE_NOTE = "⚠ the browser won't let this page read this image's pixels " +
+  "(this happens when the page is opened as a FILE) — the Z eyedropper and Pixelify are off. " +
+  "Open the editor through Live Server instead; uploading the image also works.";
 function setSourceImage(img, name) {
   sourceImg = img || null;
   sourceName = name || "";
@@ -556,8 +576,14 @@ function setSourceImage(img, name) {
   document.getElementById("srcCol").style.display = has ? "flex" : "none";
   const el = document.getElementById("srcImg");
   if (has) el.src = img.src; else el.removeAttribute("src");
+  sourceReadable = has && probeReadable(img);
+  const colHint = document.getElementById("srcColHint");
+  colHint.textContent = !has ? "the source — what the finished puzzle should evoke"
+    : sourceReadable ? "the source — what the finished puzzle should evoke"
+    : UNREADABLE_NOTE;
+  colHint.style.color = sourceReadable ? "" : "var(--warn)";
   document.getElementById("srcHint").innerHTML = has
-    ? "source: <b style='color:var(--ink)'>" + (sourceName || "attached") + "</b> — Pixelify averages each cell&rsquo;s area of the image into that cell&rsquo;s color · hold the button (or the Space key) to lay the source over the grid"
+    ? "source: <b style='color:var(--ink)'>" + (sourceName || "attached") + "</b> — Pixelify averages each cell&rsquo;s area of the image into that cell&rsquo;s color · hold the button (or the Space key) to lay the source over the grid" + (sourceReadable ? "" : " · <b style='color:var(--warn)'>pixels unreadable — see the note under the image</b>")
     : "attach a source image to compare &amp; pixelify — library puzzles with a known source load it automatically";
   if (peeking && !has) peeking = false;
   sourceCanvas = null; sourceCanvasKey = null;   // the sample cache dies with the image
@@ -580,7 +606,7 @@ function srcCanvas() {
 // ("" when the page can't read the image's pixels — e.g. a cross-origin file)
 function srcSampleAt(clientX, clientY) {
   const off = srcCanvas();
-  if (!off) return "";
+  if (!off || !sourceReadable) return "";
   const r = document.getElementById("srcImg").getBoundingClientRect();
   if (!r.width || !r.height) return "";
   const nx = Math.round((clientX - r.left) / r.width * sourceImg.naturalWidth);
@@ -635,7 +661,7 @@ function pixelify() {
   try { data = octx.getImageData(0, 0, iw, ih).data; }
   catch (err) {
     const box = document.getElementById("statusBox");
-    box.className = "status multi"; box.textContent = "pixelify failed: the image's pixels are unreadable in this browser.";
+    box.className = "status multi"; box.textContent = "pixelify failed: the image's pixels are unreadable in this browser (page opened as a file? use Live Server).";
     return;
   }
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
@@ -726,7 +752,9 @@ document.addEventListener("pointerdown", e => {
     if (!col) {
       const box = document.getElementById("statusBox");
       box.className = "status multi";
-      box.textContent = "eyedropper can't read this image's pixels in this browser (try uploading it instead).";
+      box.textContent = "eyedropper can't read this image's pixels " +
+        (sourceReadable ? "at that spot" :
+        "(the page was opened as a file — open it through Live Server, or upload the image instead)");
     }
     adoptColor(col);
     return;
@@ -1189,6 +1217,16 @@ function autosave() {
         ok("Z+click a swatch adopts it", artTool === sw.title);
         ok("a picked color lands its own front swatch",
            !!paletteEl.querySelector('.swatch[title="' + artTool + '"]'));
+        window.dispatchEvent(new KeyboardEvent("keyup", { code: "KeyZ", bubbles: true }));
+        // ---- round 31: readability is probed at load; the eyedropper never paints ----
+        ok("a data-URL source probes readable", sourceReadable === true);
+        window.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyZ", bubbles: true }));
+        const beforeGrid = JSON.stringify(art) + "|" + JSON.stringify(cells);
+        const gr = cv.getBoundingClientRect();
+        cv.dispatchEvent(new PointerEvent("pointerdown", { clientX: gr.left + geo.left + geo.cell * 0.5,
+          clientY: gr.top + geo.top + geo.cell * 0.5, button: 0, bubbles: true, cancelable: true }));
+        ok("Z+click on the grid samples but never paints a cell",
+           (JSON.stringify(art) + "|" + JSON.stringify(cells)) === beforeGrid);
         window.dispatchEvent(new KeyboardEvent("keyup", { code: "KeyZ", bubbles: true }));
       } catch (err2) { out.push("ERROR " + err2.message); }
       finish();
