@@ -6,7 +6,51 @@
 <title>Logo intro — flood-fill study</title>
 <!--
   LOGO INTRO FLOOD STUDY (round 30, v6 — his node-graph rethink; round 31
-  calibration; round 32 quality pass)
+  calibration; round 32 quality pass; round 33 polish)
+  ROUND 33 (his "much much better — I'd feel pretty okay about delivering
+  this" + two last notes): one replay bug, one sharpness step, and the
+  editor's last missing tool.
+  (0) THE BOOKMARK SWAP — "bookmark this version, it's the best it's ever
+      been; forget the previous one." The blessed build is preserved at git
+      tag r32-benchmark (0152e7f); r31-benchmark is deleted, local + remote.
+  (1) THE REPLAY STALE-WORD BUG — his "when I replay, the second word starts
+      filled in, then empties instantly when it gets to it... maybe
+      indicative of a larger problem." It was — the same path also fired on
+      speed changes and on scrubbing backward over a word's start. ROOT
+      CAUSE: paintWord early-returns while a word's elapsed time is <= 0,
+      leaving that word's A/B render targets holding the PREVIOUS run's
+      fully-inked frames; paintAt then composited BOTH words every frame
+      unconditionally, so an unbegun word showed its stale final state.
+      Word 2 sat fully drawn for all of word 1's ~6.4 s (word 1's own stale
+      flash is only the first 0.4 s — why he only caught the second word).
+      Invisible on first load because fresh render targets start empty —
+      exactly his "not noticeable if I reload". FIX: composite a word only
+      once t > its start (2 lines in paintAt). Verified: Replay at t≈1.0
+      and t≈7.2 shows clean paper behind; scrubbing back below 6.847 leaves
+      word 2 absent instead of stale.
+  (2) MID-ANIMATION SHARPNESS — his "still a difference in resolution
+      between the middle/in process animation and finished product...
+      much better though... if it is fixable then its worth doing." Pass B
+      (the second box-filter step) went from a 4:1 reduction (four
+      corner-straddling taps, 8×8 box over the field, 550×113 texture
+      upscaled 2.3–4.7× to the screen) to a 2:1 reduction: ONE LINEAR tap
+      on the exact corner four texels share, which is a mathematically
+      exact 2×2 box of pass A's already-thresholded coverage (averaging
+      coverage is true AA downsampling — no ghost risk). Total filter
+      8×8 → 4×4 over the field; B texture 1099×225 lands ~1:1 on a 1×
+      display and 1.24× at DSF 2 (probe: fx.width 1360 vs B.w 1099).
+      Verified: before/after crops at t=5.0 and t=9.95 visibly crisper at
+      DSF 2, the round wet-edge tip intact, PERF unchanged (760 frames,
+      avg 16.65 ms, p99/worst 16.8, zero frames >25 ms). The NEXT lever if
+      he ever wants more: pass A at full field res (4× fragment cost —
+      risky on old phones; deliberately not spent).
+  Editor (same round): Lighten/Darken — his "last thing missing from the
+  new editor". One shade = one HSL lightness step (±8%), hue and saturation
+  hold so a blue walks a ladder of blues. Per target cell (mirror shifts
+  each cell by its own color), uncolored cells untouched, right-click still
+  erases, any color pick disarms. Selftest 48/50 — the 2 failures are the
+  pre-existing headless 2×2-image smoothing artifact (fail identically on
+  the r32 build), not this change.
   ROUND 32 (his numbered report on r31): one tip rework + one ghost-hunt,
   all verified, plus the r31 animation tagged as his rollback benchmark.
   (1) THE ROUND BRUSH TIP, another crack — his "at this point in the 'a'
@@ -19,8 +63,8 @@
       (uRamp = 80*65535/maxT — a wet edge ~80 distance-units wide that a
       real brush leaves as it lifts). Verified frozen at the 'a' entry
       (t=10.10): a rounded dark nub with a soft wet edge, no flat band.
-      The r31 animation is preserved at git tag r31-benchmark (8e8c9b3) —
-      one command rolls back if this read doesn't land for him.
+      (Round 33 moved the bookmark: r31-benchmark is deleted per his word;
+      the blessed build is now tag r32-benchmark = 0152e7f.)
   (2) THE MID-ANIMATION GHOST — his "resolution quality drops... random
       dots start populating elsewhere in the trace/stencil", clearest at
       t=3/t=9 as dotted outlines of letters far ahead of the frontier.
@@ -381,15 +425,15 @@ function initGL() {
     "float cov=0.25*(tx(p+vec2(.5,.5))+tx(p+vec2(1.5,.5))+" +
     "tx(p+vec2(.5,1.5))+tx(p+vec2(1.5,1.5)));" +
     "gl_FragColor=vec4(uInk*cov,cov);}");
-  // pass B: 4x4 box -> quarter-res (four corner-straddling LINEAR taps).
+  // pass B: 2x2 box -> quarter FIELD res (one LINEAR tap on the exact corner
+  // the four texels of each 2x2 block share, so each weighs 25%). Averaging
+  // pass A's already-thresholded coverage is true AA downsampling — the r32
+  // four-tap 4:1-stride version was twice the blur the screen footprint needs
+  // (his round-33 zoom-ins: mid-play looked softer than the final frame).
   const fsB = sh(gl.FRAGMENT_SHADER,
     "precision highp float;uniform sampler2D uTex;uniform vec2 uIn;" +
-    "void main(){vec2 p=floor(gl_FragCoord.xy)*4.0;" +
-    "vec4 s=texture2D(uTex,(p+vec2(1.0,1.0))/uIn)" +
-    "+texture2D(uTex,(p+vec2(3.0,1.0))/uIn)" +
-    "+texture2D(uTex,(p+vec2(1.0,3.0))/uIn)" +
-    "+texture2D(uTex,(p+vec2(3.0,3.0))/uIn);" +
-    "gl_FragColor=s*0.25;}");
+    "void main(){vec2 p=floor(gl_FragCoord.xy)*2.0;" +
+    "gl_FragColor=texture2D(uTex,(p+vec2(1.0,1.0))/uIn);}");
   // pass C: composite the quarter-res coverage onto the page at uMap.
   const vsC = sh(gl.VERTEX_SHADER,
     "attribute vec2 aPos;attribute vec2 aUV;uniform vec4 uMap;" +
@@ -459,12 +503,14 @@ function loadField(F, dx, dy) {
         W2.tex = mkTex(F.W, F.H, gl.NEAREST);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
                       gl.UNSIGNED_BYTE, cv);
-        // supersample chain: A = half field res (2x2 box), B = quarter (4x4).
-        // The display is ~7.5 field px per device px; 2x4 = 8x box filtering
-        // covers that footprint exactly (r30 got the same quality by letting
-        // the browser downscale a field-res canvas).
+        // supersample chain: A = half field res (2x2 box), B = half of A
+        // (2x2 box) = quarter field res, 4x4 box over the field total. The
+        // composite then lands ~1:1 on a 1x display (fx.width ≈ B.w) instead
+        // of r32's 2.3x-4.7x upscale of a 1/8-res texture — the mid-play
+        // softness he zoomed into. (r30 got this quality by letting the
+        // browser downscale a field-res canvas.)
         const aw = Math.ceil(F.W / 2), ah = Math.ceil(F.H / 2);
-        const bw = Math.ceil(aw / 4), bh = Math.ceil(ah / 4);
+        const bw = Math.ceil(aw / 2), bh = Math.ceil(ah / 2);
         const mkFbo = (t) => {
           const f = gl.createFramebuffer();
           gl.bindFramebuffer(gl.FRAMEBUFFER, f);
@@ -587,8 +633,13 @@ function paintAt(t) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, fx.width, fx.height);
   gl.clear(gl.COLOR_BUFFER_BIT);
-  compositeWord(words[0]);
-  compositeWord(words[1]);
+  // Composite ONLY words that have started. paintWord early-returns while
+  // el <= 0, leaving that word's A/B FBOs holding stale ink from the previous
+  // playthrough — compositing them anyway is his round-33 replay bug: on
+  // Replay (or speed change, or scrubbing back over a word's start) the second
+  // word sat fully drawn for seconds, then popped empty when its start came.
+  if (t > START_PAUSE) compositeWord(words[0]);
+  if (t > W2_START) compositeWord(words[1]);
   return false;
 }
 function unfinish() {
