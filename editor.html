@@ -64,9 +64,11 @@
 </head>
 <body>
 <h1>Puzzle editor</h1>
+<div class="hint" style="margin:-4px 0 12px" id="buildStamp">editor build r34 · 2026-11-02 — if you can read "r34" here, your copy is the latest</div>
 <details class="sub"><summary style="cursor:pointer; color:var(--dim)">what each mode does — tap to open</summary><p style="margin:6px 0 0">The retired in-app editor, recreated as a standalone drafting station. <b style="color:var(--ink)">Values</b>
-mode edits the solution itself (which cells are filled — the clues follow); the art rides along underneath at
-full strength on filled cells and 40% on empty ones. <b style="color:var(--ink)">Art</b> mode paints colors and
+mode edits the solution itself (which cells are filled — the clues follow); every cell shows its art color
+at full strength and <b style="color:var(--ink)">TRUE cells carry a gold ring</b> around them, like the app's given
+cells — ink and erase never touch colors in this mode. <b style="color:var(--ink)">Art</b> mode paints colors and
 never touches the solution: color a <i>filled</i> cell to set its picture color, an <i>empty</i> cell to set an accent
 that appears on the win reveal — everything at full strength. <b style="color:var(--ink)">Painting:</b> left-click
 inks/paints — click and hold to drag a line across cells (gap-filled) · <b style="color:var(--ink)">right-click</b> erases
@@ -77,7 +79,9 @@ later. The <b style="color:var(--ink)">Lighten</b>/<b style="color:var(--ink)">D
 one shade lighter or darker — drag across cells to shift each one (right-click still erases; uncolored cells stay untouched).
 A <b>source image</b> can sit beside the grid and be pixelified — each
 cell&rsquo;s area of the image averaged into that cell&rsquo;s color — or held over the grid (the peek button, or the Space key)
-to compare against the win screen. Classify runs the same solver engine as the fleet checker. Everything autosaves.</p></details>
+to compare against the win screen. Classify runs the same solver engine as the fleet checker. Everything
+autosaves to THIS browser after every stroke (Save writes on demand and shows the time); Export is only for
+handing the draft to Claude.</p></details>
 
 <div id="boardRow">
   <div>
@@ -104,10 +108,13 @@ to compare against the win screen. Classify runs the same solver engine as the f
       <label>w <input type="number" id="cw" min="4" max="25" value="15"></label>
       <label>h <input type="number" id="ch" min="4" max="25" value="10"></label>
       <button id="newBtn">+ New</button>
+      <button id="saveBtn" title="writes your draft to this browser right now (everything also autosaves after each stroke)">Save</button>
       <button id="undoBtn">Undo</button>
       <button id="clearBtn">Clear</button>
       <button id="mirrorBtn" title="mirror horizontally">Mirror: off</button>
       <button id="classifyBtn" style="background:var(--accent); color:#14102a; font-weight:600;">Classify</button>
+      <span class="hint" id="classifyChip" style="font-weight:600"></span>
+      <span class="hint" id="saveState">autosaves after every stroke</span>
     </div>
 
     <div class="bar">
@@ -115,14 +122,14 @@ to compare against the win screen. Classify runs the same solver engine as the f
         <button id="modeValBtn" class="on">Values</button>
         <button id="modeArtBtn">Art</button>
       </span>
-      <span class="hint" id="modeHint">editing the solution — filled cells drive the clues · art shows underneath (full / 40%)</span>
+      <span class="hint" id="modeHint">editing the solution — filled cells drive the clues · true cells ringed gold · ink/erase never touch colors</span>
       <span class="hint">left-click paints (click-hold to drag a line) · right-click erases · hold Z + click a cell to pick its color</span>
     </div>
 
     <div class="bar" id="valuesBar">
       <button id="inkBtn" class="on">Ink</button>
       <button id="eraseBtn">Erase</button>
-      <span class="hint">ink fills a cell (part of the solution) · erase empties it and drops its color · right-click always erases</span>
+      <span class="hint">ink fills a cell (part of the solution) · erase empties it — neither touches its color · right-click always erases</span>
     </div>
 
     <div class="bar" id="artBar" style="display:none;">
@@ -208,6 +215,9 @@ let mirror = false;
 let eyeDrop = false;      // true while Z is held — clicks pick a cell's color instead of painting
 let undoStack = [];       // snapshots of {cells, art}
 let lastGivenCells = null;
+let lastResult = null;    // round 34: last classify verdict {cls,text,short,stale} —
+                          // survives edits (marked stale) so the answer never
+                          // silently vanishes below the fold
 let sourceImg = null;     // HTMLImageElement | null — the reference image (peek + pixelify)
 let sourceName = "";
 let peeking = false;      // true while the source image is laid over the grid
@@ -373,12 +383,24 @@ function givensLineSolve(w, h, truth, maxGivens) {
 }
 
 // ---- classification ----
+// round 34: the verdict writes to TWO places — the full panel box below AND a
+// compact chip beside the Classify button up top (his "classify doesn't seem
+// to do anything" — the box was below the fold and every stroke END wiped it
+// via resetStatus). The verdict now SURVIVES edits, marked "edited since", and
+// only a fresh classify or a hard invalidation (new/import/load) clears it.
 function classify() {
-  const box = document.getElementById("statusBox");
   const gl = document.getElementById("givenList");
   lastGivenCells = null;
   const fills = cells.flat().filter(Boolean).length;
-  if (!fills) { box.className = "status"; box.textContent = "empty grid — draw something first"; gl.textContent = ""; return; }
+  if (!fills) {
+    lastResult = null; lastGivenCells = null;
+    const box = document.getElementById("statusBox");
+    box.className = "status"; box.textContent = "empty grid — draw something first";
+    const chip = document.getElementById("classifyChip");
+    chip.textContent = "draw something first"; chip.style.color = "var(--dim)";
+    gl.textContent = "";
+    return;
+  }
   const rowHints = cells.map(r => deriveHints(r));
   const colHints = Array.from({length: W}, (_, x) => deriveHints(cells.map(r => r[x])));
   const empty = Array.from({length: H}, () => Array(W).fill(null));
@@ -396,11 +418,11 @@ function classify() {
   const ms = Math.round(performance.now() - t0);
   const pct = Math.round(100 * fills / (W * H));
   if (result.cls === "clean") {
-    box.className = "status clean";
-    box.textContent = `CLEAN — unique + line-solvable from empty. ${fills} filled cells (${pct}%). ${ms}ms.`;
+    lastResult = { cls: "clean", stale: false,
+      text: `CLEAN — unique + line-solvable from empty. ${fills} filled cells (${pct}%). ${ms}ms.`,
+      short: `✓ CLEAN — line-solves from empty · ${fills} fills (${pct}%)` };
     gl.textContent = pct < 15 || pct > 70 ? "note: fill " + pct + "% is outside the fleet's usual 15-70% band" : "";
   } else if (result.cls === "guess") {
-    box.className = "status guess";
     const g = result.givens;
     lastGivenCells = g.map(([x, y]) => [x, y]);
     const list = g.map(([x, y, v]) =>
@@ -409,27 +431,61 @@ function classify() {
       ? ` ${g.length} givens is OVER the fleet cap of 3 — nudge the art (add structure or break symmetry).`
       : "";
     const crossed = g.some(v => !v[2]) ? " Note: fleet givens must be FILLED cells — draft has an empty one." : "";
-    box.textContent = `NEEDS-GUESSING — unique, but line-solving stalls. ${g.length} givens to line-solve: ${list}.${over}${crossed} ${ms}ms.`;
+    lastResult = { cls: "guess", stale: false,
+      text: `NEEDS-GUESSING — unique, but line-solving stalls. ${g.length} givens to line-solve: ${list}.${over}${crossed} ${ms}ms.`,
+      short: `⚠ NEEDS-GUESSING — ${g.length} givens drafted${g.length > 3 ? " (OVER the cap of 3)" : ""}` };
     gl.textContent = result.done
       ? "ringed cells are the draft givens; seeded, the puzzle fully line-solves."
       : "givens draft hit the internal cap before completing — the grid needs real structure work.";
   } else {
-    box.className = "status multi";
-    box.textContent = `NON-UNIQUE — ${result.n}+ fillings satisfy these clues; the exact-match win check would break. ${ms}ms.`;
+    lastResult = { cls: "multi", stale: false,
+      text: `NON-UNIQUE — ${result.n}+ fillings satisfy these clues; the exact-match win check would break. ${ms}ms.`,
+      short: `✗ NON-UNIQUE — ${result.n}+ solutions` };
     gl.textContent = "fix: fill or clear cells until the count drops to 1.";
   }
+  paintStatus();
   render();
 }
-function resetStatus() {
+function paintStatus() {
   const box = document.getElementById("statusBox");
-  box.className = "status"; box.textContent = "not classified yet";
-  document.getElementById("givenList").textContent = "";
+  const chip = document.getElementById("classifyChip");
+  const gl = document.getElementById("givenList");
+  if (!lastResult) {
+    box.className = "status"; box.textContent = "not classified yet";
+    chip.textContent = ""; chip.style.color = "";
+    gl.textContent = "";
+    return;
+  }
+  const colorFor = { clean: "var(--good)", guess: "var(--warn)", multi: "var(--bad)" };
+  if (lastResult.stale) {
+    box.className = "status";
+    box.textContent = lastResult.text + " — EDITED SINCE, re-run Classify to refresh.";
+    chip.textContent = lastResult.short + " · edited since — re-run Classify";
+    chip.style.color = "var(--dim)";
+    gl.textContent = "";   // the drafted givens rings die with any edit
+  } else {
+    box.className = "status " + lastResult.cls;
+    box.textContent = lastResult.text;
+    chip.textContent = lastResult.short;
+    chip.style.color = colorFor[lastResult.cls];
+  }
+}
+// a stroke/undo changes the grid — the verdict stays visible but goes stale
+function markStatusStale() {
+  lastGivenCells = null;
+  if (lastResult && !lastResult.stale) { lastResult.stale = true; paintStatus(); }
+}
+// a hard invalidation (new size/import/load/pixelify/clear) wipes the verdict
+function resetStatus() {
+  lastResult = null; lastGivenCells = null; paintStatus();
 }
 
 // ---- rendering ----
 const cv = document.getElementById("board");
 const cx = cv.getContext("2d");
-const INK = "#c9c2e8", PAPER = "#17131f", GRID = "#2c2742", CLUE = "#9a93b3", GIVEN = "#ffffff";
+const INK = "#c9c2e8", PAPER = "#17131f", GRID = "#2c2742", CLUE = "#9a93b3", GIVEN = "#ffffff",
+      GOLD = "#e5ac4e";   // the app's given-ring gold (style.css) — round 34's
+                          // values-mode truth marker
 let geo = null;
 function computeGeo() {
   const rowHints = cells.map(r => deriveHints(r));
@@ -467,13 +523,13 @@ function computeGeo() {
            font: Math.max(10, Math.round(cell * 0.32)),
            left: leftRuns * runW + 8, top: topRuns * runH + 8 };
 }
-// how strongly an empty cell's color shows: values mode = the 40% "background
-// art" rule he asked for; art mode = full-strength preview. Filled cells are
-// always 100%.
+// round 34 (his ruling): colors ALWAYS show at full strength in both modes —
+// no more 40% dimming. In values mode a TRUE cell is marked by the gold ring
+// drawn in render(), not by a brightness difference (inking a blank cell used
+// to visibly "change its color" — that was the dim rule, now gone).
 function cellAlpha(filled, hasColor) {
   if (!hasColor) return 0;
-  if (mode === "art") return 1;
-  return filled ? 1 : 0.40;
+  return 1;
 }
 // where the source image sits relative to the cell grid (cell units, contain
 // fit — the whole image visible, centered, letterboxed). Shared by the peek
@@ -523,6 +579,17 @@ function render() {
       cx.globalAlpha = 1;
     }
     cx.strokeStyle = GRID; cx.strokeRect(px + 0.5, py + 0.5, geo.cell, geo.cell);
+  }
+  // round 34: TRUE cells carry a golden ring on the cell outline, like the
+  // app's given cells (his ruling — the ring IS the truth marker; colors no
+  // longer change with truth). Drawn ON the gridline with a 1px bleed into
+  // neighbors, matching the app's inset:-1.5px ring.
+  if (mode === "values") {
+    cx.strokeStyle = GOLD; cx.lineWidth = 2;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (cells[y][x]) {
+      cx.strokeRect(geo.left + x * geo.cell + 0.5, geo.top + y * geo.cell + 0.5, geo.cell, geo.cell);
+    }
+    cx.lineWidth = 1;
   }
   // givens rings
   if (lastGivenCells) {
@@ -704,7 +771,12 @@ function setPeek(v) {
   const formTarget = t => t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT");
   window.addEventListener("keydown", e => {
     if (e.code === "Space" && !formTarget(e.target)) { e.preventDefault(); setPeek(true); }
-    if (e.code === "KeyZ" && !formTarget(e.target) && !eyeDrop) { eyeDrop = true; document.body.style.cursor = "crosshair"; }
+    if (e.code === "KeyZ" && !formTarget(e.target)) {
+      // round 34: Ctrl/Cmd+Z = undo (his "ctrl z doesn't undo"). This branch
+      // must come FIRST — a Ctrl+Z used to also arm the eyedropper below.
+      if (e.ctrlKey || e.metaKey) { e.preventDefault(); undoOnce(); return; }
+      if (!eyeDrop) { eyeDrop = true; document.body.style.cursor = "crosshair"; }
+    }
   });
   window.addEventListener("keyup", e => {
     if (e.code === "Space") setPeek(false);
@@ -772,17 +844,19 @@ document.addEventListener("pointerdown", e => {
 }, true);
 function applyCell(x, y, erase) {
   // one cell, per the active mode + tool. erase (a right-button stroke) is the
-  // opposite of painting in either mode: values → clear the cell and drop its
-  // color with it (the old erase-tool semantics); art → clear the color.
+  // opposite of painting in either mode.
+  // round 34 (his ruling): values mode edits THE SOLUTION ONLY — ink/erase
+  // flip the truth bit and NEVER touch the art color (erase used to drop the
+  // color with the cell, which read as "erasing turns it black"; inking a
+  // blank cell used to paint it the INK tone — both fixed: art is Art mode's
+  // job, truth is marked by the gold ring).
   let touched = false;
   if (mode === "values") {
     const v = erase ? false : (tool === "ink");
     if (cells[y][x] !== v) { cells[y][x] = v; touched = true; }
-    if (!v && art[y][x]) { art[y][x] = ""; touched = true; }
     if (mirror) {
       const mx = W - 1 - x;
       if (cells[y][mx] !== v) { cells[y][mx] = v; touched = true; }
-      if (!v && art[y][mx]) { art[y][mx] = ""; touched = true; }
     }
   } else {
     // round 33: shade tools shift each target cell's OWN color, so the value
@@ -842,7 +916,7 @@ cv.addEventListener("pointermove", e => {
   paintMove(c);
 });
 function endStroke() {
-  if (drawing && strokeChanged) { autosave(); resetStatus(); }
+  if (drawing && strokeChanged) { autosave(); markStatusStale(); render(); }
   drawing = false; strokeChanged = false; lastCell = null; strokeErase = false;
 }
 cv.addEventListener("pointerup", endStroke);
@@ -887,7 +961,7 @@ function setMode(m) {
   document.getElementById("valuesBar").style.display = m === "values" ? "" : "none";
   document.getElementById("artBar").style.display = m === "art" ? "" : "none";
   document.getElementById("modeHint").textContent = m === "values"
-    ? "editing the solution — filled cells drive the clues · art shows underneath (full / 40%)"
+    ? "editing the solution — filled cells drive the clues · true cells ringed gold · ink/erase never touch colors"
     : "painting colors — never touches the solution · everything full strength";
   render();
 }
@@ -1002,14 +1076,15 @@ mirrorBtn.addEventListener("click", () => {
   mirrorBtn.textContent = "Mirror: " + (mirror ? "on" : "off");
   mirrorBtn.classList.toggle("on", mirror);
 });
-document.getElementById("undoBtn").addEventListener("click", () => {
+function undoOnce() {
   const prev = undoStack.pop();
   if (prev) {
     const s = JSON.parse(prev);
     cells = s.c; art = s.a;
-    autosave(); render(); resetStatus();
+    autosave(); render(); markStatusStale();
   }
-});
+}
+document.getElementById("undoBtn").addEventListener("click", undoOnce);
 document.getElementById("clearBtn").addEventListener("click", () => {
   undoStack.push(snapshot());
   cells = blank(W, H); art = blankArt(W, H);
@@ -1110,18 +1185,35 @@ document.getElementById("fleetLoadBtn").addEventListener("click", () => {
   autosave(); render(); resetStatus();
 });
 
-// ---- autosave ----
+// ---- autosave + explicit save ----
+// round 34 (his "there's no way to save"): autosave ALWAYS existed (a
+// debounced write after every stroke, restored on load) but it was invisible,
+// so he didn't trust it. Save is now a first-class button with a visible
+// timestamp ("saved 14:32:05 — refresh-safe"), and a restored session
+// announces itself in the status box on load — proof the mechanism works.
+const saveStateEl = document.getElementById("saveState");
+function fmtClock(d) { return d.toTimeString().slice(0, 8); }
+function writeSave() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      w: W, h: H, cells, art, name: document.getElementById("nameInput").value,
+      ts: new Date().toISOString()
+    }));
+    saveStateEl.style.color = "";
+    saveStateEl.textContent = "saved " + fmtClock(new Date()) + " — refresh-safe";
+    return true;
+  } catch (err) {
+    saveStateEl.style.color = "var(--bad)";
+    saveStateEl.textContent = "SAVE FAILED — browser storage is blocked; use Export";
+    return false;
+  }
+}
 let saveTimer = null;
 function autosave() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        w: W, h: H, cells, art, name: document.getElementById("nameInput").value
-      }));
-    } catch {}
-  }, 250);
+  saveTimer = setTimeout(writeSave, 250);
 }
+document.getElementById("saveBtn").addEventListener("click", () => { clearTimeout(saveTimer); writeSave(); });
 (function restore() {
   try {
     const s = JSON.parse(localStorage.getItem(LS_KEY) || "null");
@@ -1131,6 +1223,12 @@ function autosave() {
       document.getElementById("nameInput").value = s.name || "";
       document.getElementById("cw").value = W; document.getElementById("ch").value = H;
       syncPreset();
+      const when = s.ts ? new Date(s.ts) : null;
+      const box = document.getElementById("statusBox");
+      box.className = "status clean";
+      box.textContent = "restored your last session" +
+        (when && !isNaN(when) ? " (saved " + fmtClock(when) + ")" : "") +
+        " — the editor autosaves every stroke; Export is only for handing the draft to Claude";
     } else { cells = blank(W, H); art = blankArt(W, H); }
   } catch { cells = blank(W, H); art = blankArt(W, H); }
 })();
@@ -1185,7 +1283,7 @@ function autosave() {
       if (cells[y][x]) { fx = x; fy = y; break outer2; }
     applyCell(fx, fy);
     ok("values erase clears cell", cells[fy][fx] === false);
-    ok("values erase drops color", art[fy][fx] === "");
+    ok("values erase keeps the color", art[fy][fx] !== "");
     // undo restores both grids
     const s = JSON.parse(undoStack.pop());
     cells = s.c; art = s.a;
@@ -1200,10 +1298,11 @@ function autosave() {
     ok("export has colors grid", Array.isArray(draft.colors) && draft.colors.length === H);
     ok("export colors match art", draft.colors.flat().filter(Boolean).length === art.flat().filter(Boolean).length);
     ok("export truth matches cells", draft.truth.flat().filter(Boolean).length === 67);
-    // ---- round 22: the 40% background-art render rule ----
+    // ---- round 22: the full-strength art render rule (round 34: BOTH modes
+    // full strength — truth is marked by the gold ring, not brightness) ----
     setMode("values");
     ok("values: filled art full strength", cellAlpha(true, true) === 1);
-    ok("values: false-value art at 40%", cellAlpha(false, true) === 0.40);
+    ok("values: false-value art full strength too", cellAlpha(false, true) === 1);
     setMode("art");
     ok("art: everything 100%", cellAlpha(true, true) === 1 && cellAlpha(false, true) === 1);
     // ---- round 27: the ONE-gesture paint path through the REAL event path
@@ -1345,6 +1444,52 @@ function autosave() {
         artLightBtn.click(); artLightBtn.click();
         ok("re-clicking the armed tool disarms", shadeDir === 0);
         disarmShade();
+        // ---- round 34: values mode is solution-only; gold ring = truth;
+        // visible save; Ctrl+Z; a classify verdict that survives a stroke ----
+        setSize(15, 10);
+        setSourceImage(null);
+        setMode("values"); tool = "ink";
+        inkBtn.classList.add("on"); eraseBtn.classList.remove("on");
+        cells = blank(W, H); art = blankArt(W, H);
+        art[2][2] = "#00ff00";
+        applyCell(2, 2);
+        ok("values ink sets truth", cells[2][2] === true);
+        ok("values ink leaves the color alone", art[2][2] === "#00ff00");
+        applyCell(2, 2, true);
+        ok("values erase clears truth", cells[2][2] === false);
+        ok("values erase keeps the color", art[2][2] === "#00ff00");
+        // the gold ring paints on a TRUE cell's outline and not on a false one
+        // (sampled off the 5x5 guide lines: cell 3,3 for true, 4,4 for false;
+        // the 2px stroke is centered on the gx+0.5 gridline, so its fully
+        // covered device pixel is gx exactly — gx+1 is a 50/50 blend)
+        cells[3][3] = true; art[3][3] = ""; render();
+        const ringPx = cx.getImageData(geo.left + 3 * geo.cell, geo.top + 3 * geo.cell + Math.floor(geo.cell / 2), 1, 1).data;
+        ok("true cell wears the app-gold ring (" + ringPx[0] + "," + ringPx[1] + "," + ringPx[2] + ")",
+           ringPx[0] > 190 && ringPx[1] > 130 && ringPx[3] > 0 && ringPx[2] < 130);
+        const plainPx = cx.getImageData(geo.left + 4 * geo.cell + 1, geo.top + 4 * geo.cell + Math.floor(geo.cell / 2), 1, 1).data;
+        ok("false cell border is not gold", !(plainPx[0] > 190 && plainPx[1] > 130 && plainPx[2] < 130));
+        // Ctrl+Z undoes through the real key path (and never arms the eyedropper)
+        undoStack.push(snapshot());
+        applyCell(5, 5);
+        ok("pre-undo: cell inked", cells[5][5] === true);
+        window.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyZ", ctrlKey: true, bubbles: true, cancelable: true }));
+        ok("Ctrl+Z undoes the stroke", cells[5][5] === false);
+        ok("Ctrl+Z does not arm the eyedropper", eyeDrop === false);
+        // Save writes on demand and says so
+        document.getElementById("saveBtn").click();
+        let savedOk = false;
+        try { const o = JSON.parse(localStorage.getItem(LS_KEY) || "null"); savedOk = !!o && o.w === W && o.cells.length === H && !!o.ts; } catch { savedOk = false; }
+        ok("Save writes the draft to this browser", savedOk);
+        ok("the save stamp shows the time", document.getElementById("saveState").textContent.indexOf("saved ") === 0);
+        // classify answers BESIDE the button and the verdict survives a stroke
+        // (a 4x4 diagonal pair: rows/cols "1","1" — two fillings fit, NON-UNIQUE)
+        setSize(4, 4);
+        cells = blank(W, H); cells[0][0] = true; cells[1][1] = true; tool = "ink"; render();
+        document.getElementById("classifyBtn").click();
+        ok("classify verdict shows beside the button", document.getElementById("classifyChip").textContent.indexOf("NON-UNIQUE") >= 0);
+        synthPoint("pointerdown", 1, 1); synthPoint("pointerup", 1, 1);
+        ok("the verdict survives a stroke, marked stale", document.getElementById("classifyChip").textContent.indexOf("edited since") >= 0);
+        ok("the panel keeps the full text, flagged", document.getElementById("statusBox").textContent.indexOf("EDITED SINCE") >= 0);
       } catch (err2) { out.push("ERROR " + err2.message); }
       finish();
     };
