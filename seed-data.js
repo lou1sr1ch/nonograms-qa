@@ -28405,7 +28405,7 @@ const SEED_DATA = {
       "fact": "The average adult has about 5 liters of blood, which travels roughly 19,000 km through blood vessels each day, nearly halfway around the equator.",
       "source": {
         "url": "https://www.pexels.com/photo/person-in-pink-gloves-holding-a-test-tube-6629361/",
-        "attribution": "Photo by Kaboompics .com"
+        "attribution": "Photo by Kaboompics.com"
       },
       "factSource": "https://en.wikipedia.org/wiki/Blood",
       "image": "0068.jpg"
@@ -38410,5 +38410,5 @@ const SEED_DATA = {
     "0019",
     "0027"
   ],
-  "seedVersion": 2026110201
+  "seedVersion": 2026110301
 };
