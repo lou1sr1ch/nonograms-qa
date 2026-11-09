@@ -1153,9 +1153,15 @@ function setUserScreen(name) {
      would restart the flood too; one flood per launch is the ruling.
    - Play is gated on FINISH instead of the old fixed 2.5 s. The wordmark is
      tappable = skip, and a 9 s watchdog guarantees Play even if the font or GL
-     never resolves. Degrade ladder (finished wordmark, app fully usable):
+     never resolves (at the 3× speed the flood finishes ≈ 3.7 s in, so 9 s is
+     ~2× headroom). Degrade ladder (finished wordmark, app fully usable):
      no WebGL / no highp fragment precision / FBO failure / reduced motion /
      font-load failure / watchdog.
+   - Styling contract (H53 fix): the verbatim buildGuide fills the FINISH
+     vectors with var(--espresso) and MEASURES #heroWm's two <text> elements
+     (Aghja 500, calt pinned — style.css carries both rules; a JS-only port
+     shaped the guide in the body font and the finished frame landed with
+     broken spacing).
    - If script.js never runs at all, the .hero-fallback h1 sits exactly like the
      old static title and Play is visible — the pre-JS base state never regressed. */
 window.heroIntro = (() => {
@@ -1166,12 +1172,13 @@ window.heroIntro = (() => {
   let booted = false, finished = false;
   if (!screenHome || !svg || !fx) return { onScreen() {} };
 
-  // ---- hand-written state (mirrors the page script; speed fixed at 1) ----
+  // ---- hand-written state (mirrors the page script; speed fixed at 3 — his
+  // round-39 ruling: the approved viewing speed on the QA page was 3×) ----
   const gl = fx.getContext("webgl", { alpha: true, premultipliedAlpha: true }) ||
              fx.getContext("experimental-webgl", { alpha: true, premultipliedAlpha: true });
   // glProg (and glU/glAttr) are declared inside the VERBATIM block below —
   // the page declares them between buildGuide and initGL.
-  const speed = 1;
+  const speed = 3;
   // buildGuide consults the page's query flags (?guide, ?dump — dev overlays);
   // declared so the verbatim code runs unmodified. In-app these are never set.
   const params = new URLSearchParams(location.search);
@@ -1589,10 +1596,11 @@ function frame(now) {
   function boot() {
     // Watchdog: whatever hangs (font download, PNG decode, a GL driver that
     // never calls back), Play must not stay hidden forever — but the bar sits
-    // PAST the natural finish (TOTAL ≈ 11.1 s + boot beat), never inside the
-    // flood itself: at 9 s the watchdog was cutting word 2 off ~2 s early in
-    // the headless run. finishNow is a no-op if the intro already finished.
-    setTimeout(() => { if (!finished) finishNow("watchdog"); }, 15000);
+    // PAST the natural finish (TOTAL ≈ 11.1 s of animation ≈ 3.7 s of wall
+    // clock at the 3× ruling, plus the boot beat — never inside the flood
+    // itself: a bar at 9 s cut word 2 off early when the port ran at 1×).
+    // finishNow is a no-op if the intro already finished.
+    setTimeout(() => { if (!finished) finishNow("watchdog"); }, 9000);
     document.fonts.load("500 " + FS + "px Aghja").then(async () => {
       if (finished) return; // skipped during the font-load beat
       buildGuide();
