@@ -821,33 +821,43 @@ body.user-mode[data-screen="solve"] #solveBack { display: inline-flex; }
   align-items: center;
   gap: 20px;
 }
-.hero-title {
+/* THE FLOOD hero intro (batch H53, 2026-11-09): replaces the pass-2 CSS
+   clip-wipe (hero-write) with the true-trace v6 flood ported verbatim from
+   nonograms-qa/logo-intro.html (see script.js heroIntro). The flood paints a
+   canvas over an SVG guide and swaps to crisp vectors at FINISH. State machine
+   lives on #screenHome's class:
+     (none)          JS never ran — .hero-fallback sits like the old static h1
+     .flood-live     intro running: fallback hidden, Play hidden (tap wordmark = skip)
+     .flood-done     finished: vectors visible, Play rises in
+     .flood-fallback graphics/font failed: fallback text back, Play rises in */
+.hero-stage {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  margin: 60px 0 36px;
+}
+.hero-fallback {
   font-family: var(--font-logo);
   font-size: 64px;
   font-weight: 500;
-  margin: 60px 0 36px;
+  margin: 0;
   color: var(--color-espresso);
   letter-spacing: 2px;
+  text-align: center;
 }
-/* "Being written", pass 2 (2026-08-26): one WORD at a time — "Nonograms" writes,
-   then "Original". Still a clip wipe per word, not true pen-stroke tracing; the
-   real thing needs the wordmark vectorized to single-stroke SVG paths animated by
-   stroke-dashoffset, which is logged as post-batch polish. Negative insets keep
-   ascenders/descenders unclipped mid-write; base state is visible so reduce-motion
-   shows the finished title instantly. */
-.hero-word {
-  display: inline-block;
-  animation: hero-write 1.05s cubic-bezier(0.32, 0, 0.24, 1) both;
+#screenHome.flood-live .hero-fallback,
+#screenHome.flood-done .hero-fallback { display: none; }
+#heroWm { display: block; width: 100%; height: auto; }
+#heroFx { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+/* Play arrives when the wordmark finishes (first show of a launch), or
+   immediately on every later home visit — see script.js heroIntro. */
+body.user-mode[data-screen="home"] #screenHome.flood-live #userPlay {
+  opacity: 0;
+  pointer-events: none;
 }
-.hero-word:nth-child(1) { animation-delay: 0.2s; }
-.hero-word:nth-child(2) { animation-delay: 1.35s; }
-@keyframes hero-write {
-  from { clip-path: inset(-25% 100% -25% -5%); opacity: 0.85; }
-  to   { clip-path: inset(-25% -5%  -25% -5%); opacity: 1; }
-}
-/* Play arrives after the word finishes writing. */
-body.user-mode[data-screen="home"] #userPlay {
-  animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 2.5s both;   /* after word 2 finishes */
+body.user-mode[data-screen="home"] #screenHome.flood-done #userPlay,
+body.user-mode[data-screen="home"] #screenHome.flood-fallback #userPlay {
+  animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes rise-in { from { opacity: 0; transform: translateY(14px); } }
 .user-cta {
