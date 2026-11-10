@@ -324,33 +324,50 @@ function buildGuide() {
   });
   svg.getBoundingClientRect();            // force layout so char positions exist
 
-  // Word widths -> viewBox (same rule as v5: box tops at y=100, 480 tall so
-  // the g descender is never clipped).
-  const w1 = texts[0].getComputedTextLength();
-  const w2 = texts[1].getComputedTextLength();
-  viewW = Math.max(w1, w2) + MARGIN * 2;
+  // Placement comes from the BAKE, not the DOM. OCC holds the shaped advances
+  // the fields were rasterized from; deriving origins + viewBox from it makes
+  // canvas and FINISH vectors agree on EVERY engine by construction. Live
+  // measurement is NOT trustworthy across engines: WebKit ignores the
+  // letter-spacing attribute on SVG text (and may shape calt differently), so
+  // getStartPositionOfChar/getComputedTextLength drifted from the bake by up
+  // to 22 viewBox units on iOS — the FINISH vectors landed compressed against
+  // the flood canvas (his round-40 report). Width rule matches
+  // getComputedTextLength: sum(adv) + letter-spacing per glyph, incl. trailing.
+  // OCC's `word` field is the word NAME ("Nonograms"/"Original"), not an
+  // index — derive the numeric index from the name transitions (all of one
+  // word first, then all of the next).
+  const wordIdx = [];
+  {
+    let wi = 0;
+    OCC.forEach((o, i) => { if (i > 0 && o.word !== OCC[i - 1].word) wi++; wordIdx.push(wi); });
+  }
+  const widthOf = wi => OCC.filter((o, i) => wordIdx[i] === wi)
+    .reduce((a, o) => a + o.adv * S + LS, 0);
+  viewW = Math.max(widthOf(0), widthOf(1)) + MARGIN * 2;
   svg.setAttribute("viewBox", "0 " + VB_Y + " " + Math.ceil(viewW) + " 480");
 
-  // Per occurrence: origin from the guide's own DOM — dark layer and guide
-  // coincide BY CONSTRUCTION (v3 invariant).
-  texts.forEach((t, wi) => {
-    for (let k = 0; k < t.getNumberOfChars(); k++) {
-      origins.push({ x: t.getStartPositionOfChar(k).x, word: wi });
-    }
+  // Per occurrence: closed-form origin — margin + running advances, reset at
+  // each word. (The v3 "guide and dark layer coincide by construction"
+  // invariant only holds where the engine shapes the guide like the bake.)
+  let cx = MARGIN;
+  OCC.forEach((o, i) => {
+    if (i > 0 && o.word !== OCC[i - 1].word) cx = MARGIN;
+    origins.push({ x: cx, word: wordIdx[i] });
+    cx += o.adv * S + LS;
   });
 
-  // v6 addition: closed-form drift guard. If the font's advances ever stop
-  // matching OCC, the flood canvas and the FINISH vectors would land in
-  // different places — warn loudly instead of silently misplacing. (DOM
-  // origins are viewBox units; OCC advances are font units — hence the * S.)
+  // Drift guard, repurposed: placement no longer reads the DOM, but a wide
+  // gap between DOM shaping and the bake still means the ?guide overlay and
+  // the flood disagree — so keep measuring and keep warning, for diagnostics
+  // only (fires on WebKit, silent on Blink).
   let worst = 0;
-  for (let i = 0; i < OCC.length; i++) {
-    const wi = origins[i].word;
-    let cf = MARGIN;
-    for (let j = i - 1; j >= 0 && origins[j].word === wi; j--)
-      cf += OCC[j].adv * S + LS;
-    worst = Math.max(worst, Math.abs(cf - origins[i].x));
-  }
+  let mi = 0;
+  texts.forEach((t, wi) => {
+    for (let k = 0; k < t.getNumberOfChars(); k++, mi++) {
+      worst = Math.max(worst,
+        Math.abs(t.getStartPositionOfChar(k).x - origins[mi].x));
+    }
+  });
   if (worst > 0.25) console.warn("origin drift " + worst.toFixed(3) +
     " viewBox units — font/OCC mismatch, flood and FINISH will disagree");
 

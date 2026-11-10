@@ -1172,13 +1172,14 @@ window.heroIntro = (() => {
   let booted = false, finished = false;
   if (!screenHome || !svg || !fx) return { onScreen() {} };
 
-  // ---- hand-written state (mirrors the page script; speed fixed at 3 — his
-  // round-39 ruling: the approved viewing speed on the QA page was 3×) ----
+  // ---- hand-written state (mirrors the page script; speed fixed at 4 — his
+  // round-40 ruling: 3× was "still just slightly too slow, but almost
+  // negligible"; the endgame wall-clock timer below derives from this) ----
   const gl = fx.getContext("webgl", { alpha: true, premultipliedAlpha: true }) ||
              fx.getContext("experimental-webgl", { alpha: true, premultipliedAlpha: true });
   // glProg (and glU/glAttr) are declared inside the VERBATIM block below —
   // the page declares them between buildGuide and initGL.
-  const speed = 3;
+  const speed = 4;
   // buildGuide consults the page's query flags (?guide, ?dump — dev overlays);
   // declared so the verbatim code runs unmodified. In-app these are never set.
   const params = new URLSearchParams(location.search);
@@ -1206,7 +1207,17 @@ window.heroIntro = (() => {
     if (raf) cancelAnimationFrame(raf);
     t0 = null; running = true;
     raf = requestAnimationFrame(frame);
+    // Wall-clock backup for the endgame (his round-40 dead window): rAF
+    // delivery stalls on some engines (WebKit, headless) once the canvas
+    // stops changing — the frames right before FINISH are visually identical,
+    // so the compositor stops scheduling, t never crosses FINISH, and the
+    // swap sat waiting for the 9 s watchdog. This timer lands the finish at
+    // TOTAL + a 0.3 s grace regardless; the natural rAF path no-ops it.
+    setTimeout(() => finishNow("wallclock"), TOTAL / speed * 1000 + 300);
   }
+
+
+
 
 
 // ---- BEGIN verbatim from logo-intro.html (round-33 state) ----
@@ -1265,33 +1276,50 @@ function buildGuide() {
   });
   svg.getBoundingClientRect();            // force layout so char positions exist
 
-  // Word widths -> viewBox (same rule as v5: box tops at y=100, 480 tall so
-  // the g descender is never clipped).
-  const w1 = texts[0].getComputedTextLength();
-  const w2 = texts[1].getComputedTextLength();
-  viewW = Math.max(w1, w2) + MARGIN * 2;
+  // Placement comes from the BAKE, not the DOM. OCC holds the shaped advances
+  // the fields were rasterized from; deriving origins + viewBox from it makes
+  // canvas and FINISH vectors agree on EVERY engine by construction. Live
+  // measurement is NOT trustworthy across engines: WebKit ignores the
+  // letter-spacing attribute on SVG text (and may shape calt differently), so
+  // getStartPositionOfChar/getComputedTextLength drifted from the bake by up
+  // to 22 viewBox units on iOS — the FINISH vectors landed compressed against
+  // the flood canvas (his round-40 report). Width rule matches
+  // getComputedTextLength: sum(adv) + letter-spacing per glyph, incl. trailing.
+  // OCC's `word` field is the word NAME ("Nonograms"/"Original"), not an
+  // index — derive the numeric index from the name transitions (all of one
+  // word first, then all of the next).
+  const wordIdx = [];
+  {
+    let wi = 0;
+    OCC.forEach((o, i) => { if (i > 0 && o.word !== OCC[i - 1].word) wi++; wordIdx.push(wi); });
+  }
+  const widthOf = wi => OCC.filter((o, i) => wordIdx[i] === wi)
+    .reduce((a, o) => a + o.adv * S + LS, 0);
+  viewW = Math.max(widthOf(0), widthOf(1)) + MARGIN * 2;
   svg.setAttribute("viewBox", "0 " + VB_Y + " " + Math.ceil(viewW) + " 480");
 
-  // Per occurrence: origin from the guide's own DOM — dark layer and guide
-  // coincide BY CONSTRUCTION (v3 invariant).
-  texts.forEach((t, wi) => {
-    for (let k = 0; k < t.getNumberOfChars(); k++) {
-      origins.push({ x: t.getStartPositionOfChar(k).x, word: wi });
-    }
+  // Per occurrence: closed-form origin — margin + running advances, reset at
+  // each word. (The v3 "guide and dark layer coincide by construction"
+  // invariant only holds where the engine shapes the guide like the bake.)
+  let cx = MARGIN;
+  OCC.forEach((o, i) => {
+    if (i > 0 && o.word !== OCC[i - 1].word) cx = MARGIN;
+    origins.push({ x: cx, word: wordIdx[i] });
+    cx += o.adv * S + LS;
   });
 
-  // v6 addition: closed-form drift guard. If the font's advances ever stop
-  // matching OCC, the flood canvas and the FINISH vectors would land in
-  // different places — warn loudly instead of silently misplacing. (DOM
-  // origins are viewBox units; OCC advances are font units — hence the * S.)
+  // Drift guard, repurposed: placement no longer reads the DOM, but a wide
+  // gap between DOM shaping and the bake still means the ?guide overlay and
+  // the flood disagree — so keep measuring and keep warning, for diagnostics
+  // only (fires on WebKit, silent on Blink).
   let worst = 0;
-  for (let i = 0; i < OCC.length; i++) {
-    const wi = origins[i].word;
-    let cf = MARGIN;
-    for (let j = i - 1; j >= 0 && origins[j].word === wi; j--)
-      cf += OCC[j].adv * S + LS;
-    worst = Math.max(worst, Math.abs(cf - origins[i].x));
-  }
+  let mi = 0;
+  texts.forEach((t, wi) => {
+    for (let k = 0; k < t.getNumberOfChars(); k++, mi++) {
+      worst = Math.max(worst,
+        Math.abs(t.getStartPositionOfChar(k).x - origins[mi].x));
+    }
+  });
   if (worst > 0.25) console.warn("origin drift " + worst.toFixed(3) +
     " viewBox units — font/OCC mismatch, flood and FINISH will disagree");
 
@@ -1594,12 +1622,11 @@ function frame(now) {
 // ---- END verbatim from logo-intro.html ----
 
   function boot() {
-    // Watchdog: whatever hangs (font download, PNG decode, a GL driver that
-    // never calls back), Play must not stay hidden forever — but the bar sits
-    // PAST the natural finish (TOTAL ≈ 11.1 s of animation ≈ 3.7 s of wall
-    // clock at the 3× ruling, plus the boot beat — never inside the flood
-    // itself: a bar at 9 s cut word 2 off early when the port ran at 1×).
-    // finishNow is a no-op if the intro already finished.
+    // Watchdog: catastrophic backstop only — the wall-clock timer in play()
+    // normally lands the finish (TOTAL ≈ 11.1 s of animation ≈ 2.8 s of wall
+    // clock at the 4× ruling, plus the boot beat). Whatever hangs (font
+    // download, PNG decode, a GL driver that never calls back), Play must not
+    // stay hidden forever. finishNow is a no-op if the intro already finished.
     setTimeout(() => { if (!finished) finishNow("watchdog"); }, 9000);
     document.fonts.load("500 " + FS + "px Aghja").then(async () => {
       if (finished) return; // skipped during the font-load beat
@@ -1616,12 +1643,66 @@ function frame(now) {
     }).catch(e => { console.warn("hero intro font load failed", e); finishNow("font"); });
   }
 
+  // DEBUG (batch H55 sim diagnosis, DEV_BUILD only — strip before ship): an
+  // on-screen readout of the flood internals so simulator/device screenshots
+  // carry the numbers the console would. t= since flood-live, state, viewW,
+  // the drift-guard value, per-word vector ink widths (stage px), Play opacity.
+  let dbgT0 = null, dbgDoneAt = null, dbgPlayAt = null;
+  function dbgTick() {
+    const el = document.getElementById("floodDbg");
+    if (!el) return;
+    if (dbgT0 === null) dbgT0 = performance.now();
+    const t = (performance.now() - dbgT0) / 1000;
+    const st = (screenHome.className.match(/flood-\w+/) || ["none"])[0];
+    if (st !== "none" && dbgDoneAt === null &&
+        (st === "flood-done" || st === "flood-fallback")) dbgDoneAt = t;
+    const playOp = parseFloat(getComputedStyle(document.getElementById("userPlay")).opacity);
+    if (dbgPlayAt === null && playOp > 0.95) dbgPlayAt = t;
+    let worst = 0;
+    for (let i = 0; i < OCC.length && i < origins.length; i++) {
+      const wi = origins[i].word;
+      let cf = MARGIN;
+      for (let j = i - 1; j >= 0 && origins[j].word === wi; j--) cf += OCC[j].adv * S + LS;
+      worst = Math.max(worst, Math.abs(cf - origins[i].x));
+    }
+    let vec = "vec:-";
+    if (gGlyph && gGlyph.children.length) {
+      const stage = document.getElementById("heroStage").getBoundingClientRect();
+      const ext = [[1e9, -1e9], [1e9, -1e9]];
+      [...gGlyph.children].forEach((p, i) => {
+        const wi = i < 9 ? 0 : 1;
+        const r = p.getBoundingClientRect();
+        ext[wi][0] = Math.min(ext[wi][0], r.left - stage.left);
+        ext[wi][1] = Math.max(ext[wi][1], r.right - stage.left);
+      });
+      vec = "vec1=" + Math.round(ext[0][1] - ext[0][0]) + " vec2=" + Math.round(ext[1][1] - ext[1][0]);
+    }
+    el.textContent = "t=+" + t.toFixed(2) + "s " + st +
+      " vw=" + Math.round(viewW) + " drift=" + worst.toFixed(2) +
+      " " + vec + " play=" + playOp.toFixed(2) +
+      (dbgDoneAt !== null ? " doneAt=+" + dbgDoneAt.toFixed(2) : "") +
+      (dbgPlayAt !== null ? " playAt=+" + dbgPlayAt.toFixed(2) : "");
+  }
+
   return {
     onScreen(name) {
       if (name !== "home" || booted) return;
       booted = true;
       if (!document.body.classList.contains("user-mode")) return;
       screenHome.classList.add("flood-live");
+      // DEBUG overlay (batch H55 sim diagnosis, DEV_BUILD only — strip before ship)
+      if (typeof DEV_BUILD !== "undefined" && DEV_BUILD) {
+        const dbg = document.createElement("div");
+        dbg.id = "floodDbg";
+        dbg.setAttribute("aria-hidden", "true");
+        dbg.style.cssText = "position:absolute;left:0;right:0;bottom:-26px;font:11px/1.3 " +
+          "ui-monospace,monospace;color:#b00020;background:rgba(255,255,255,.82);" +
+          "z-index:999;pointer-events:none;text-align:center;";
+        dbg.textContent = "flood debug booting…";
+        const stageEl = document.getElementById("heroStage");
+        if (stageEl) stageEl.appendChild(dbg);
+        setInterval(dbgTick, 200);
+      }
       // Tap the wordmark = skip, like the page. The canvas sits on top, so
       // listen on the stage wrapper and let clicks bubble up.
       const stage = document.getElementById("heroStage");
