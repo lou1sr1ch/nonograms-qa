@@ -1643,66 +1643,12 @@ function frame(now) {
     }).catch(e => { console.warn("hero intro font load failed", e); finishNow("font"); });
   }
 
-  // DEBUG (batch H55 sim diagnosis, DEV_BUILD only — strip before ship): an
-  // on-screen readout of the flood internals so simulator/device screenshots
-  // carry the numbers the console would. t= since flood-live, state, viewW,
-  // the drift-guard value, per-word vector ink widths (stage px), Play opacity.
-  let dbgT0 = null, dbgDoneAt = null, dbgPlayAt = null;
-  function dbgTick() {
-    const el = document.getElementById("floodDbg");
-    if (!el) return;
-    if (dbgT0 === null) dbgT0 = performance.now();
-    const t = (performance.now() - dbgT0) / 1000;
-    const st = (screenHome.className.match(/flood-\w+/) || ["none"])[0];
-    if (st !== "none" && dbgDoneAt === null &&
-        (st === "flood-done" || st === "flood-fallback")) dbgDoneAt = t;
-    const playOp = parseFloat(getComputedStyle(document.getElementById("userPlay")).opacity);
-    if (dbgPlayAt === null && playOp > 0.95) dbgPlayAt = t;
-    let worst = 0;
-    for (let i = 0; i < OCC.length && i < origins.length; i++) {
-      const wi = origins[i].word;
-      let cf = MARGIN;
-      for (let j = i - 1; j >= 0 && origins[j].word === wi; j--) cf += OCC[j].adv * S + LS;
-      worst = Math.max(worst, Math.abs(cf - origins[i].x));
-    }
-    let vec = "vec:-";
-    if (gGlyph && gGlyph.children.length) {
-      const stage = document.getElementById("heroStage").getBoundingClientRect();
-      const ext = [[1e9, -1e9], [1e9, -1e9]];
-      [...gGlyph.children].forEach((p, i) => {
-        const wi = i < 9 ? 0 : 1;
-        const r = p.getBoundingClientRect();
-        ext[wi][0] = Math.min(ext[wi][0], r.left - stage.left);
-        ext[wi][1] = Math.max(ext[wi][1], r.right - stage.left);
-      });
-      vec = "vec1=" + Math.round(ext[0][1] - ext[0][0]) + " vec2=" + Math.round(ext[1][1] - ext[1][0]);
-    }
-    el.textContent = "t=+" + t.toFixed(2) + "s " + st +
-      " vw=" + Math.round(viewW) + " drift=" + worst.toFixed(2) +
-      " " + vec + " play=" + playOp.toFixed(2) +
-      (dbgDoneAt !== null ? " doneAt=+" + dbgDoneAt.toFixed(2) : "") +
-      (dbgPlayAt !== null ? " playAt=+" + dbgPlayAt.toFixed(2) : "");
-  }
-
   return {
     onScreen(name) {
       if (name !== "home" || booted) return;
       booted = true;
       if (!document.body.classList.contains("user-mode")) return;
       screenHome.classList.add("flood-live");
-      // DEBUG overlay (batch H55 sim diagnosis, DEV_BUILD only — strip before ship)
-      if (typeof DEV_BUILD !== "undefined" && DEV_BUILD) {
-        const dbg = document.createElement("div");
-        dbg.id = "floodDbg";
-        dbg.setAttribute("aria-hidden", "true");
-        dbg.style.cssText = "position:absolute;left:0;right:0;bottom:-26px;font:11px/1.3 " +
-          "ui-monospace,monospace;color:#b00020;background:rgba(255,255,255,.82);" +
-          "z-index:999;pointer-events:none;text-align:center;";
-        dbg.textContent = "flood debug booting…";
-        const stageEl = document.getElementById("heroStage");
-        if (stageEl) stageEl.appendChild(dbg);
-        setInterval(dbgTick, 200);
-      }
       // Tap the wordmark = skip, like the page. The canvas sits on top, so
       // listen on the stage wrapper and let clicks bubble up.
       const stage = document.getElementById("heroStage");
