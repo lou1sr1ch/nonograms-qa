@@ -963,7 +963,8 @@ body.user-mode[data-screen="home"] #screenHome.flood-fallback #userPlay {
    (JS-gated), and the instant-win button. Strip at ship = delete the dev-mode
    blocks + the devMode settings row. */
 body.dev-mode .puz-profile { display: inline-block; }
-body.dev-mode.user-mode[data-screen="solve"] #devWinBtn {
+body.dev-mode.user-mode[data-screen="solve"] #devWinBtn,
+body.dev-build.user-mode[data-screen="solve"] #devWinBtn {
   display: block;
   position: fixed;
   bottom: 4px;

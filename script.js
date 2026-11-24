@@ -1840,6 +1840,10 @@ function applySettings() {
   // in user mode too — Dre debugs from the user-facing side, so gating the aids on
   // live admin state made them unreachable exactly where he needs them (2026-08-26).
   document.body.classList.toggle("dev-mode", !!settings.devMode);
+  // QA builds are dev builds even where the dev-mode unlock can't run (the F1
+  // admin gate is desktop-only; his phone carries DEV_BUILD). The instant-win
+  // button keys off this class so it's reachable on-device (his H57 ask).
+  document.body.classList.toggle("dev-build", typeof DEV_BUILD !== "undefined" && !!DEV_BUILD);
   // Toggle visibility of solve-stats elements (always hidden in editor mode regardless)
   const inSolve = !editorMode;
   document.getElementById("timer").classList.toggle("hidden", !inSolve || !settings.timer);
